@@ -36,25 +36,25 @@ export default function NewEntryScreen() {
     name: '',
     type: 'Hybrid',
     thc: undefined,
-    cbd: undefined,
-    tac: undefined,
     thca: undefined,
     thcv: undefined,
-    cbg: undefined,
+    cbd: undefined,
+    cbda: undefined,
+    cbdv: undefined,
     brand: '',
     dispensary: ''
   });
   
   // Store raw text for cannabinoid inputs to handle decimal typing
   const [thcText, setThcText] = useState('');
-  const [cbdText, setCbdText] = useState('');
-  const [tacText, setTacText] = useState('');
   const [thcaText, setThcaText] = useState('');
   const [thcvText, setThcvText] = useState('');
-  const [cbgText, setCbgText] = useState('');
+  const [cbdText, setCbdText] = useState('');
+  const [cbdaText, setCbdaText] = useState('');
+  const [cbdvText, setCbdvText] = useState('');
   
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState<'Flower' | 'Vape' | 'Edible' | 'Tincture' | 'Topical' | 'Other'>('Flower');
+  const [method, setMethod] = useState<'Flower' | 'Vape' | 'Dab' | 'Edible'>('Flower');
   const [mood, setMood] = useState<MoodRating>({
     overall: 3
   });
@@ -205,9 +205,23 @@ export default function NewEntryScreen() {
             )}
           </View>
 
-          {/* Strain Information */}
+          {/* Brand Name */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Strain</Text>
+            <Text style={styles.sectionLabel}>Brand Name</Text>
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={styles.input}
+                value={strain.brand}
+                onChangeText={(text) => setStrain({...strain, brand: text})}
+                placeholder="Brand name"
+                placeholderTextColor={theme.colors.textTertiary}
+              />
+            </View>
+          </View>
+
+          {/* Strain Name */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Strain Name</Text>
             <View style={styles.inputGroup}>
               <TextInput
                 style={styles.input}
@@ -217,7 +231,53 @@ export default function NewEntryScreen() {
                 placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
+          </View>
 
+          {/* Consumption */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Consumption</Text>
+            <View style={styles.methodGrid}>
+              {(['Flower', 'Vape', 'Dab', 'Edible'] as const).map(m => (
+                <TouchableOpacity
+                  key={m}
+                  style={[
+                    styles.methodChip,
+                    method === m && styles.methodChipActive
+                  ]}
+                  onPress={() => setMethod(m)}
+                >
+                  <Text style={[
+                    styles.methodChipText,
+                    method === m && styles.methodChipTextActive
+                  ]}>
+                    {m}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Amount */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Amount</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                Amount ({method === 'Flower' ? 'g' : method === 'Vape' ? 'puffs' : method === 'Dab' ? 'g' : 'mg'})
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={amount}
+                onChangeText={setAmount}
+                placeholder={method === 'Flower' ? '0.5' : method === 'Vape' ? '10' : method === 'Dab' ? '0.1' : '5'}
+                keyboardType="numeric"
+                placeholderTextColor={theme.colors.textTertiary}
+              />
+            </View>
+          </View>
+
+          {/* Strain Type */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Strain Type</Text>
             <View style={styles.typeGrid}>
               {(['Indica', 'Sativa', 'Hybrid', 'CBD'] as const).map(type => (
                 <TouchableOpacity
@@ -274,23 +334,6 @@ export default function NewEntryScreen() {
                 />
               </View>
               <View style={styles.inputThird}>
-                <Text style={styles.inputLabel}>TAC %</Text>
-                <TextInput
-                  style={styles.input}
-                  value={tacText}
-                  onChangeText={(text) => {
-                    setTacText(text);
-                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                    setStrain({...strain, tac: isNaN(parsed!) ? undefined : parsed});
-                  }}
-                  placeholder="25.0"
-                  keyboardType="numeric"
-                  placeholderTextColor={theme.colors.textTertiary}
-                />
-              </View>
-            </View>
-            <View style={styles.row}>
-              <View style={styles.inputThird}>
                 <Text style={styles.inputLabel}>THCV %</Text>
                 <TextInput
                   style={styles.input}
@@ -305,6 +348,8 @@ export default function NewEntryScreen() {
                   placeholderTextColor={theme.colors.textTertiary}
                 />
               </View>
+            </View>
+            <View style={styles.row}>
               <View style={styles.inputThird}>
                 <Text style={styles.inputLabel}>CBD %</Text>
                 <TextInput
@@ -321,57 +366,35 @@ export default function NewEntryScreen() {
                 />
               </View>
               <View style={styles.inputThird}>
-                <Text style={styles.inputLabel}>CBG %</Text>
+                <Text style={styles.inputLabel}>CBDA %</Text>
                 <TextInput
                   style={styles.input}
-                  value={cbgText}
+                  value={cbdaText}
                   onChangeText={(text) => {
-                    setCbgText(text);
+                    setCbdaText(text);
                     const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                    setStrain({...strain, cbg: isNaN(parsed!) ? undefined : parsed});
+                    setStrain({...strain, cbda: isNaN(parsed!) ? undefined : parsed});
                   }}
-                  placeholder="0.8"
+                  placeholder="0.3"
                   keyboardType="numeric"
                   placeholderTextColor={theme.colors.textTertiary}
                 />
               </View>
-            </View>
-          </View>
-
-          {/* Consumption */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Consumption</Text>
-            <View style={styles.methodGrid}>
-              {(['Flower', 'Vape', 'Edible'] as const).map(m => (
-                <TouchableOpacity
-                  key={m}
-                  style={[
-                    styles.methodChip,
-                    method === m && styles.methodChipActive
-                  ]}
-                  onPress={() => setMethod(m)}
-                >
-                  <Text style={[
-                    styles.methodChipText,
-                    method === m && styles.methodChipTextActive
-                  ]}>
-                    {m}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                Amount ({method === 'Flower' ? 'g' : method === 'Vape' ? 'puffs' : 'mg'})
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={amount}
-                onChangeText={setAmount}
-                placeholder={method === 'Flower' ? '0.5' : method === 'Vape' ? '10' : '5'}
-                keyboardType="numeric"
-                placeholderTextColor={theme.colors.textTertiary}
-              />
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>CBDV %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={cbdvText}
+                  onChangeText={(text) => {
+                    setCbdvText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, cbdv: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="0.2"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
             </View>
           </View>
 

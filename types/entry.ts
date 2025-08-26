@@ -2,11 +2,11 @@ export interface StrainInfo {
   name: string;
   type: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
   thc?: number;
-  cbd?: number;
-  tac?: number;
   thca?: number;
   thcv?: number;
-  cbg?: number;
+  cbd?: number;
+  cbda?: number;
+  cbdv?: number;
   terpenes?: string[];
   brand?: string;
   dispensary?: string;
@@ -26,7 +26,7 @@ export interface JournalEntry {
   timestamp: Date;
   strain: StrainInfo;
   amount: number; // in grams, puffs, or mg depending on method
-  method: 'Flower' | 'Vape' | 'Edible' | 'Tincture' | 'Topical' | 'Other';
+  method: 'Flower' | 'Vape' | 'Dab' | 'Edible';
   mood: MoodRating;
   effects: Effect[];
   notes: string;
