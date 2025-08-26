@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList, Alert } from 'react-native';
-import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type } from 'lucide-react-native';
+import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type, MapPin, DollarSign, Star, ShoppingBag, Tag } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
-interface Article {
+interface Deal {
   id: string;
-  title: string;
-  excerpt: string;
+  dispensary: string;
+  strainName: string;
+  strainType: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
+  originalPrice: number;
+  salePrice: number;
+  discount: number;
   image: string;
-  author: string;
-  readTime: string;
-  category: 'Education' | 'News' | 'Research' | 'Culture';
-  timestamp: string;
+  description: string;
+  location: string;
+  rating: number;
+  reviewCount: number;
+  validUntil: string;
+  category: 'Flower' | 'Edibles' | 'Concentrates' | 'Vapes' | 'Accessories';
 }
 
 interface Comment {
@@ -45,36 +51,54 @@ interface Post {
   liked: boolean;
 }
 
-const mockArticles: Article[] = [
+const mockDeals: Deal[] = [
   {
     id: '1',
-    title: 'The Science Behind Terpenes: How They Affect Your High',
-    excerpt: 'Understanding the role of terpenes in cannabis and how they interact with cannabinoids to create unique effects.',
-    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=200&fit=crop',
-    author: 'Dr. Sarah Johnson',
-    readTime: '5 min read',
-    category: 'Education',
-    timestamp: '2 days ago',
+    dispensary: 'Green Valley Dispensary',
+    strainName: 'Blue Dream',
+    strainType: 'Hybrid',
+    originalPrice: 45,
+    salePrice: 32,
+    discount: 29,
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+    description: 'Premium indoor grown Blue Dream with exceptional terpene profile',
+    location: 'Downtown, 2.3 miles',
+    rating: 4.8,
+    reviewCount: 127,
+    validUntil: 'Today only',
+    category: 'Flower',
   },
   {
     id: '2',
-    title: 'Cannabis Legalization Update: What Changed This Month',
-    excerpt: 'Latest developments in cannabis legislation across different states and their impact on the industry.',
-    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=200&fit=crop',
-    author: 'Mike Chen',
-    readTime: '3 min read',
-    category: 'News',
-    timestamp: '1 week ago',
+    dispensary: 'Sunset Cannabis Co.',
+    strainName: 'Gorilla Glue #4',
+    strainType: 'Indica',
+    originalPrice: 55,
+    salePrice: 38,
+    discount: 31,
+    image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop',
+    description: 'Heavy hitting indica perfect for evening relaxation',
+    location: 'Midtown, 1.8 miles',
+    rating: 4.6,
+    reviewCount: 89,
+    validUntil: 'Ends tomorrow',
+    category: 'Flower',
   },
   {
     id: '3',
-    title: 'Growing at Home: Essential Tips for Beginners',
-    excerpt: 'Everything you need to know to start your first cannabis garden, from seeds to harvest.',
-    image: 'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=400&h=200&fit=crop',
-    author: 'Green Thumb Collective',
-    readTime: '8 min read',
-    category: 'Education',
-    timestamp: '3 days ago',
+    dispensary: 'Elevated Wellness',
+    strainName: 'Sour Diesel Gummies',
+    strainType: 'Sativa',
+    originalPrice: 25,
+    salePrice: 18,
+    discount: 28,
+    image: 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=400&h=300&fit=crop',
+    description: '10mg THC gummies with natural fruit flavors',
+    location: 'Westside, 3.1 miles',
+    rating: 4.7,
+    reviewCount: 203,
+    validUntil: '3 days left',
+    category: 'Edibles',
   },
 ];
 
@@ -196,7 +220,7 @@ const mockPosts: Post[] = [
 export default function DiscoverScreen() {
   const { theme } = useTheme();
   const [posts, setPosts] = useState(mockPosts);
-  const [activeTab, setActiveTab] = useState<'trending' | 'following'>('trending');
+  const [activeTab, setActiveTab] = useState<'deals' | 'community'>('deals');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentText, setCommentText] = useState('');
   const [showComments, setShowComments] = useState(false);
@@ -325,14 +349,16 @@ export default function DiscoverScreen() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Education':
+      case 'Flower':
         return '#10B981';
-      case 'News':
-        return '#3B82F6';
-      case 'Research':
-        return '#8B5CF6';
-      case 'Culture':
+      case 'Edibles':
         return '#F59E0B';
+      case 'Concentrates':
+        return '#8B5CF6';
+      case 'Vapes':
+        return '#06B6D4';
+      case 'Accessories':
+        return '#EF4444';
       default:
         return theme.colors.textSecondary;
     }
@@ -369,27 +395,27 @@ export default function DiscoverScreen() {
         </View>
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'trending' && styles.activeTab]}
-            onPress={() => setActiveTab('trending')}
+            style={[styles.tab, activeTab === 'deals' && styles.activeTab]}
+            onPress={() => setActiveTab('deals')}
           >
-            <TrendingUp size={16} color={activeTab === 'trending' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
+            <Tag size={16} color={activeTab === 'deals' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
             <Text style={[
               styles.tabText,
-              activeTab === 'trending' && styles.activeTabText
+              activeTab === 'deals' && styles.activeTabText
             ]}>
-              Trending
+              Deals
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'following' && styles.activeTab]}
-            onPress={() => setActiveTab('following')}
+            style={[styles.tab, activeTab === 'community' && styles.activeTab]}
+            onPress={() => setActiveTab('community')}
           >
-            <Users size={16} color={activeTab === 'following' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
+            <Users size={16} color={activeTab === 'community' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
             <Text style={[
               styles.tabText,
-              activeTab === 'following' && styles.activeTabText
+              activeTab === 'community' && styles.activeTabText
             ]}>
-              Following
+              Community
             </Text>
           </TouchableOpacity>
         </View>
@@ -399,56 +425,94 @@ export default function DiscoverScreen() {
         style={styles.postsContainer}
         showsVerticalScrollIndicator={false}
       >
-        {activeTab === 'trending' && (
-          <View style={styles.articlesSection}>
+        {activeTab === 'deals' && (
+          <View style={styles.dealsSection}>
             <View style={styles.sectionHeader}>
-              <BookOpen size={20} color={theme.colors.text} strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>Featured Articles</Text>
+              <ShoppingBag size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Today's Best Deals</Text>
             </View>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
-              style={styles.articlesScroll}
-              contentContainerStyle={styles.articlesContent}
+              style={styles.dealsScroll}
+              contentContainerStyle={styles.dealsContent}
             >
-              {mockArticles.map((article) => (
-                <TouchableOpacity key={article.id} style={styles.articleCard}>
-                  <Image source={{ uri: article.image }} style={styles.articleImage} />
-                  <View style={styles.articleContent}>
-                    <View style={styles.articleMeta}>
+              {mockDeals.map((deal) => (
+                <TouchableOpacity key={deal.id} style={styles.dealCard}>
+                  <View style={styles.dealImageContainer}>
+                    <Image source={{ uri: deal.image }} style={styles.dealImage} />
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountText}>{deal.discount}% OFF</Text>
+                    </View>
+                  </View>
+                  <View style={styles.dealContent}>
+                    <View style={styles.dealHeader}>
                       <View style={[
                         styles.categoryBadge,
-                        { backgroundColor: getCategoryColor(article.category) }
+                        { backgroundColor: getCategoryColor(deal.category) }
                       ]}>
-                        <Text style={styles.categoryText}>{article.category}</Text>
+                        <Text style={styles.categoryText}>{deal.category}</Text>
                       </View>
-                      <Text style={styles.readTime}>{article.readTime}</Text>
+                      <View style={[
+                        styles.strainTypeBadge,
+                        { backgroundColor: getStrainTypeColor(deal.strainType) }
+                      ]}>
+                        <Text style={styles.strainTypeText}>{deal.strainType}</Text>
+                      </View>
                     </View>
-                    <Text style={styles.articleTitle} numberOfLines={2}>
-                      {article.title}
+                    <Text style={styles.dealStrainName} numberOfLines={1}>
+                      {deal.strainName}
                     </Text>
-                    <Text style={styles.articleExcerpt} numberOfLines={2}>
-                      {article.excerpt}
+                    <Text style={styles.dealDispensary} numberOfLines={1}>
+                      {deal.dispensary}
                     </Text>
-                    <View style={styles.articleFooter}>
-                      <Text style={styles.articleAuthor}>{article.author}</Text>
-                      <Text style={styles.articleTimestamp}>{article.timestamp}</Text>
+                    <View style={styles.dealPricing}>
+                      <Text style={styles.originalPrice}>${deal.originalPrice}</Text>
+                      <Text style={styles.salePrice}>${deal.salePrice}</Text>
+                    </View>
+                    <View style={styles.dealMeta}>
+                      <View style={styles.ratingContainer}>
+                        <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
+                        <Text style={styles.ratingText}>{deal.rating}</Text>
+                        <Text style={styles.reviewCount}>({deal.reviewCount})</Text>
+                      </View>
+                    </View>
+                    <View style={styles.dealFooter}>
+                      <View style={styles.locationContainer}>
+                        <MapPin size={12} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                        <Text style={styles.locationText}>{deal.location}</Text>
+                      </View>
+                      <Text style={styles.validUntil}>{deal.validUntil}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            <View style={styles.trackingPrompt}>
+              <View style={styles.trackingIcon}>
+                <DollarSign size={20} color={theme.colors.primary} strokeWidth={1.5} />
+              </View>
+              <View style={styles.trackingContent}>
+                <Text style={styles.trackingTitle}>Track Your Savings</Text>
+                <Text style={styles.trackingText}>Enable location and purchase tracking to see personalized deals and savings analytics</Text>
+              </View>
+              <TouchableOpacity style={styles.trackingButton}>
+                <Text style={styles.trackingButtonText}>Enable</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
-        <View style={styles.postsSection}>
-          <View style={styles.sectionHeader}>
-            <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>Community Posts</Text>
+        {activeTab === 'community' && (
+          <View style={styles.postsSection}>
+            <View style={styles.sectionHeader}>
+              <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Community Posts</Text>
+            </View>
           </View>
-        </View>
+        )}
 
-        {activeTab === 'following' && posts.length === 0 ? (
+        {activeTab === 'community' && posts.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
               <Users size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
@@ -458,7 +522,7 @@ export default function DiscoverScreen() {
               Follow other users to see their posts here
             </Text>
           </View>
-        ) : (
+        ) : activeTab === 'community' ? (
           posts.map((post) => (
             <View key={post.id} style={styles.postCard}>
               <View style={styles.postHeader}>
@@ -531,7 +595,7 @@ export default function DiscoverScreen() {
               </View>
             </View>
           ))
-        )}
+        ) : null}
       </ScrollView>
 
       <Modal
@@ -933,6 +997,175 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
     lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
     maxWidth: 280,
+  },
+  dealsSection: {
+    paddingVertical: theme.spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  dealsScroll: {
+    paddingLeft: theme.spacing.xl,
+  },
+  dealsContent: {
+    paddingRight: theme.spacing.xl,
+  },
+  dealCard: {
+    width: 300,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    marginRight: theme.spacing.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
+  },
+  dealImageContainer: {
+    position: 'relative',
+  },
+  dealImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  discountBadge: {
+    position: 'absolute',
+    top: theme.spacing.sm,
+    right: theme.spacing.sm,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  discountText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.heavy,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dealContent: {
+    padding: theme.spacing.lg,
+  },
+  dealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  dealStrainName: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  dealDispensary: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.md,
+  },
+  dealPricing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  originalPrice: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textDecorationLine: 'line-through',
+  },
+  salePrice: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.heavy,
+    color: theme.colors.primary,
+  },
+  dealMeta: {
+    marginBottom: theme.spacing.md,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  ratingText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  reviewCount: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  dealFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    flex: 1,
+  },
+  locationText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  validUntil: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: '#EF4444',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  trackingPrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.cardSecondary,
+    marginHorizontal: theme.spacing.xl,
+    marginTop: theme.spacing.lg,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    gap: theme.spacing.md,
+  },
+  trackingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trackingContent: {
+    flex: 1,
+  },
+  trackingTitle: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  trackingText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+  },
+  trackingButton: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.lg,
+  },
+  trackingButtonText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.background,
   },
   articlesSection: {
     paddingVertical: theme.spacing.lg,
