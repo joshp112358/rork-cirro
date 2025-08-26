@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Search, Filter, Calendar, TrendingUp, BarChart3 } from 'lucide-react-native';
+import { Search, Filter, Calendar, TrendingUp, BarChart3, Plus } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
 import { EntryCard } from '@/components/EntryCard';
+import { router } from 'expo-router';
 
 export default function JournalScreen() {
   const { theme } = useTheme();
@@ -39,6 +40,13 @@ export default function JournalScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Journal</Text>
+          <TouchableOpacity 
+            style={styles.logButton}
+            onPress={() => router.push('/new-entry')}
+          >
+            <Plus size={18} color={theme.colors.background} strokeWidth={2} />
+            <Text style={styles.logButtonText}>Log Session</Text>
+          </TouchableOpacity>
         </View>
 
         {analytics && entries.length > 0 && (
@@ -165,6 +173,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,
     paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing.lg,
@@ -174,6 +185,20 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.heavy,
     color: theme.colors.text,
     letterSpacing: -0.5,
+  },
+  logButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
+    gap: theme.spacing.xs,
+  },
+  logButtonText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.background,
   },
   analyticsSection: {
     paddingHorizontal: theme.spacing.xl,
