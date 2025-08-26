@@ -390,7 +390,7 @@ export default function DiscoverScreen() {
             style={styles.createPostButton}
             onPress={() => setShowCreatePost(true)}
           >
-            <Plus size={20} color={theme.colors.primary} strokeWidth={2} />
+            <Text style={styles.createPostButtonText}>Create Post</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.tabContainer}>
@@ -698,48 +698,70 @@ export default function DiscoverScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.createPostContent}>
-            <View style={styles.createPostSection}>
-              <Text style={styles.sectionLabel}>What's on your mind?</Text>
-              <TextInput
-                style={styles.postTextInput}
-                placeholder="Share your cannabis experience..."
-                placeholderTextColor={theme.colors.textSecondary}
-                value={newPostText}
-                onChangeText={setNewPostText}
-                multiline
-                maxLength={500}
-                textAlignVertical="top"
-              />
-              <Text style={styles.characterCount}>
-                {newPostText.length}/500
-              </Text>
+          <ScrollView style={styles.createPostContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.createPostCard}>
+              <View style={styles.createPostHeader}>
+                <View style={styles.userPreview}>
+                  <Image 
+                    source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face' }} 
+                    style={styles.userPreviewAvatar} 
+                  />
+                  <Text style={styles.userPreviewName}>You</Text>
+                </View>
+              </View>
+              
+              <View style={styles.postInputSection}>
+                <TextInput
+                  style={styles.postTextInput}
+                  placeholder="What's your cannabis experience today?"
+                  placeholderTextColor={theme.colors.textSecondary}
+                  value={newPostText}
+                  onChangeText={setNewPostText}
+                  multiline
+                  maxLength={500}
+                  textAlignVertical="top"
+                />
+                <View style={styles.characterCountContainer}>
+                  <Text style={styles.characterCount}>
+                    {newPostText.length}/500
+                  </Text>
+                </View>
+              </View>
             </View>
 
-            <View style={styles.createPostSection}>
-              <Text style={styles.sectionLabel}>Strain Information</Text>
-              <View style={styles.strainInputContainer}>
+            <View style={styles.createPostCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Type size={18} color={theme.colors.primary} strokeWidth={1.5} />
+                </View>
+                <Text style={styles.cardTitle}>Strain Details</Text>
+              </View>
+              
+              <View style={styles.strainInputSection}>
                 <TextInput
                   style={styles.strainNameInput}
-                  placeholder="Strain name (e.g., Blue Dream)"
+                  placeholder="Enter strain name"
                   placeholderTextColor={theme.colors.textSecondary}
                   value={newPostStrain.name}
                   onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, name: text }))}
                   maxLength={50}
                 />
-                <View style={styles.strainTypeContainer}>
+                
+                <View style={styles.strainTypeGrid}>
                   {(['Indica', 'Sativa', 'Hybrid', 'CBD'] as const).map((type) => (
                     <TouchableOpacity
                       key={type}
                       style={[
-                        styles.strainTypeOption,
-                        newPostStrain.type === type && styles.strainTypeSelected,
-                        { backgroundColor: newPostStrain.type === type ? getStrainTypeColor(type) : theme.colors.cardSecondary }
+                        styles.strainTypeChip,
+                        newPostStrain.type === type && [
+                          styles.strainTypeChipSelected,
+                          { backgroundColor: getStrainTypeColor(type) }
+                        ]
                       ]}
                       onPress={() => setNewPostStrain(prev => ({ ...prev, type }))}
                     >
                       <Text style={[
-                        styles.strainTypeOptionText,
+                        styles.strainTypeChipText,
                         { color: newPostStrain.type === type ? '#FFFFFF' : theme.colors.text }
                       ]}>
                         {type}
@@ -750,24 +772,40 @@ export default function DiscoverScreen() {
               </View>
             </View>
 
-            <View style={styles.createPostSection}>
-              <Text style={styles.sectionLabel}>Add Photo (Optional)</Text>
-              <TouchableOpacity style={styles.addPhotoButton} onPress={handleAddPhoto}>
-                <Camera size={24} color={theme.colors.textSecondary} strokeWidth={1.5} />
-                <Text style={styles.addPhotoText}>Add Photo</Text>
-              </TouchableOpacity>
-              {newPostImage && (
+            <View style={styles.createPostCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Camera size={18} color={theme.colors.primary} strokeWidth={1.5} />
+                </View>
+                <Text style={styles.cardTitle}>Add Photo</Text>
+                <Text style={styles.cardSubtitle}>Optional</Text>
+              </View>
+              
+              {!newPostImage ? (
+                <TouchableOpacity style={styles.photoUploadArea} onPress={handleAddPhoto}>
+                  <View style={styles.photoUploadIcon}>
+                    <Camera size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                  </View>
+                  <Text style={styles.photoUploadText}>Tap to add photo</Text>
+                  <Text style={styles.photoUploadSubtext}>Share your experience visually</Text>
+                </TouchableOpacity>
+              ) : (
                 <View style={styles.selectedImageContainer}>
                   <Image source={{ uri: newPostImage }} style={styles.selectedImage} />
                   <TouchableOpacity 
                     style={styles.removeImageButton}
                     onPress={() => setNewPostImage('')}
                   >
-                    <X size={16} color={theme.colors.background} strokeWidth={2} />
+                    <X size={18} color={theme.colors.background} strokeWidth={2} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.changePhotoButton} onPress={handleAddPhoto}>
+                    <Text style={styles.changePhotoText}>Change Photo</Text>
                   </TouchableOpacity>
                 </View>
               )}
             </View>
+            
+            <View style={styles.createPostFooter} />
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -800,14 +838,23 @@ const createStyles = (theme: any) => StyleSheet.create({
     letterSpacing: -0.5,
   },
   createPostButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.cardSecondary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  createPostButtonText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.background,
+    letterSpacing: 0.3,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -1333,18 +1380,103 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   createPostContent: {
     flex: 1,
-    paddingHorizontal: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
   },
-  createPostSection: {
-    marginBottom: theme.spacing.xl,
+  createPostCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.xl,
+    marginBottom: theme.spacing.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    shadowColor: theme.colors.text,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  sectionLabel: {
+  createPostHeader: {
+    padding: theme.spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  userPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  userPreviewAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  userPreviewName: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
+  },
+  postInputSection: {
+    padding: theme.spacing.lg,
   },
   postTextInput: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
+  },
+  characterCountContainer: {
+    alignItems: 'flex-end',
+    marginTop: theme.spacing.sm,
+  },
+  characterCount: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    backgroundColor: theme.colors.cardSecondary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  cardHeaderIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.cardSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  cardSubtitle: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    backgroundColor: theme.colors.cardSecondary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  strainInputSection: {
+    padding: theme.spacing.lg,
+    gap: theme.spacing.lg,
+  },
+  strainNameInput: {
     borderWidth: 0.5,
     borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.lg,
@@ -1354,84 +1486,103 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
     backgroundColor: theme.colors.cardSecondary,
-    minHeight: 120,
-    marginBottom: theme.spacing.xs,
   },
-  characterCount: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    textAlign: 'right',
-  },
-  strainInputContainer: {
-    gap: theme.spacing.md,
-  },
-  strainNameInput: {
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.lg,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.text,
-    backgroundColor: theme.colors.cardSecondary,
-  },
-  strainTypeContainer: {
+  strainTypeGrid: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
   },
-  strainTypeOption: {
+  strainTypeChip: {
     flex: 1,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     alignItems: 'center',
+    backgroundColor: theme.colors.cardSecondary,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
   },
-  strainTypeSelected: {
+  strainTypeChipSelected: {
     borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  strainTypeOptionText: {
+  strainTypeChipText: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.medium,
+    letterSpacing: 0.3,
   },
-  addPhotoButton: {
-    flexDirection: 'row',
+  photoUploadArea: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.lg,
+    paddingVertical: theme.spacing.xxl,
+    paddingHorizontal: theme.spacing.lg,
+    margin: theme.spacing.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.xl,
     borderStyle: 'dashed',
     backgroundColor: theme.colors.cardSecondary,
   },
-  addPhotoText: {
+  photoUploadIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+  },
+  photoUploadText: {
     fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  photoUploadSubtext: {
+    fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.light,
     color: theme.colors.textSecondary,
+    textAlign: 'center',
   },
   selectedImageContainer: {
     position: 'relative',
-    marginTop: theme.spacing.md,
+    margin: theme.spacing.lg,
   },
   selectedImage: {
     width: '100%',
-    height: 200,
-    borderRadius: theme.borderRadius.lg,
+    height: 240,
+    borderRadius: theme.borderRadius.xl,
     backgroundColor: theme.colors.cardSecondary,
   },
   removeImageButton: {
     position: 'absolute',
-    top: theme.spacing.sm,
-    right: theme.spacing.sm,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    top: theme.spacing.md,
+    right: theme.spacing.md,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  changePhotoButton: {
+    position: 'absolute',
+    bottom: theme.spacing.md,
+    left: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: theme.borderRadius.lg,
+  },
+  changePhotoText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: '#FFFFFF',
+  },
+  createPostFooter: {
+    height: theme.spacing.xxl,
   },
 });
