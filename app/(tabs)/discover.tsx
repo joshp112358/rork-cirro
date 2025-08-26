@@ -852,7 +852,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   createPostButtonText: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: theme.colors.background,
     letterSpacing: 0.3,
   },
@@ -1266,7 +1266,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
   },
   closeButton: {
@@ -1375,7 +1375,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   postButtonText: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: theme.colors.background,
   },
   createPostContent: {
@@ -1412,7 +1412,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   userPreviewName: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
   },
   postInputSection: {
@@ -1457,7 +1457,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   cardTitle: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
     flex: 1,
   },
@@ -1510,7 +1510,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   strainTypeChipText: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     letterSpacing: 0.3,
   },
   photoUploadArea: {
@@ -1537,7 +1537,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   photoUploadText: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
   },
@@ -1579,7 +1579,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   changePhotoText: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.light,
     color: '#FFFFFF',
   },
   createPostFooter: {
