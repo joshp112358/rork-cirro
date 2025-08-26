@@ -1151,10 +1151,19 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   validUntil: {
     fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: '300',
     color: '#EF4444',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  dealDescription: {
+    marginBottom: theme.spacing.md,
+  },
+  dealDescriptionText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: '300',
+    color: theme.colors.textSecondary,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
   },
 
   articlesSection: {
