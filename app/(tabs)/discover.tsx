@@ -18,14 +18,6 @@ interface Deal {
   reviewCount: number;
   validUntil: string;
   category: 'Flower' | 'Edibles' | 'Concentrates' | 'Vapes' | 'Accessories';
-  cannabinoids?: {
-    thc?: number;
-    thca?: number;
-    cbd?: number;
-    cbg?: number;
-    thcv?: number;
-    tac?: number;
-  };
 }
 
 interface Comment {
@@ -50,14 +42,6 @@ interface Post {
   strain: {
     name: string;
     type: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
-    cannabinoids?: {
-      thc?: number;
-      thca?: number;
-      cbd?: number;
-      cbg?: number;
-      thcv?: number;
-      tac?: number;
-    };
   };
   image: string;
   caption: string;
@@ -83,14 +67,6 @@ const mockDeals: Deal[] = [
     reviewCount: 127,
     validUntil: 'Today only',
     category: 'Flower',
-    cannabinoids: {
-      thc: 18.5,
-      thca: 21.2,
-      cbd: 0.8,
-      cbg: 1.2,
-      thcv: 0.3,
-      tac: 22.1
-    },
   },
   {
     id: '2',
@@ -107,14 +83,6 @@ const mockDeals: Deal[] = [
     reviewCount: 89,
     validUntil: 'Ends tomorrow',
     category: 'Flower',
-    cannabinoids: {
-      thc: 24.8,
-      thca: 28.1,
-      cbd: 0.2,
-      cbg: 0.9,
-      thcv: 0.1,
-      tac: 29.3
-    },
   },
   {
     id: '3',
@@ -131,11 +99,6 @@ const mockDeals: Deal[] = [
     reviewCount: 203,
     validUntil: '3 days left',
     category: 'Edibles',
-    cannabinoids: {
-      thc: 10.0,
-      cbd: 0.5,
-      cbg: 0.2
-    },
   },
 ];
 
@@ -150,14 +113,6 @@ const mockPosts: Post[] = [
     strain: {
       name: 'Purple Haze',
       type: 'Sativa',
-      cannabinoids: {
-        thc: 19.2,
-        thca: 22.8,
-        cbd: 0.3,
-        cbg: 1.1,
-        thcv: 0.8,
-        tac: 24.2
-      },
     },
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
     caption: 'Perfect for a creative afternoon session. The colors are incredible!',
@@ -199,14 +154,6 @@ const mockPosts: Post[] = [
     strain: {
       name: 'Northern Lights',
       type: 'Indica',
-      cannabinoids: {
-        thc: 16.8,
-        thca: 19.5,
-        cbd: 1.2,
-        cbg: 0.7,
-        thcv: 0.2,
-        tac: 21.4
-      },
     },
     image: 'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=400&h=400&fit=crop',
     caption: 'Best sleep strain I\'ve tried. Knocked me out in the best way possible',
@@ -237,14 +184,6 @@ const mockPosts: Post[] = [
     strain: {
       name: 'Blue Dream',
       type: 'Hybrid',
-      cannabinoids: {
-        thc: 18.5,
-        thca: 21.2,
-        cbd: 0.8,
-        cbg: 1.2,
-        thcv: 0.3,
-        tac: 22.1
-      },
     },
     image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=400&fit=crop',
     caption: 'The perfect balance. Great for both day and night sessions. Highly recommend!',
@@ -538,46 +477,6 @@ export default function DiscoverScreen() {
                         <Text style={styles.reviewCount}>({deal.reviewCount})</Text>
                       </View>
                     </View>
-                    {deal.cannabinoids && (
-                      <View style={styles.cannabinoidsGrid}>
-                        {deal.cannabinoids.thc && (
-                          <View style={styles.cannabinoidCard}>
-                            <Text style={styles.cannabinoidLabel}>THC</Text>
-                            <Text style={styles.cannabinoidValue}>{deal.cannabinoids.thc}%</Text>
-                          </View>
-                        )}
-                        {deal.cannabinoids.thca && (
-                          <View style={styles.cannabinoidCard}>
-                            <Text style={styles.cannabinoidLabel}>THCA</Text>
-                            <Text style={styles.cannabinoidValue}>{deal.cannabinoids.thca}%</Text>
-                          </View>
-                        )}
-                        {deal.cannabinoids.cbd && (
-                          <View style={styles.cannabinoidCard}>
-                            <Text style={styles.cannabinoidLabel}>CBD</Text>
-                            <Text style={styles.cannabinoidValue}>{deal.cannabinoids.cbd}%</Text>
-                          </View>
-                        )}
-                        {deal.cannabinoids.cbg && (
-                          <View style={styles.cannabinoidCard}>
-                            <Text style={styles.cannabinoidLabel}>CBG</Text>
-                            <Text style={styles.cannabinoidValue}>{deal.cannabinoids.cbg}%</Text>
-                          </View>
-                        )}
-                        {deal.cannabinoids.thcv && (
-                          <View style={styles.cannabinoidCard}>
-                            <Text style={styles.cannabinoidLabel}>THCV</Text>
-                            <Text style={styles.cannabinoidValue}>{deal.cannabinoids.thcv}%</Text>
-                          </View>
-                        )}
-                        {deal.cannabinoids.tac && (
-                          <View style={styles.cannabinoidCard}>
-                            <Text style={styles.cannabinoidLabel}>TAC</Text>
-                            <Text style={styles.cannabinoidValue}>{deal.cannabinoids.tac}%</Text>
-                          </View>
-                        )}
-                      </View>
-                    )}
                     <View style={styles.dealFooter}>
                       <View style={styles.locationContainer}>
                         <MapPin size={12} color={theme.colors.textSecondary} strokeWidth={1.5} />
@@ -649,50 +548,6 @@ export default function DiscoverScreen() {
 
               <View style={styles.postContent}>
                 <Text style={styles.caption}>{post.caption}</Text>
-                
-                {post.strain.cannabinoids && (
-                  <View style={styles.strainDetails}>
-                    <Text style={styles.strainDetailsTitle}>Strain Details</Text>
-                    <View style={styles.cannabinoidsGrid}>
-                      {post.strain.cannabinoids.thc && (
-                        <View style={styles.cannabinoidCard}>
-                          <Text style={styles.cannabinoidLabel}>THC</Text>
-                          <Text style={styles.cannabinoidValue}>{post.strain.cannabinoids.thc}%</Text>
-                        </View>
-                      )}
-                      {post.strain.cannabinoids.thca && (
-                        <View style={styles.cannabinoidCard}>
-                          <Text style={styles.cannabinoidLabel}>THCA</Text>
-                          <Text style={styles.cannabinoidValue}>{post.strain.cannabinoids.thca}%</Text>
-                        </View>
-                      )}
-                      {post.strain.cannabinoids.cbd && (
-                        <View style={styles.cannabinoidCard}>
-                          <Text style={styles.cannabinoidLabel}>CBD</Text>
-                          <Text style={styles.cannabinoidValue}>{post.strain.cannabinoids.cbd}%</Text>
-                        </View>
-                      )}
-                      {post.strain.cannabinoids.cbg && (
-                        <View style={styles.cannabinoidCard}>
-                          <Text style={styles.cannabinoidLabel}>CBG</Text>
-                          <Text style={styles.cannabinoidValue}>{post.strain.cannabinoids.cbg}%</Text>
-                        </View>
-                      )}
-                      {post.strain.cannabinoids.thcv && (
-                        <View style={styles.cannabinoidCard}>
-                          <Text style={styles.cannabinoidLabel}>THCV</Text>
-                          <Text style={styles.cannabinoidValue}>{post.strain.cannabinoids.thcv}%</Text>
-                        </View>
-                      )}
-                      {post.strain.cannabinoids.tac && (
-                        <View style={styles.cannabinoidCard}>
-                          <Text style={styles.cannabinoidLabel}>TAC</Text>
-                          <Text style={styles.cannabinoidValue}>{post.strain.cannabinoids.tac}%</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                )}
                 
                 <View style={styles.postActions}>
                   <TouchableOpacity
@@ -1296,19 +1151,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   validUntil: {
     fontSize: theme.fontSize.xs,
-    fontWeight: '300',
+    fontWeight: theme.fontWeight.medium,
     color: '#EF4444',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  },
-  dealDescription: {
-    marginBottom: theme.spacing.md,
-  },
-  dealDescriptionText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: '300',
-    color: theme.colors.textSecondary,
-    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
   },
 
   articlesSection: {
@@ -1738,45 +1584,5 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   createPostFooter: {
     height: theme.spacing.xxl,
-  },
-  cannabinoidsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
-  },
-  cannabinoidCard: {
-    backgroundColor: theme.colors.cardSecondary,
-    borderRadius: theme.borderRadius.sm,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    alignItems: 'center',
-    minWidth: 45,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-  },
-  cannabinoidLabel: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  cannabinoidValue: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.text,
-    letterSpacing: -0.2,
-  },
-  strainDetails: {
-    marginBottom: theme.spacing.lg,
-  },
-  strainDetailsTitle: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-    letterSpacing: -0.2,
   },
 });
