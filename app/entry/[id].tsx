@@ -3,24 +3,17 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Pla
 import { useLocalSearchParams, router } from 'expo-router';
 import { Calendar, Leaf, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { theme } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
 import { StarRating } from '@/components/StarRating';
 import { MOOD_LABELS } from '@/types/entry';
 
 export default function EntryDetailScreen() {
+  const { theme } = useTheme();
   const { id } = useLocalSearchParams();
   const { getEntry, deleteEntry } = useEntries();
   const entry = getEntry(id as string);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  if (!entry) {
-    return (
-      <View style={styles.container}>
-        <Text>Entry not found</Text>
-      </View>
-    );
-  }
 
   const formatDate = (date: Date) => {
     const d = new Date(date);
@@ -36,11 +29,11 @@ export default function EntryDetailScreen() {
 
   const getMoodColor = (mood: number) => {
     switch (mood) {
-      case 1: return theme.colors.moodTerrible;
-      case 2: return theme.colors.moodBad;
-      case 3: return theme.colors.moodOkay;
-      case 4: return theme.colors.moodGood;
-      case 5: return theme.colors.moodExcellent;
+      case 1: return theme.colors.error;
+      case 2: return theme.colors.warning;
+      case 3: return theme.colors.textSecondary;
+      case 4: return theme.colors.success;
+      case 5: return theme.colors.accent;
       default: return theme.colors.border;
     }
   };
@@ -76,6 +69,16 @@ export default function EntryDetailScreen() {
     );
   };
 
+  const styles = createStyles(theme);
+
+  if (!entry) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Entry not found</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {entry.imageUri && (
@@ -95,7 +98,7 @@ export default function EntryDetailScreen() {
         </View>
 
         <View style={styles.dateRow}>
-          <Calendar size={16} color={theme.colors.textLight} />
+          <Calendar size={16} color={theme.colors.textSecondary} />
           <Text style={styles.date}>{formatDate(entry.timestamp)}</Text>
         </View>
 
@@ -130,13 +133,17 @@ export default function EntryDetailScreen() {
               <View style={[styles.moodIndicator, { backgroundColor: getMoodColor(entry.mood.before) }]} />
               <Text style={styles.moodLabel}>{MOOD_LABELS[entry.mood.before as keyof typeof MOOD_LABELS]}</Text>
             </View>
-            <Text style={styles.moodArrow}>→</Text>
+            <View style={styles.moodArrowContainer}>
+              <Text style={styles.moodArrow}>→</Text>
+            </View>
             <View style={styles.moodItem}>
               <Text style={styles.moodPhase}>During</Text>
               <View style={[styles.moodIndicator, { backgroundColor: getMoodColor(entry.mood.during) }]} />
               <Text style={styles.moodLabel}>{MOOD_LABELS[entry.mood.during as keyof typeof MOOD_LABELS]}</Text>
             </View>
-            <Text style={styles.moodArrow}>→</Text>
+            <View style={styles.moodArrowContainer}>
+              <Text style={styles.moodArrow}>→</Text>
+            </View>
             <View style={styles.moodItem}>
               <Text style={styles.moodPhase}>After</Text>
               <View style={[styles.moodIndicator, { backgroundColor: getMoodColor(entry.mood.after) }]} />
@@ -215,10 +222,16 @@ export default function EntryDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  errorText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginTop: theme.spacing.xl,
   },
   image: {
     width: '100%',
@@ -240,7 +253,7 @@ const styles = StyleSheet.create({
   },
   strainName: {
     fontSize: theme.fontSize.xl,
-    fontWeight: 'bold' as const,
+    fontWeight: theme.fontWeight.bold,
     color: theme.colors.text,
   },
   strainType: {
@@ -256,7 +269,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.textLight,
+    color: theme.colors.textSecondary,
   },
   infoGrid: {
     flexDirection: 'row',
@@ -269,18 +282,19 @@ const styles = StyleSheet.create({
     minWidth: '45%',
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
     padding: theme.spacing.md,
     alignItems: 'center',
-    ...theme.shadow,
   },
   infoLabel: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.textLight,
+    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.xs,
   },
   infoValue: {
     fontSize: theme.fontSize.lg,
-    fontWeight: '600' as const,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
   },
   section: {
@@ -288,7 +302,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: '600' as const,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -298,15 +312,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
     padding: theme.spacing.lg,
-    ...theme.shadow,
   },
   moodItem: {
     alignItems: 'center',
   },
   moodPhase: {
     fontSize: theme.fontSize.xs,
-    color: theme.colors.textLight,
+    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.sm,
   },
   moodIndicator: {
@@ -317,12 +332,16 @@ const styles = StyleSheet.create({
   },
   moodLabel: {
     fontSize: theme.fontSize.sm,
-    fontWeight: '600' as const,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
+  },
+  moodArrowContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   moodArrow: {
     fontSize: theme.fontSize.xl,
-    color: theme.colors.textLight,
+    color: theme.colors.textSecondary,
   },
   effectsGrid: {
     flexDirection: 'row',
@@ -340,7 +359,7 @@ const styles = StyleSheet.create({
   effectName: {
     fontSize: theme.fontSize.sm,
     color: '#fff',
-    fontWeight: '600' as const,
+    fontWeight: theme.fontWeight.semibold,
   },
   intensityDots: {
     flexDirection: 'row',
@@ -358,11 +377,12 @@ const styles = StyleSheet.create({
   notes: {
     fontSize: theme.fontSize.md,
     color: theme.colors.text,
-    lineHeight: 24,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
     padding: theme.spacing.md,
-    ...theme.shadow,
   },
   additionalRow: {
     flexDirection: 'row',
@@ -371,19 +391,19 @@ const styles = StyleSheet.create({
   },
   additionalLabel: {
     fontSize: theme.fontSize.md,
-    color: theme.colors.textLight,
+    color: theme.colors.textSecondary,
   },
   additionalValue: {
     fontSize: theme.fontSize.md,
     color: theme.colors.text,
-    fontWeight: '600' as const,
+    fontWeight: theme.fontWeight.semibold,
   },
   deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.sm,
-    backgroundColor: '#dc3545',
+    backgroundColor: theme.colors.error,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     marginTop: theme.spacing.xl,
@@ -391,7 +411,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: theme.fontSize.md,
-    fontWeight: '600' as const,
+    fontWeight: theme.fontWeight.semibold,
     color: '#fff',
   },
 });

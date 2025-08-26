@@ -368,15 +368,15 @@ export default function NewEntryScreen() {
             disabled={isSavingEntry || isSaving}
           >
             {(isSavingEntry || isSaving) ? (
-              <React.Fragment>
+              <>
                 <ActivityIndicator size="small" color={theme.colors.background} />
                 <Text style={styles.saveButtonText}>Saving...</Text>
-              </React.Fragment>
+              </>
             ) : (
-              <React.Fragment>
+              <>
                 <Save size={18} color={theme.colors.background} strokeWidth={1.5} />
                 <Text style={styles.saveButtonText}>Save Entry</Text>
-              </React.Fragment>
+              </>
             )}
           </TouchableOpacity>
         </ScrollView>
