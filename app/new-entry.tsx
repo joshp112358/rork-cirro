@@ -29,6 +29,7 @@ export default function NewEntryScreen() {
   const { addEntry, isSaving } = useEntries();
   const [imageUri, setImageUri] = useState<string>('');
   const [isSavingEntry, setIsSavingEntry] = useState(false);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   
@@ -64,6 +65,124 @@ export default function NewEntryScreen() {
 
 
 
+  const analyzeImage = async (uri: string) => {
+    setIsAnalyzingImage(true);
+    try {
+      // Convert image to base64
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      // Send to AI for analysis
+      const aiResponse = await fetch('https://toolkit.rork.com/text/llm/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: 'Analyze this cannabis product label and extract the following information if visible: Strain Name, THC %, CBD %, TAC %, THCA %, THCV %, CBG %, Brand, Dispensary, and Strain Type (Indica/Sativa/Hybrid/CBD). Return the data in JSON format with these exact keys: strainName, thc, cbd, tac, thca, thcv, cbg, brand, dispensary, strainType. Use null for missing values and numbers for percentages (without % symbol).'
+                },
+                {
+                  type: 'image',
+                  image: base64
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      const aiResult = await aiResponse.json();
+      console.log('AI Analysis Result:', aiResult.completion);
+
+      // Try to parse JSON from AI response
+      try {
+        const extractedData = JSON.parse(aiResult.completion);
+        
+        // Update strain info with extracted data
+        if (extractedData.strainName) {
+          setStrain(prev => ({ ...prev, name: extractedData.strainName }));
+        }
+        if (extractedData.brand) {
+          setStrain(prev => ({ ...prev, brand: extractedData.brand }));
+        }
+        if (extractedData.dispensary) {
+          setStrain(prev => ({ ...prev, dispensary: extractedData.dispensary }));
+        }
+        if (extractedData.strainType && ['Indica', 'Sativa', 'Hybrid', 'CBD'].includes(extractedData.strainType)) {
+          setStrain(prev => ({ ...prev, type: extractedData.strainType }));
+        }
+        
+        // Update cannabinoid values and text inputs
+        if (extractedData.thc !== null && extractedData.thc !== undefined) {
+          const thcValue = parseFloat(extractedData.thc);
+          if (!isNaN(thcValue)) {
+            setStrain(prev => ({ ...prev, thc: thcValue }));
+            setThcText(thcValue.toString());
+          }
+        }
+        if (extractedData.cbd !== null && extractedData.cbd !== undefined) {
+          const cbdValue = parseFloat(extractedData.cbd);
+          if (!isNaN(cbdValue)) {
+            setStrain(prev => ({ ...prev, cbd: cbdValue }));
+            setCbdText(cbdValue.toString());
+          }
+        }
+        if (extractedData.tac !== null && extractedData.tac !== undefined) {
+          const tacValue = parseFloat(extractedData.tac);
+          if (!isNaN(tacValue)) {
+            setStrain(prev => ({ ...prev, tac: tacValue }));
+            setTacText(tacValue.toString());
+          }
+        }
+        if (extractedData.thca !== null && extractedData.thca !== undefined) {
+          const thcaValue = parseFloat(extractedData.thca);
+          if (!isNaN(thcaValue)) {
+            setStrain(prev => ({ ...prev, thca: thcaValue }));
+            setThcaText(thcaValue.toString());
+          }
+        }
+        if (extractedData.thcv !== null && extractedData.thcv !== undefined) {
+          const thcvValue = parseFloat(extractedData.thcv);
+          if (!isNaN(thcvValue)) {
+            setStrain(prev => ({ ...prev, thcv: thcvValue }));
+            setThcvText(thcvValue.toString());
+          }
+        }
+        if (extractedData.cbg !== null && extractedData.cbg !== undefined) {
+          const cbgValue = parseFloat(extractedData.cbg);
+          if (!isNaN(cbgValue)) {
+            setStrain(prev => ({ ...prev, cbg: cbgValue }));
+            setCbgText(cbgValue.toString());
+          }
+        }
+
+        Alert.alert('Success', 'Label information extracted and filled in!');
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError);
+        Alert.alert('Info', 'Image analyzed but no clear label data found.');
+      }
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      Alert.alert('Error', 'Failed to analyze image. Please try again.');
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -72,7 +191,9 @@ export default function NewEntryScreen() {
     });
 
     if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setImageUri(uri);
+      await analyzeImage(uri);
     }
   };
 
@@ -89,7 +210,9 @@ export default function NewEntryScreen() {
     });
 
     if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setImageUri(uri);
+      await analyzeImage(uri);
     }
   };
 
@@ -169,16 +292,22 @@ export default function NewEntryScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>New Entry</Text>
             <Text style={styles.subtitle}>Record your experience</Text>
           </View>
 
           {/* Photo Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Photo</Text>
+            <Text style={styles.sectionLabel}>Scan Label</Text>
+            <Text style={styles.scanDescription}>Take a photo of your cannabis label to auto-fill strain information</Text>
             {imageUri ? (
               <View style={styles.imageContainer}>
                 <Image source={{ uri: imageUri }} style={styles.image} />
+                {isAnalyzingImage && (
+                  <View style={styles.analyzingOverlay}>
+                    <ActivityIndicator size="large" color={theme.colors.text} />
+                    <Text style={styles.analyzingText}>Analyzing label...</Text>
+                  </View>
+                )}
                 <TouchableOpacity 
                   style={styles.removeImage}
                   onPress={() => setImageUri('')}
@@ -189,15 +318,17 @@ export default function NewEntryScreen() {
             ) : (
               <View style={styles.photoButtons}>
                 <TouchableOpacity 
-                  style={styles.photoButton}
+                  style={[styles.photoButton, isAnalyzingImage && styles.photoButtonDisabled]}
                   onPress={takePhoto}
+                  disabled={isAnalyzingImage}
                 >
                   <Camera size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
                   <Text style={styles.photoButtonText}>Camera</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={styles.photoButton}
+                  style={[styles.photoButton, isAnalyzingImage && styles.photoButtonDisabled]}
                   onPress={pickImage}
+                  disabled={isAnalyzingImage}
                 >
                   <ImageIcon size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
                   <Text style={styles.photoButtonText}>Gallery</Text>
@@ -217,6 +348,28 @@ export default function NewEntryScreen() {
                 placeholder="Strain name"
                 placeholderTextColor={theme.colors.textTertiary}
               />
+            </View>
+            <View style={styles.row}>
+              <View style={styles.inputHalf}>
+                <Text style={styles.inputLabel}>Brand</Text>
+                <TextInput
+                  style={styles.input}
+                  value={strain.brand || ''}
+                  onChangeText={(text) => setStrain({...strain, brand: text})}
+                  placeholder="Brand name"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputHalf}>
+                <Text style={styles.inputLabel}>Dispensary</Text>
+                <TextInput
+                  style={styles.input}
+                  value={strain.dispensary || ''}
+                  onChangeText={(text) => setStrain({...strain, dispensary: text})}
+                  placeholder="Dispensary name"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
             </View>
 
             <View style={styles.typeGrid}>
@@ -458,16 +611,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingTop: theme.spacing.xl,
     paddingBottom: theme.spacing.lg,
   },
-  title: {
-    fontSize: theme.fontSize.xxl,
+  subtitle: {
+    fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
   },
   section: {
     marginBottom: theme.spacing.xl,
@@ -634,5 +781,32 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.light,
     color: theme.colors.background,
+  },
+  scanDescription: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textTertiary,
+    marginBottom: theme.spacing.md,
+    lineHeight: 18,
+  },
+  analyzingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: theme.borderRadius.sm,
+  },
+  analyzingText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.background,
+    marginTop: theme.spacing.sm,
+  },
+  photoButtonDisabled: {
+    opacity: 0.5,
   },
 });
