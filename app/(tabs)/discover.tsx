@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList } from 'react-native';
-import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList, Alert } from 'react-native';
+import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 interface Article {
@@ -200,6 +200,10 @@ export default function DiscoverScreen() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentText, setCommentText] = useState('');
   const [showComments, setShowComments] = useState(false);
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPostText, setNewPostText] = useState('');
+  const [newPostStrain, setNewPostStrain] = useState<{ name: string; type: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD' }>({ name: '', type: 'Hybrid' });
+  const [newPostImage, setNewPostImage] = useState('');
 
   const handleLike = (postId: string) => {
     setPosts(prevPosts =>
@@ -265,6 +269,55 @@ export default function DiscoverScreen() {
     setCommentText('');
   };
 
+  const handleCreatePost = () => {
+    if (!newPostText.trim()) {
+      Alert.alert('Error', 'Please write something for your post');
+      return;
+    }
+
+    if (!newPostStrain.name.trim()) {
+      Alert.alert('Error', 'Please enter a strain name');
+      return;
+    }
+
+    const newPost: Post = {
+      id: Date.now().toString(),
+      user: {
+        name: 'You',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+        verified: false,
+      },
+      strain: {
+        name: newPostStrain.name.trim(),
+        type: newPostStrain.type,
+      },
+      image: newPostImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
+      caption: newPostText.trim(),
+      likes: 0,
+      comments: [],
+      timestamp: 'now',
+      liked: false,
+    };
+
+    setPosts(prevPosts => [newPost, ...prevPosts]);
+    setNewPostText('');
+    setNewPostStrain({ name: '', type: 'Hybrid' });
+    setNewPostImage('');
+    setShowCreatePost(false);
+  };
+
+  const handleAddPhoto = () => {
+    Alert.alert(
+      'Add Photo',
+      'Choose how you want to add a photo',
+      [
+        { text: 'Camera', onPress: () => console.log('Camera selected') },
+        { text: 'Gallery', onPress: () => console.log('Gallery selected') },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
   const openComments = (post: Post) => {
     setSelectedPost(post);
     setShowComments(true);
@@ -305,7 +358,15 @@ export default function DiscoverScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Discover</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>Discover</Text>
+          <TouchableOpacity 
+            style={styles.createPostButton}
+            onPress={() => setShowCreatePost(true)}
+          >
+            <Plus size={20} color={theme.colors.primary} strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'trending' && styles.activeTab]}
@@ -558,6 +619,106 @@ export default function DiscoverScreen() {
           )}
         </SafeAreaView>
       </Modal>
+
+      <Modal
+        visible={showCreatePost}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity 
+              onPress={() => setShowCreatePost(false)}
+              style={styles.closeButton}
+            >
+              <X size={24} color={theme.colors.text} strokeWidth={1.5} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Create Post</Text>
+            <TouchableOpacity 
+              style={[
+                styles.postButton,
+                { opacity: newPostText.trim() && newPostStrain.name.trim() ? 1 : 0.5 }
+              ]}
+              onPress={handleCreatePost}
+              disabled={!newPostText.trim() || !newPostStrain.name.trim()}
+            >
+              <Text style={styles.postButtonText}>Post</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.createPostContent}>
+            <View style={styles.createPostSection}>
+              <Text style={styles.sectionLabel}>What's on your mind?</Text>
+              <TextInput
+                style={styles.postTextInput}
+                placeholder="Share your cannabis experience..."
+                placeholderTextColor={theme.colors.textSecondary}
+                value={newPostText}
+                onChangeText={setNewPostText}
+                multiline
+                maxLength={500}
+                textAlignVertical="top"
+              />
+              <Text style={styles.characterCount}>
+                {newPostText.length}/500
+              </Text>
+            </View>
+
+            <View style={styles.createPostSection}>
+              <Text style={styles.sectionLabel}>Strain Information</Text>
+              <View style={styles.strainInputContainer}>
+                <TextInput
+                  style={styles.strainNameInput}
+                  placeholder="Strain name (e.g., Blue Dream)"
+                  placeholderTextColor={theme.colors.textSecondary}
+                  value={newPostStrain.name}
+                  onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, name: text }))}
+                  maxLength={50}
+                />
+                <View style={styles.strainTypeContainer}>
+                  {(['Indica', 'Sativa', 'Hybrid', 'CBD'] as const).map((type) => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        styles.strainTypeOption,
+                        newPostStrain.type === type && styles.strainTypeSelected,
+                        { backgroundColor: newPostStrain.type === type ? getStrainTypeColor(type) : theme.colors.cardSecondary }
+                      ]}
+                      onPress={() => setNewPostStrain(prev => ({ ...prev, type }))}
+                    >
+                      <Text style={[
+                        styles.strainTypeOptionText,
+                        { color: newPostStrain.type === type ? '#FFFFFF' : theme.colors.text }
+                      ]}>
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.createPostSection}>
+              <Text style={styles.sectionLabel}>Add Photo (Optional)</Text>
+              <TouchableOpacity style={styles.addPhotoButton} onPress={handleAddPhoto}>
+                <Camera size={24} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                <Text style={styles.addPhotoText}>Add Photo</Text>
+              </TouchableOpacity>
+              {newPostImage && (
+                <View style={styles.selectedImageContainer}>
+                  <Image source={{ uri: newPostImage }} style={styles.selectedImage} />
+                  <TouchableOpacity 
+                    style={styles.removeImageButton}
+                    onPress={() => setNewPostImage('')}
+                  >
+                    <X size={16} color={theme.colors.background} strokeWidth={2} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -574,12 +735,27 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: theme.colors.border,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
   headerTitle: {
     fontSize: theme.fontSize.xxl,
     fontWeight: theme.fontWeight.heavy,
     color: theme.colors.text,
     letterSpacing: -0.5,
-    marginBottom: theme.spacing.lg,
+  },
+  createPostButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.cardSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -967,5 +1143,119 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: theme.spacing.sm,
     borderRadius: theme.borderRadius.round,
     backgroundColor: theme.colors.cardSecondary,
+  },
+  postButton: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.primary,
+  },
+  postButtonText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.background,
+  },
+  createPostContent: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.xl,
+  },
+  createPostSection: {
+    marginBottom: theme.spacing.xl,
+  },
+  sectionLabel: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  postTextInput: {
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.cardSecondary,
+    minHeight: 120,
+    marginBottom: theme.spacing.xs,
+  },
+  characterCount: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textAlign: 'right',
+  },
+  strainInputContainer: {
+    gap: theme.spacing.md,
+  },
+  strainNameInput: {
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  strainTypeContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  strainTypeOption: {
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+  },
+  strainTypeSelected: {
+    borderColor: 'transparent',
+  },
+  strainTypeOptionText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+  addPhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.lg,
+    borderStyle: 'dashed',
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  addPhotoText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  selectedImageContainer: {
+    position: 'relative',
+    marginTop: theme.spacing.md,
+  },
+  selectedImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: theme.spacing.sm,
+    right: theme.spacing.sm,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
