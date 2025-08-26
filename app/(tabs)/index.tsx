@@ -305,17 +305,7 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {recentEntries.length === 0 && (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Text style={styles.emptyEmoji}>🌿</Text>
-            </View>
-            <Text style={styles.emptyTitle}>No sessions yet</Text>
-            <Text style={styles.emptyText}>
-              Start logging your cannabis experiences to track patterns and insights
-            </Text>
-          </View>
-        )}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -457,37 +447,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.xxl * 2,
-    paddingHorizontal: theme.spacing.xl,
-  },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.cardSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  emptyEmoji: {
-    fontSize: 32,
-  },
-  emptyTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-  },
-  emptyText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
-    maxWidth: 280,
-  },
+
   dealsSection: {
     paddingVertical: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
