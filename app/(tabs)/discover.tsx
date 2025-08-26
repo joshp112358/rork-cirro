@@ -427,10 +427,13 @@ export default function DiscoverScreen() {
       >
         {activeTab === 'deals' && (
           <View style={styles.dealsSection}>
-            <View style={styles.sectionHeader}>
+            <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => Alert.alert('Deals', 'View all deals feature coming soon!')}
+            >
               <ShoppingBag size={20} color={theme.colors.text} strokeWidth={1.5} />
               <Text style={styles.sectionTitle}>Today's Best Deals</Text>
-            </View>
+            </TouchableOpacity>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
