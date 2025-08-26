@@ -1,7 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image } from 'react-native';
-import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList } from 'react-native';
+import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
+
+interface Article {
+  id: string;
+  title: string;
+  excerpt: string;
+  image: string;
+  author: string;
+  readTime: string;
+  category: 'Education' | 'News' | 'Research' | 'Culture';
+  timestamp: string;
+}
+
+interface Comment {
+  id: string;
+  user: {
+    name: string;
+    avatar: string;
+  };
+  text: string;
+  timestamp: string;
+  likes: number;
+  liked: boolean;
+}
 
 interface Post {
   id: string;
@@ -17,10 +40,43 @@ interface Post {
   image: string;
   caption: string;
   likes: number;
-  comments: number;
+  comments: Comment[];
   timestamp: string;
   liked: boolean;
 }
+
+const mockArticles: Article[] = [
+  {
+    id: '1',
+    title: 'The Science Behind Terpenes: How They Affect Your High',
+    excerpt: 'Understanding the role of terpenes in cannabis and how they interact with cannabinoids to create unique effects.',
+    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=200&fit=crop',
+    author: 'Dr. Sarah Johnson',
+    readTime: '5 min read',
+    category: 'Education',
+    timestamp: '2 days ago',
+  },
+  {
+    id: '2',
+    title: 'Cannabis Legalization Update: What Changed This Month',
+    excerpt: 'Latest developments in cannabis legislation across different states and their impact on the industry.',
+    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=200&fit=crop',
+    author: 'Mike Chen',
+    readTime: '3 min read',
+    category: 'News',
+    timestamp: '1 week ago',
+  },
+  {
+    id: '3',
+    title: 'Growing at Home: Essential Tips for Beginners',
+    excerpt: 'Everything you need to know to start your first cannabis garden, from seeds to harvest.',
+    image: 'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=400&h=200&fit=crop',
+    author: 'Green Thumb Collective',
+    readTime: '8 min read',
+    category: 'Education',
+    timestamp: '3 days ago',
+  },
+];
 
 const mockPosts: Post[] = [
   {
@@ -35,9 +91,32 @@ const mockPosts: Post[] = [
       type: 'Sativa',
     },
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-    caption: 'Perfect for a creative afternoon session. The colors are incredible! 🎨',
+    caption: 'Perfect for a creative afternoon session. The colors are incredible!',
     likes: 127,
-    comments: 23,
+    comments: [
+      {
+        id: '1',
+        user: {
+          name: 'Alex R.',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'Totally agree! Purple Haze is amazing for creativity.',
+        timestamp: '1h',
+        likes: 5,
+        liked: false,
+      },
+      {
+        id: '2',
+        user: {
+          name: 'Emma K.',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'Where did you get this strain? Looks fire!',
+        timestamp: '45m',
+        likes: 2,
+        liked: true,
+      },
+    ],
     timestamp: '2h',
     liked: false,
   },
@@ -53,9 +132,21 @@ const mockPosts: Post[] = [
       type: 'Indica',
     },
     image: 'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=400&h=400&fit=crop',
-    caption: 'Best sleep strain I\'ve tried. Knocked me out in the best way possible 😴',
+    caption: 'Best sleep strain I\'ve tried. Knocked me out in the best way possible',
     likes: 89,
-    comments: 15,
+    comments: [
+      {
+        id: '3',
+        user: {
+          name: 'Jake M.',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'Northern Lights is a classic! Perfect for insomnia.',
+        timestamp: '2h',
+        likes: 8,
+        liked: false,
+      },
+    ],
     timestamp: '4h',
     liked: true,
   },
@@ -71,9 +162,32 @@ const mockPosts: Post[] = [
       type: 'Hybrid',
     },
     image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=400&fit=crop',
-    caption: 'The perfect balance. Great for both day and night sessions. Highly recommend! 🌟',
+    caption: 'The perfect balance. Great for both day and night sessions. Highly recommend!',
     likes: 203,
-    comments: 41,
+    comments: [
+      {
+        id: '4',
+        user: {
+          name: 'Lisa T.',
+          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'Blue Dream never disappoints! My go-to strain.',
+        timestamp: '3h',
+        likes: 12,
+        liked: true,
+      },
+      {
+        id: '5',
+        user: {
+          name: 'Tom W.',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'What dispensary? Been looking for good Blue Dream.',
+        timestamp: '2h',
+        likes: 3,
+        liked: false,
+      },
+    ],
     timestamp: '6h',
     liked: false,
   },
@@ -83,6 +197,9 @@ export default function DiscoverScreen() {
   const { theme } = useTheme();
   const [posts, setPosts] = useState(mockPosts);
   const [activeTab, setActiveTab] = useState<'trending' | 'following'>('trending');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [commentText, setCommentText] = useState('');
+  const [showComments, setShowComments] = useState(false);
 
   const handleLike = (postId: string) => {
     setPosts(prevPosts =>
@@ -96,6 +213,76 @@ export default function DiscoverScreen() {
           : post
       )
     );
+  };
+
+  const handleCommentLike = (postId: string, commentId: string) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: post.comments.map(comment =>
+                comment.id === commentId
+                  ? {
+                      ...comment,
+                      liked: !comment.liked,
+                      likes: comment.liked ? comment.likes - 1 : comment.likes + 1,
+                    }
+                  : comment
+              ),
+            }
+          : post
+      )
+    );
+  };
+
+  const handleAddComment = () => {
+    if (!commentText.trim() || !selectedPost) return;
+
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      user: {
+        name: 'You',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+      },
+      text: commentText.trim(),
+      timestamp: 'now',
+      likes: 0,
+      liked: false,
+    };
+
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === selectedPost.id
+          ? {
+              ...post,
+              comments: [...post.comments, newComment],
+            }
+          : post
+      )
+    );
+
+    setCommentText('');
+  };
+
+  const openComments = (post: Post) => {
+    setSelectedPost(post);
+    setShowComments(true);
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'Education':
+        return '#10B981';
+      case 'News':
+        return '#3B82F6';
+      case 'Research':
+        return '#8B5CF6';
+      case 'Culture':
+        return '#F59E0B';
+      default:
+        return theme.colors.textSecondary;
+    }
   };
 
   const getStrainTypeColor = (type: string) => {
@@ -151,6 +338,55 @@ export default function DiscoverScreen() {
         style={styles.postsContainer}
         showsVerticalScrollIndicator={false}
       >
+        {activeTab === 'trending' && (
+          <View style={styles.articlesSection}>
+            <View style={styles.sectionHeader}>
+              <BookOpen size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Featured Articles</Text>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.articlesScroll}
+              contentContainerStyle={styles.articlesContent}
+            >
+              {mockArticles.map((article) => (
+                <TouchableOpacity key={article.id} style={styles.articleCard}>
+                  <Image source={{ uri: article.image }} style={styles.articleImage} />
+                  <View style={styles.articleContent}>
+                    <View style={styles.articleMeta}>
+                      <View style={[
+                        styles.categoryBadge,
+                        { backgroundColor: getCategoryColor(article.category) }
+                      ]}>
+                        <Text style={styles.categoryText}>{article.category}</Text>
+                      </View>
+                      <Text style={styles.readTime}>{article.readTime}</Text>
+                    </View>
+                    <Text style={styles.articleTitle} numberOfLines={2}>
+                      {article.title}
+                    </Text>
+                    <Text style={styles.articleExcerpt} numberOfLines={2}>
+                      {article.excerpt}
+                    </Text>
+                    <View style={styles.articleFooter}>
+                      <Text style={styles.articleAuthor}>{article.author}</Text>
+                      <Text style={styles.articleTimestamp}>{article.timestamp}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        <View style={styles.postsSection}>
+          <View style={styles.sectionHeader}>
+            <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
+            <Text style={styles.sectionTitle}>Community Posts</Text>
+          </View>
+        </View>
+
         {activeTab === 'following' && posts.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
@@ -219,9 +455,12 @@ export default function DiscoverScreen() {
                     </Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity style={styles.actionButton}>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => openComments(post)}
+                  >
                     <MessageCircle size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
-                    <Text style={styles.actionText}>{post.comments}</Text>
+                    <Text style={styles.actionText}>{post.comments.length}</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.actionButton}>
@@ -233,6 +472,92 @@ export default function DiscoverScreen() {
           ))
         )}
       </ScrollView>
+
+      <Modal
+        visible={showComments}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Comments</Text>
+            <TouchableOpacity 
+              onPress={() => setShowComments(false)}
+              style={styles.closeButton}
+            >
+              <X size={24} color={theme.colors.text} strokeWidth={1.5} />
+            </TouchableOpacity>
+          </View>
+
+          {selectedPost && (
+            <>
+              <FlatList
+                data={selectedPost.comments}
+                keyExtractor={(item) => item.id}
+                style={styles.commentsList}
+                renderItem={({ item: comment }) => (
+                  <View style={styles.commentItem}>
+                    <Image source={{ uri: comment.user.avatar }} style={styles.commentAvatar} />
+                    <View style={styles.commentContent}>
+                      <View style={styles.commentHeader}>
+                        <Text style={styles.commentUserName}>{comment.user.name}</Text>
+                        <Text style={styles.commentTimestamp}>{comment.timestamp}</Text>
+                      </View>
+                      <Text style={styles.commentText}>{comment.text}</Text>
+                      <TouchableOpacity 
+                        style={styles.commentLikeButton}
+                        onPress={() => handleCommentLike(selectedPost.id, comment.id)}
+                      >
+                        <Heart 
+                          size={16} 
+                          color={comment.liked ? '#EF4444' : theme.colors.textSecondary}
+                          fill={comment.liked ? '#EF4444' : 'none'}
+                          strokeWidth={1.5}
+                        />
+                        <Text style={[
+                          styles.commentLikeText,
+                          comment.liked && { color: '#EF4444' }
+                        ]}>
+                          {comment.likes}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyComments}>
+                    <MessageCircle size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                    <Text style={styles.emptyCommentsText}>No comments yet</Text>
+                    <Text style={styles.emptyCommentsSubtext}>Be the first to comment!</Text>
+                  </View>
+                }
+              />
+
+              <View style={styles.commentInputContainer}>
+                <TextInput
+                  style={styles.commentInput}
+                  placeholder="Add a comment..."
+                  placeholderTextColor={theme.colors.textSecondary}
+                  value={commentText}
+                  onChangeText={setCommentText}
+                  multiline
+                  maxLength={500}
+                />
+                <TouchableOpacity 
+                  style={[
+                    styles.sendButton,
+                    { opacity: commentText.trim() ? 1 : 0.5 }
+                  ]}
+                  onPress={handleAddComment}
+                  disabled={!commentText.trim()}
+                >
+                  <Send size={20} color={theme.colors.primary} strokeWidth={1.5} />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -432,5 +757,215 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
     lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
     maxWidth: 280,
+  },
+  articlesSection: {
+    paddingVertical: theme.spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  articlesScroll: {
+    paddingLeft: theme.spacing.xl,
+  },
+  articlesContent: {
+    paddingRight: theme.spacing.xl,
+  },
+  articleCard: {
+    width: 280,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    marginRight: theme.spacing.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
+  },
+  articleImage: {
+    width: '100%',
+    height: 140,
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  articleContent: {
+    padding: theme.spacing.lg,
+  },
+  articleMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  categoryBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  categoryText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  readTime: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  articleTitle: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    lineHeight: theme.lineHeight.tight * theme.fontSize.md,
+    marginBottom: theme.spacing.sm,
+  },
+  articleExcerpt: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+    marginBottom: theme.spacing.md,
+  },
+  articleFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  articleAuthor: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  articleTimestamp: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  postsSection: {
+    paddingTop: theme.spacing.lg,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  modalTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  closeButton: {
+    padding: theme.spacing.xs,
+  },
+  commentsList: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.xl,
+  },
+  commentItem: {
+    flexDirection: 'row',
+    paddingVertical: theme.spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  commentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: theme.spacing.sm,
+  },
+  commentContent: {
+    flex: 1,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  commentUserName: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  commentTimestamp: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  commentText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  commentLikeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  commentLikeText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  emptyComments: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xxl * 2,
+  },
+  emptyCommentsText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  emptyCommentsSubtext: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  commentInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.colors.border,
+    gap: theme.spacing.sm,
+  },
+  commentInput: {
+    flex: 1,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.cardSecondary,
+    maxHeight: 100,
+  },
+  sendButton: {
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.cardSecondary,
   },
 });
