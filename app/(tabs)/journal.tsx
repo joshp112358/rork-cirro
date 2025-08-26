@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Search, Filter, Calendar, TrendingUp, BarChart3 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
@@ -32,122 +32,129 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Journal</Text>
-      </View>
-
-      {analytics && entries.length > 0 && (
-        <View style={styles.analyticsSection}>
-          <View style={styles.sectionHeader}>
-            <BarChart3 size={18} color={theme.colors.primary} strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>Analytics</Text>
-          </View>
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{analytics.totalSessions}</Text>
-              <Text style={styles.statLabel}>Sessions</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{analytics.avgRating.toFixed(1)}</Text>
-              <Text style={styles.statLabel}>Avg Rating</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={[
-                styles.statValue,
-                { color: analytics.avgMoodImprovement > 0 ? theme.colors.primary : theme.colors.textSecondary }
-              ]}>
-                {analytics.avgMoodImprovement > 0 ? '+' : ''}{analytics.avgMoodImprovement.toFixed(1)}
-              </Text>
-              <Text style={styles.statLabel}>Mood Change</Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search strains or notes..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor={theme.colors.textSecondary}
-          />
-        </View>
-      </View>
-
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <View style={styles.filterRow}>
-          {types.map(type => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.filterChip,
-                selectedType === type && styles.filterChipActive
-              ]}
-              onPress={() => setSelectedType(selectedType === type ? null : type)}
-            >
-              <Text style={[
-                styles.filterText,
-                selectedType === type && styles.filterTextActive
-              ]}>
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          <View style={styles.filterDivider} />
-          {methods.map(method => (
-            <TouchableOpacity
-              key={method}
-              style={[
-                styles.filterChip,
-                selectedMethod === method && styles.filterChipActive
-              ]}
-              onPress={() => setSelectedMethod(selectedMethod === method ? null : method)}
-            >
-              <Text style={[
-                styles.filterText,
-                selectedMethod === method && styles.filterTextActive
-              ]}>
-                {method}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Journal</Text>
         </View>
-      </ScrollView>
 
-      <ScrollView 
-        style={styles.entriesList}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredEntries.length > 0 ? (
-          <>
-            <Text style={styles.resultsCount}>
-              {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
-            </Text>
-            {filteredEntries.map(entry => (
-              <EntryCard key={entry.id} entry={entry} />
-            ))}
-          </>
-        ) : (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Calendar size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
+        {analytics && entries.length > 0 && (
+          <View style={styles.analyticsSection}>
+            <View style={styles.sectionHeader}>
+              <BarChart3 size={18} color={theme.colors.primary} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Analytics</Text>
             </View>
-            <Text style={styles.emptyTitle}>No entries found</Text>
-            <Text style={styles.emptyText}>
-              {searchQuery || selectedType || selectedMethod 
-                ? 'Try adjusting your filters'
-                : 'Start tracking to see your history'}
-            </Text>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{analytics.totalSessions}</Text>
+                <Text style={styles.statLabel}>Sessions</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{analytics.avgRating.toFixed(1)}</Text>
+                <Text style={styles.statLabel}>Avg Rating</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={[
+                  styles.statValue,
+                  { color: analytics.avgMoodImprovement > 0 ? theme.colors.primary : theme.colors.textSecondary }
+                ]}>
+                  {analytics.avgMoodImprovement > 0 ? '+' : ''}{analytics.avgMoodImprovement.toFixed(1)}
+                </Text>
+                <Text style={styles.statLabel}>Mood Change</Text>
+              </View>
+            </View>
           </View>
         )}
-      </ScrollView>
+
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Search size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search strains or notes..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor={theme.colors.textSecondary}
+            />
+          </View>
+        </View>
+
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+        >
+          <View style={styles.filterRow}>
+            {types.map(type => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.filterChip,
+                  selectedType === type && styles.filterChipActive
+                ]}
+                onPress={() => setSelectedType(selectedType === type ? null : type)}
+              >
+                <Text style={[
+                  styles.filterText,
+                  selectedType === type && styles.filterTextActive
+                ]}>
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <View style={styles.filterDivider} />
+            {methods.map(method => (
+              <TouchableOpacity
+                key={method}
+                style={[
+                  styles.filterChip,
+                  selectedMethod === method && styles.filterChipActive
+                ]}
+                onPress={() => setSelectedMethod(selectedMethod === method ? null : method)}
+              >
+                <Text style={[
+                  styles.filterText,
+                  selectedMethod === method && styles.filterTextActive
+                ]}>
+                  {method}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        <ScrollView 
+          style={styles.entriesList}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.entriesContent}
+        >
+          {filteredEntries.length > 0 ? (
+            <>
+              <Text style={styles.resultsCount}>
+                {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
+              </Text>
+              {filteredEntries.map(entry => (
+                <EntryCard key={entry.id} entry={entry} />
+              ))}
+            </>
+          ) : (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Calendar size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
+              </View>
+              <Text style={styles.emptyTitle}>No entries found</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery || selectedType || selectedMethod 
+                  ? 'Try adjusting your filters'
+                  : 'Start tracking to see your history'}
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -156,6 +163,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   header: {
     paddingHorizontal: theme.spacing.xl,
@@ -271,6 +281,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   entriesList: {
     flex: 1,
     paddingHorizontal: theme.spacing.xl,
+  },
+  entriesContent: {
+    paddingBottom: theme.spacing.lg,
   },
   resultsCount: {
     fontSize: theme.fontSize.sm,
