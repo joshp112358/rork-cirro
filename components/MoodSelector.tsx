@@ -4,19 +4,18 @@ import { useTheme } from '@/hooks/use-theme';
 import { MOOD_LABELS } from '@/types/entry';
 
 interface MoodSelectorProps {
-  label: string;
   value: number;
   onChange: (value: number) => void;
 }
 
-export function MoodSelector({ label, value, onChange }: MoodSelectorProps) {
+export function MoodSelector({ value, onChange }: MoodSelectorProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label}>Overall Mood</Text>
         <Text style={styles.value}>{value}/5</Text>
       </View>
       <View style={styles.moodContainer}>

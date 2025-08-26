@@ -37,20 +37,26 @@ export default function NewEntryScreen() {
     type: 'Hybrid',
     thc: undefined,
     cbd: undefined,
+    tac: undefined,
+    thca: undefined,
+    thcv: undefined,
+    cbg: undefined,
     brand: '',
     dispensary: ''
   });
   
-  // Store raw text for THC/CBD inputs to handle decimal typing
+  // Store raw text for cannabinoid inputs to handle decimal typing
   const [thcText, setThcText] = useState('');
   const [cbdText, setCbdText] = useState('');
+  const [tacText, setTacText] = useState('');
+  const [thcaText, setThcaText] = useState('');
+  const [thcvText, setThcvText] = useState('');
+  const [cbgText, setCbgText] = useState('');
   
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<'Flower' | 'Vape' | 'Edible' | 'Tincture' | 'Topical' | 'Other'>('Flower');
   const [mood, setMood] = useState<MoodRating>({
-    before: 3,
-    during: 3,
-    after: 3
+    overall: 3
   });
   const [effects, setEffects] = useState<Effect[]>([]);
   const [notes, setNotes] = useState('');
@@ -234,11 +240,11 @@ export default function NewEntryScreen() {
             </View>
           </View>
 
-          {/* Potency */}
+          {/* Cannabinoids */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Potency</Text>
+            <Text style={styles.sectionLabel}>Cannabinoids</Text>
             <View style={styles.row}>
-              <View style={styles.inputHalf}>
+              <View style={styles.inputThird}>
                 <Text style={styles.inputLabel}>THC %</Text>
                 <TextInput
                   style={styles.input}
@@ -253,7 +259,7 @@ export default function NewEntryScreen() {
                   placeholderTextColor={theme.colors.textTertiary}
                 />
               </View>
-              <View style={styles.inputHalf}>
+              <View style={styles.inputThird}>
                 <Text style={styles.inputLabel}>CBD %</Text>
                 <TextInput
                   style={styles.input}
@@ -264,6 +270,68 @@ export default function NewEntryScreen() {
                     setStrain({...strain, cbd: isNaN(parsed!) ? undefined : parsed});
                   }}
                   placeholder="0.5"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>TAC %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={tacText}
+                  onChangeText={(text) => {
+                    setTacText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, tac: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="25.0"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>THCA %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={thcaText}
+                  onChangeText={(text) => {
+                    setThcaText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, thca: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="20.0"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>THCV %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={thcvText}
+                  onChangeText={(text) => {
+                    setThcvText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, thcv: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="1.2"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>CBG %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={cbgText}
+                  onChangeText={(text) => {
+                    setCbgText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, cbg: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="0.8"
                   keyboardType="numeric"
                   placeholderTextColor={theme.colors.textTertiary}
                 />
@@ -312,19 +380,8 @@ export default function NewEntryScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Mood</Text>
             <MoodSelector 
-              label="Before"
-              value={mood.before}
-              onChange={(value) => setMood({...mood, before: value})}
-            />
-            <MoodSelector 
-              label="During"
-              value={mood.during}
-              onChange={(value) => setMood({...mood, during: value})}
-            />
-            <MoodSelector 
-              label="After"
-              value={mood.after}
-              onChange={(value) => setMood({...mood, after: value})}
+              value={mood.overall}
+              onChange={(value) => setMood({overall: value})}
             />
           </View>
 
@@ -452,6 +509,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: theme.spacing.md,
   },
   inputHalf: {
+    flex: 1,
+  },
+  inputThird: {
     flex: 1,
   },
   typeGrid: {

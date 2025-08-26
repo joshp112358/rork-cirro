@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Star, TrendingUp, TrendingDown, Minus } from 'lucide-react-native';
+import { Star } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { JournalEntry } from '@/types/entry';
 import { router } from 'expo-router';
@@ -34,7 +34,7 @@ export function EntryCard({ entry, onPress }: EntryCardProps) {
     return colors[mood - 1] || theme.colors.border;
   };
 
-  const moodImprovement = entry.mood.after - entry.mood.before;
+  const moodValue = entry.mood.overall;
 
   const getAmountUnit = (method: string) => {
     switch (method) {
@@ -45,11 +45,7 @@ export function EntryCard({ entry, onPress }: EntryCardProps) {
     }
   };
 
-  const getMoodIcon = () => {
-    if (moodImprovement > 0) return <TrendingUp size={14} color={theme.colors.success} strokeWidth={1.5} />;
-    if (moodImprovement < 0) return <TrendingDown size={14} color={theme.colors.error} strokeWidth={1.5} />;
-    return <Minus size={14} color={theme.colors.textSecondary} strokeWidth={1.5} />;
-  };
+
 
   const styles = createStyles(theme);
 
@@ -76,27 +72,17 @@ export function EntryCard({ entry, onPress }: EntryCardProps) {
 
       <View style={styles.moodSection}>
         <View style={styles.moodIndicators}>
+          <Text style={styles.moodLabel}>Mood</Text>
           <View style={styles.moodItem}>
-            <View style={[styles.moodDot, { backgroundColor: getMoodColor(entry.mood.before) }]} />
-            <Text style={styles.moodValue}>{entry.mood.before}</Text>
-          </View>
-          <View style={styles.moodArrow}>
-            {getMoodIcon()}
-          </View>
-          <View style={styles.moodItem}>
-            <View style={[styles.moodDot, { backgroundColor: getMoodColor(entry.mood.after) }]} />
-            <Text style={styles.moodValue}>{entry.mood.after}</Text>
+            <View style={[styles.moodDot, { backgroundColor: getMoodColor(moodValue) }]} />
+            <Text style={styles.moodValue}>{moodValue}/5</Text>
           </View>
         </View>
-        <View style={styles.moodChange}>
-          <Text style={[
-            styles.moodChangeText,
-            { color: moodImprovement > 0 ? theme.colors.success : 
-                     moodImprovement < 0 ? theme.colors.error : theme.colors.textSecondary }
-          ]}>
-            {moodImprovement > 0 ? '+' : ''}{moodImprovement}
-          </Text>
-        </View>
+        {entry.effects.length > 0 && (
+          <View style={styles.effectsPreview}>
+            <Text style={styles.effectsCount}>{entry.effects.length} effects</Text>
+          </View>
+        )}
       </View>
 
       {entry.notes && (
@@ -174,7 +160,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   moodIndicators: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  moodLabel: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   moodItem: {
     alignItems: 'center',
@@ -190,18 +183,16 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.light,
     color: theme.colors.textSecondary,
   },
-  moodArrow: {
-    paddingHorizontal: theme.spacing.sm,
-  },
-  moodChange: {
+  effectsPreview: {
     backgroundColor: theme.colors.cardSecondary,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.xs,
   },
-  moodChangeText: {
+  effectsCount: {
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
   },
   notes: {
     fontSize: theme.fontSize.sm,

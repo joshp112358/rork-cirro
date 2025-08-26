@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { Effect, EFFECTS } from '@/types/entry';
+import { Effect, POSITIVE_EFFECTS, NEGATIVE_EFFECTS } from '@/types/entry';
 
 interface EffectSelectorProps {
   effects: Effect[];
@@ -35,25 +35,54 @@ export function EffectSelector({ effects, onChange }: EffectSelectorProps) {
         <Text style={styles.sectionTitle}>Effects</Text>
         <Text style={styles.selectedCount}>{effects.length} selected</Text>
       </View>
-      <View style={styles.effectsGrid}>
-        {EFFECTS.map(effect => (
-          <TouchableOpacity
-            key={effect}
-            style={[
-              styles.effectChip,
-              isSelected(effect) && styles.effectChipSelected
-            ]}
-            onPress={() => toggleEffect(effect)}
-            testID={`effect-${effect}`}
-          >
-            <Text style={[
-              styles.effectText,
-              isSelected(effect) && styles.effectTextSelected
-            ]}>
-              {effect}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.effectsSection}>
+        <Text style={styles.categoryTitle}>Positive Effects</Text>
+        <View style={styles.effectsGrid}>
+          {POSITIVE_EFFECTS.map(effect => (
+            <TouchableOpacity
+              key={effect}
+              style={[
+                styles.effectChip,
+                styles.positiveChip,
+                isSelected(effect) && styles.effectChipSelected
+              ]}
+              onPress={() => toggleEffect(effect)}
+              testID={`effect-${effect}`}
+            >
+              <Text style={[
+                styles.effectText,
+                isSelected(effect) && styles.effectTextSelected
+              ]}>
+                {effect}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.effectsSection}>
+        <Text style={styles.categoryTitle}>Negative Effects</Text>
+        <View style={styles.effectsGrid}>
+          {NEGATIVE_EFFECTS.map(effect => (
+            <TouchableOpacity
+              key={effect}
+              style={[
+                styles.effectChip,
+                styles.negativeChip,
+                isSelected(effect) && styles.effectChipSelected
+              ]}
+              onPress={() => toggleEffect(effect)}
+              testID={`effect-${effect}`}
+            >
+              <Text style={[
+                styles.effectText,
+                isSelected(effect) && styles.effectTextSelected
+              ]}>
+                {effect}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {effects.length > 0 && (
@@ -112,11 +141,21 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
   },
+  effectsSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  categoryTitle: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: theme.spacing.md,
+  },
   effectsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
-    marginBottom: theme.spacing.lg,
   },
   effectChip: {
     paddingHorizontal: theme.spacing.md,
@@ -125,6 +164,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
+  },
+  positiveChip: {
+    // Subtle green tint for positive effects
+  },
+  negativeChip: {
+    // Subtle red tint for negative effects
   },
   effectChipSelected: {
     backgroundColor: theme.colors.text,
