@@ -3,14 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, SafeAreaVi
 import { Settings, Moon, Bell, Shield, HelpCircle, LogOut, Trash2, Check, Sun, Smartphone } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
-import { useAuth } from '@/hooks/use-auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ColorScheme } from '@/constants/theme';
 
 export default function ProfileScreen() {
   const { theme, userPreference, setThemePreference } = useTheme();
   const { entries } = useEntries();
-  const { user, logout } = useAuth();
   const [showThemeModal, setShowThemeModal] = useState(false);
 
   const handleClearData = () => {
@@ -26,21 +24,6 @@ export default function ProfileScreen() {
             await AsyncStorage.clear();
             Alert.alert('Success', 'All data has been cleared');
           }
-        }
-      ]
-    );
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: logout
         }
       ]
     );
@@ -80,7 +63,7 @@ export default function ProfileScreen() {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>🌿</Text>
           </View>
-          <Text style={styles.userName}>{user?.username || 'Cannabis Enthusiast'}</Text>
+          <Text style={styles.userName}>Cannabis Enthusiast</Text>
           <Text style={styles.userStats}>{entries.length} sessions logged</Text>
         </View>
 
@@ -102,21 +85,6 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <TouchableOpacity 
-            style={[styles.settingItem, styles.dangerItem]}
-            onPress={handleLogout}
-          >
-            <View style={styles.settingLeft}>
-              <LogOut size={18} color={theme.colors.error} strokeWidth={1.5} />
-              <Text style={[styles.settingLabel, { color: theme.colors.error }]}>
-                Sign Out
-              </Text>
-            </View>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
