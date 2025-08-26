@@ -57,13 +57,10 @@ export default function JournalScreen() {
                 <Text style={styles.statLabel}>Avg Rating</Text>
               </View>
               <View style={styles.statCard}>
-                <Text style={[
-                  styles.statValue,
-                  { color: analytics.avgMoodImprovement > 0 ? theme.colors.primary : theme.colors.textSecondary }
-                ]}>
-                  {analytics.avgMoodImprovement > 0 ? '+' : ''}{analytics.avgMoodImprovement.toFixed(1)}
+                <Text style={styles.statValue}>
+                  {analytics.preferredStrainPercentage}%
                 </Text>
-                <Text style={styles.statLabel}>Mood Change</Text>
+                <Text style={styles.statLabel}>{analytics.preferredStrainType}</Text>
               </View>
             </View>
           </View>

@@ -79,13 +79,19 @@ export const [EntriesProvider, useEntries] = createContextHook(() => {
 
     const totalSessions = entries.length;
     const avgRating = entries.reduce((sum, e) => sum + e.rating, 0) / totalSessions;
-    const avgMoodImprovement = entries.reduce((sum, e) => 
-      sum + (e.mood.after - e.mood.before), 0) / totalSessions;
     
     const strainCounts = entries.reduce((acc, e) => {
       acc[e.strain.type] = (acc[e.strain.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
+
+    // Find preferred strain type
+    const preferredStrainType = Object.entries(strainCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+    
+    const preferredStrainPercentage = strainCounts[preferredStrainType] 
+      ? Math.round((strainCounts[preferredStrainType] / totalSessions) * 100)
+      : 0;
 
     const methodCounts = entries.reduce((acc, e) => {
       acc[e.method] = (acc[e.method] || 0) + 1;
@@ -119,7 +125,8 @@ export const [EntriesProvider, useEntries] = createContextHook(() => {
     return {
       totalSessions,
       avgRating,
-      avgMoodImprovement,
+      preferredStrainType,
+      preferredStrainPercentage,
       strainCounts,
       methodCounts,
       topStrains,
