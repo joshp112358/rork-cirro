@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Animated
 } from 'react-native';
-import { Camera, Save, X, ImageIcon } from 'lucide-react-native';
+import { Camera, Save, X, ImageIcon, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
@@ -29,6 +29,7 @@ export default function NewEntryScreen() {
   const { addEntry, isSaving } = useEntries();
   const [imageUri, setImageUri] = useState<string>('');
   const [isSavingEntry, setIsSavingEntry] = useState(false);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   
@@ -73,6 +74,148 @@ export default function NewEntryScreen() {
 
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
+      await analyzePackaging(result.assets[0].uri);
+    }
+  };
+
+  const analyzePackaging = async (uri: string) => {
+    setIsAnalyzingImage(true);
+    
+    try {
+      // Convert image to base64
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      // Send to AI for analysis
+      const aiResponse = await fetch('https://toolkit.rork.com/text/llm/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert at analyzing cannabis packaging. Extract information from cannabis product labels and packaging. Return ONLY a JSON object with the following structure: {"brand": "string or null", "strain": "string or null", "consumption": "Flower|Vape|Dab|Edible or null", "strainType": "Indica|Sativa|Hybrid|CBD or null", "thc": "number or null", "thca": "number or null", "thcv": "number or null", "cbd": "number or null", "cbda": "number or null", "cbdv": "number or null"}. Only include values that are clearly visible on the packaging. Use null for missing information.'
+            },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: 'Analyze this cannabis packaging and extract the brand name, strain name, consumption method, strain type, and cannabinoid percentages (THC, THCA, THCV, CBD, CBDA, CBDV) if visible.'
+                },
+                {
+                  type: 'image',
+                  image: base64
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      if (!aiResponse.ok) {
+        throw new Error('Failed to analyze image');
+      }
+
+      const aiResult = await aiResponse.json();
+      console.log('AI Analysis Result:', aiResult.completion);
+      
+      try {
+        const extractedData = JSON.parse(aiResult.completion);
+        
+        // Update form fields with extracted data
+        if (extractedData.brand) {
+          setStrain(prev => ({ ...prev, brand: extractedData.brand }));
+        }
+        
+        if (extractedData.strain) {
+          setStrain(prev => ({ ...prev, name: extractedData.strain }));
+        }
+        
+        if (extractedData.consumption && ['Flower', 'Vape', 'Dab', 'Edible'].includes(extractedData.consumption)) {
+          setMethod(extractedData.consumption);
+        }
+        
+        if (extractedData.strainType && ['Indica', 'Sativa', 'Hybrid', 'CBD'].includes(extractedData.strainType)) {
+          setStrain(prev => ({ ...prev, type: extractedData.strainType }));
+        }
+        
+        // Update cannabinoid values and text fields
+        const cannabinoidUpdates: Partial<typeof strain> = {};
+        
+        if (extractedData.thc !== null && extractedData.thc !== undefined) {
+          cannabinoidUpdates.thc = extractedData.thc;
+          setThcText(extractedData.thc.toString());
+        }
+        
+        if (extractedData.thca !== null && extractedData.thca !== undefined) {
+          cannabinoidUpdates.thca = extractedData.thca;
+          setThcaText(extractedData.thca.toString());
+        }
+        
+        if (extractedData.thcv !== null && extractedData.thcv !== undefined) {
+          cannabinoidUpdates.thcv = extractedData.thcv;
+          setThcvText(extractedData.thcv.toString());
+        }
+        
+        if (extractedData.cbd !== null && extractedData.cbd !== undefined) {
+          cannabinoidUpdates.cbd = extractedData.cbd;
+          setCbdText(extractedData.cbd.toString());
+        }
+        
+        if (extractedData.cbda !== null && extractedData.cbda !== undefined) {
+          cannabinoidUpdates.cbda = extractedData.cbda;
+          setCbdaText(extractedData.cbda.toString());
+        }
+        
+        if (extractedData.cbdv !== null && extractedData.cbdv !== undefined) {
+          cannabinoidUpdates.cbdv = extractedData.cbdv;
+          setCbdvText(extractedData.cbdv.toString());
+        }
+        
+        if (Object.keys(cannabinoidUpdates).length > 0) {
+          setStrain(prev => ({ ...prev, ...cannabinoidUpdates }));
+        }
+        
+        // Show success feedback
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        
+        Alert.alert(
+          'Analysis Complete',
+          'Successfully extracted information from the packaging!',
+          [{ text: 'OK' }]
+        );
+        
+      } catch (parseError) {
+        console.error('Error parsing AI response:', parseError);
+        Alert.alert(
+          'Analysis Complete',
+          'Image analyzed, but some information may not have been extracted automatically. Please review and fill in any missing details.',
+          [{ text: 'OK' }]
+        );
+      }
+      
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      Alert.alert(
+        'Analysis Failed',
+        'Could not analyze the image. Please fill in the information manually.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsAnalyzingImage(false);
     }
   };
 
@@ -90,6 +233,7 @@ export default function NewEntryScreen() {
 
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
+      await analyzePackaging(result.assets[0].uri);
     }
   };
 
@@ -174,13 +318,29 @@ export default function NewEntryScreen() {
 
           {/* Photo Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Photo</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionLabel}>Photo</Text>
+              <View style={styles.aiIndicator}>
+                <Sparkles size={14} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                <Text style={styles.aiText}>AI Analysis</Text>
+              </View>
+            </View>
             {imageUri ? (
               <View style={styles.imageContainer}>
                 <Image source={{ uri: imageUri }} style={styles.image} />
+                {isAnalyzingImage && (
+                  <View style={styles.analysisOverlay}>
+                    <View style={styles.analysisContent}>
+                      <ActivityIndicator size="large" color={theme.colors.background} />
+                      <Text style={styles.analysisText}>Analyzing packaging...</Text>
+                      <Sparkles size={20} color={theme.colors.background} strokeWidth={1.5} />
+                    </View>
+                  </View>
+                )}
                 <TouchableOpacity 
                   style={styles.removeImage}
                   onPress={() => setImageUri('')}
+                  disabled={isAnalyzingImage}
                 >
                   <X size={16} color={theme.colors.text} strokeWidth={1.5} />
                 </TouchableOpacity>
@@ -190,6 +350,7 @@ export default function NewEntryScreen() {
                 <TouchableOpacity 
                   style={styles.photoButton}
                   onPress={takePhoto}
+                  disabled={isAnalyzingImage}
                 >
                   <Camera size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
                   <Text style={styles.photoButtonText}>Camera</Text>
@@ -197,6 +358,7 @@ export default function NewEntryScreen() {
                 <TouchableOpacity 
                   style={styles.photoButton}
                   onPress={pickImage}
+                  disabled={isAnalyzingImage}
                 >
                   <ImageIcon size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
                   <Text style={styles.photoButtonText}>Gallery</Text>
@@ -656,5 +818,44 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.light,
     color: theme.colors.background,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  aiIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  aiText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  analysisOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: theme.borderRadius.sm,
+  },
+  analysisContent: {
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  analysisText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.background,
+    textAlign: 'center',
   },
 });
