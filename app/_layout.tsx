@@ -6,6 +6,7 @@ import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { EntriesProvider } from "@/hooks/use-entries";
 import { ThemeProvider, useTheme } from "@/hooks/use-theme";
+import { UserProvider } from "@/hooks/use-user";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,11 +69,13 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <EntriesProvider>
-            <RootLayoutNav />
-          </EntriesProvider>
-        </GestureHandlerRootView>
+        <UserProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <EntriesProvider>
+              <RootLayoutNav />
+            </EntriesProvider>
+          </GestureHandlerRootView>
+        </UserProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

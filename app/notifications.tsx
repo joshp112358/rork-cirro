@@ -1,23 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Switch } from 'react-native';
 import { ArrowLeft, Bell, Clock, MessageSquare, TrendingUp } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
+import { useUser } from '@/hooks/use-user';
 import { router, Stack } from 'expo-router';
 
 export default function NotificationsScreen() {
   const { theme } = useTheme();
-  const [notifications, setNotifications] = useState({
-    sessionReminders: true,
-    weeklyInsights: false,
-    communityUpdates: true,
-    newFeatures: true,
-  });
+  const { profile, updateNotificationPreference } = useUser();
 
-  const toggleNotification = (key: keyof typeof notifications) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const toggleNotification = (key: keyof typeof profile.preferences.notifications) => {
+    updateNotificationPreference(key, !profile.preferences.notifications[key]);
   };
 
   const notificationItems = [
@@ -26,28 +19,28 @@ export default function NotificationsScreen() {
       icon: Clock,
       title: 'Session Reminders',
       description: 'Get reminded to log your sessions',
-      value: notifications.sessionReminders
+      value: profile.preferences.notifications.sessionReminders
     },
     {
       key: 'weeklyInsights' as const,
       icon: TrendingUp,
       title: 'Weekly Insights',
       description: 'Receive weekly analytics and trends',
-      value: notifications.weeklyInsights
+      value: profile.preferences.notifications.weeklyInsights
     },
     {
       key: 'communityUpdates' as const,
       icon: MessageSquare,
       title: 'Community Updates',
       description: 'New posts and comments from the community',
-      value: notifications.communityUpdates
+      value: profile.preferences.notifications.communityUpdates
     },
     {
       key: 'newFeatures' as const,
       icon: Bell,
       title: 'New Features',
       description: 'Updates about new app features',
-      value: notifications.newFeatures
+      value: profile.preferences.notifications.newFeatures
     },
   ];
 

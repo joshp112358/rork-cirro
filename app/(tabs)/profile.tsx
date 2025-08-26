@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
-import { Settings, Moon, Bell, Shield, Mail, Check, Sun, Smartphone } from 'lucide-react-native';
+import { Settings, Moon, Bell, Shield, Mail, Check, Sun, Smartphone, LogOut, Edit3 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
+import { useUser } from '@/hooks/use-user';
 import { ColorScheme } from '@/constants/theme';
 import { router } from 'expo-router';
 
 export default function ProfileScreen() {
   const { theme, userPreference, setThemePreference } = useTheme();
   const { entries } = useEntries();
+  const { profile, signOut, updateThemePreference } = useUser();
   const [showThemeModal, setShowThemeModal] = useState(false);
 
   const handleThemeChange = (newTheme: ColorScheme | 'system') => {
     setThemePreference(newTheme);
+    updateThemePreference(newTheme);
     setShowThemeModal(false);
+  };
+
+  const handleSignOut = () => {
+    signOut();
   };
 
   const getThemeLabel = () => {
@@ -28,8 +35,13 @@ export default function ProfileScreen() {
   const settingsItems = [
     { icon: Bell, label: 'Notifications', onPress: () => router.push('/notifications'), value: '' },
     { icon: Moon, label: 'Appearance', onPress: () => setShowThemeModal(true), value: getThemeLabel() },
-    { icon: Shield, label: 'Settings', onPress: () => router.push('/settings'), value: '' },
+    { icon: Shield, label: 'Account Settings', onPress: () => router.push('/settings'), value: '' },
     { icon: Mail, label: 'Contact Support', onPress: () => router.push('/contact'), value: '' },
+  ];
+
+  const accountItems = [
+    { icon: Edit3, label: 'Edit Profile', onPress: () => router.push('/edit-profile'), value: '' },
+    { icon: LogOut, label: 'Sign Out', onPress: handleSignOut, value: '', isDanger: true },
   ];
 
   const styles = createStyles(theme);
@@ -43,9 +55,10 @@ export default function ProfileScreen() {
 
         <View style={styles.profileSection}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>🌿</Text>
+            <Text style={styles.avatarText}>{profile.avatar || '🌿'}</Text>
           </View>
-          <Text style={styles.userName}>Cannabis Enthusiast</Text>
+          <Text style={styles.userName}>{profile.name}</Text>
+          <Text style={styles.userEmail}>{profile.email}</Text>
           <Text style={styles.userStats}>{entries.length} sessions logged</Text>
         </View>
 
@@ -64,6 +77,32 @@ export default function ProfileScreen() {
               <View style={styles.settingRight}>
                 {item.value && <Text style={styles.settingValue}>{item.value}</Text>}
                 <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          {accountItems.map((item, index) => (
+            <TouchableOpacity 
+              key={index}
+              style={[styles.settingItem, item.isDanger && styles.dangerItem]}
+              onPress={item.onPress}
+            >
+              <View style={styles.settingLeft}>
+                <item.icon 
+                  size={18} 
+                  color={item.isDanger ? theme.colors.error : theme.colors.textSecondary} 
+                  strokeWidth={1.5} 
+                />
+                <Text style={[styles.settingLabel, item.isDanger && { color: theme.colors.error }]}>
+                  {item.label}
+                </Text>
+              </View>
+              <View style={styles.settingRight}>
+                {item.value && <Text style={styles.settingValue}>{item.value}</Text>}
+                {!item.isDanger && <Text style={styles.chevron}>›</Text>}
               </View>
             </TouchableOpacity>
           ))}
@@ -157,6 +196,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  userEmail: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.xs,
   },
   userStats: {
