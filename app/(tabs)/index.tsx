@@ -331,17 +331,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {recentEntries.length === 0 && (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Text style={styles.emptyEmoji}>🌿</Text>
-            </View>
-            <Text style={styles.emptyTitle}>No sessions yet</Text>
-            <Text style={styles.emptyText}>
-              Start logging your cannabis experiences to track patterns and insights
-            </Text>
-          </View>
-        )}
+
 
         <View style={styles.communitySection}>
           <View style={styles.sectionHeader}>
