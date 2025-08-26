@@ -380,7 +380,14 @@ export default function DiscoverScreen() {
           </View>
         )}
 
-        {activeTab === 'following' && (
+        <View style={styles.postsSection}>
+          <View style={styles.sectionHeader}>
+            <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
+            <Text style={styles.sectionTitle}>Community Posts</Text>
+          </View>
+        </View>
+
+        {activeTab === 'following' && posts.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
               <Users size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
@@ -390,6 +397,79 @@ export default function DiscoverScreen() {
               Follow other users to see their posts here
             </Text>
           </View>
+        ) : (
+          posts.map((post) => (
+            <View key={post.id} style={styles.postCard}>
+              <View style={styles.postHeader}>
+                <View style={styles.userInfo}>
+                  <Image source={{ uri: post.user.avatar }} style={styles.avatar} />
+                  <View style={styles.userDetails}>
+                    <View style={styles.userNameRow}>
+                      <Text style={styles.userName}>{post.user.name}</Text>
+                      {post.user.verified && (
+                        <View style={styles.verifiedBadge}>
+                          <Text style={styles.verifiedText}>✓</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.strainInfo}>
+                      <View style={[
+                        styles.strainTypeBadge,
+                        { backgroundColor: getStrainTypeColor(post.strain.type) }
+                      ]}>
+                        <Text style={styles.strainTypeText}>{post.strain.type}</Text>
+                      </View>
+                      <Text style={styles.strainName}>{post.strain.name}</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.postMeta}>
+                  <Text style={styles.timestamp}>{post.timestamp}</Text>
+                  <TouchableOpacity style={styles.moreButton}>
+                    <MoreHorizontal size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <Image source={{ uri: post.image }} style={styles.postImage} />
+
+              <View style={styles.postContent}>
+                <Text style={styles.caption}>{post.caption}</Text>
+                
+                <View style={styles.postActions}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleLike(post.id)}
+                  >
+                    <Heart 
+                      size={20} 
+                      color={post.liked ? '#EF4444' : theme.colors.textSecondary}
+                      fill={post.liked ? '#EF4444' : 'none'}
+                      strokeWidth={1.5}
+                    />
+                    <Text style={[
+                      styles.actionText,
+                      post.liked && { color: '#EF4444' }
+                    ]}>
+                      {post.likes}
+                    </Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => openComments(post)}
+                  >
+                    <MessageCircle size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                    <Text style={styles.actionText}>{post.comments.length}</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.actionButton}>
+                    <Share size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ))
         )}
       </ScrollView>
 
