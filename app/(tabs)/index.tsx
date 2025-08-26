@@ -72,9 +72,9 @@ export default function HomeScreen() {
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>
-                {analytics.mostPreferredStrainType}
+                {analytics.avgMoodImprovement > 0 ? '+' : ''}{analytics.avgMoodImprovement.toFixed(1)}
               </Text>
-              <Text style={styles.statLabel}>Preferred Type</Text>
+              <Text style={styles.statLabel}>Avg Mood Change</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>{analytics.avgRating.toFixed(1)}</Text>

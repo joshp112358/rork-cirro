@@ -45,6 +45,8 @@ export function EntryCard({ entry, onPress }: EntryCardProps) {
     }
   };
 
+
+
   const styles = createStyles(theme);
 
   return (
