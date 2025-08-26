@@ -1,0 +1,247 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { Plus, TrendingUp, Calendar, Settings } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { useTheme } from '@/hooks/use-theme';
+import { useEntries, useRecentEntries } from '@/hooks/use-entries';
+import { EntryCard } from '@/components/EntryCard';
+
+export default function HomeScreen() {
+  const { theme } = useTheme();
+  const { analytics } = useEntries();
+  const recentEntries = useRecentEntries(3);
+
+  const today = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  const styles = createStyles(theme);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <Text style={styles.appName}>Cirro</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
+              <Settings size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.date}>{today}</Text>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.newEntryButton}
+          onPress={() => router.push('/new-entry')}
+          testID="new-entry-button"
+        >
+          <View style={styles.newEntryContent}>
+            <View style={styles.plusIcon}>
+              <Plus size={24} color={theme.colors.background} strokeWidth={1.5} />
+            </View>
+            <View style={styles.newEntryText}>
+              <Text style={styles.newEntryTitle}>Log Session</Text>
+              <Text style={styles.newEntrySubtitle}>Track your experience</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {analytics && (
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{analytics.totalSessions}</Text>
+              <Text style={styles.statLabel}>Total Sessions</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>
+                {analytics.avgMoodImprovement > 0 ? '+' : ''}{analytics.avgMoodImprovement.toFixed(1)}
+              </Text>
+              <Text style={styles.statLabel}>Avg Mood Change</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{analytics.avgRating.toFixed(1)}</Text>
+              <Text style={styles.statLabel}>Avg Rating</Text>
+            </View>
+          </View>
+        )}
+
+        {recentEntries.length > 0 && (
+          <View style={styles.recentSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Sessions</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/history')}>
+                <Text style={styles.seeAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
+            {recentEntries.map(entry => (
+              <EntryCard key={entry.id} entry={entry} />
+            ))}
+          </View>
+        )}
+
+        {recentEntries.length === 0 && (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Text style={styles.emptyEmoji}>🌿</Text>
+            </View>
+            <Text style={styles.emptyTitle}>No sessions yet</Text>
+            <Text style={styles.emptyText}>
+              Start logging your cannabis experiences to track patterns and insights
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const createStyles = (theme: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxl,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  appName: {
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.heavy,
+    color: theme.colors.text,
+    letterSpacing: -0.5,
+  },
+  date: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  newEntryButton: {
+    marginHorizontal: theme.spacing.xl,
+    marginBottom: theme.spacing.xxl,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xl,
+  },
+  newEntryContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.lg,
+  },
+  plusIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newEntryText: {
+    flex: 1,
+  },
+  newEntryTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: 2,
+  },
+  newEntrySubtitle: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: theme.spacing.xl,
+    marginBottom: theme.spacing.xxl,
+    gap: theme.spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  statLabel: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  recentSection: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingBottom: theme.spacing.xxl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  seeAll: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xxl * 2,
+    paddingHorizontal: theme.spacing.xl,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.cardSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  emptyEmoji: {
+    fontSize: 32,
+  },
+  emptyTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  emptyText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+    maxWidth: 280,
+  },
+});
