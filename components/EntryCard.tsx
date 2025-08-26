@@ -94,7 +94,7 @@ export function EntryCard({ entry, onPress }: EntryCardProps) {
       <View style={styles.footer}>
         <Text style={styles.date}>{formatDate(entry.timestamp)}</Text>
         <View style={styles.methodAmount}>
-          <Text style={styles.amount}>{entry.amount}{getAmountUnit(entry.method)}</Text>
+          <Text style={styles.amount}>{entry.amount || 0}{getAmountUnit(entry.method)}</Text>
           <Text style={styles.method}>{entry.method}</Text>
         </View>
       </View>
