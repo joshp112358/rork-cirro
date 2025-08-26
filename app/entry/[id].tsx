@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
 import { StarRating } from '@/components/StarRating';
-import { MOOD_LABELS } from '@/types/entry';
+
 
 export default function EntryDetailScreen() {
   const { theme } = useTheme();
@@ -27,16 +27,7 @@ export default function EntryDetailScreen() {
     });
   };
 
-  const getMoodColor = (mood: number) => {
-    switch (mood) {
-      case 1: return theme.colors.error;
-      case 2: return theme.colors.warning;
-      case 3: return theme.colors.textSecondary;
-      case 4: return theme.colors.success;
-      case 5: return theme.colors.accent;
-      default: return theme.colors.border;
-    }
-  };
+
 
   const handleDelete = () => {
     Alert.alert(
@@ -125,32 +116,7 @@ export default function EntryDetailScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mood Journey</Text>
-          <View style={styles.moodJourney}>
-            <View style={styles.moodItem}>
-              <Text style={styles.moodPhase}>Before</Text>
-              <View style={[styles.moodIndicator, { backgroundColor: getMoodColor(entry.mood.before) }]} />
-              <Text style={styles.moodLabel}>{MOOD_LABELS[entry.mood.before as keyof typeof MOOD_LABELS]}</Text>
-            </View>
-            <View style={styles.moodArrowContainer}>
-              <Text style={styles.moodArrow}>→</Text>
-            </View>
-            <View style={styles.moodItem}>
-              <Text style={styles.moodPhase}>During</Text>
-              <View style={[styles.moodIndicator, { backgroundColor: getMoodColor(entry.mood.during) }]} />
-              <Text style={styles.moodLabel}>{MOOD_LABELS[entry.mood.during as keyof typeof MOOD_LABELS]}</Text>
-            </View>
-            <View style={styles.moodArrowContainer}>
-              <Text style={styles.moodArrow}>→</Text>
-            </View>
-            <View style={styles.moodItem}>
-              <Text style={styles.moodPhase}>After</Text>
-              <View style={[styles.moodIndicator, { backgroundColor: getMoodColor(entry.mood.after) }]} />
-              <Text style={styles.moodLabel}>{MOOD_LABELS[entry.mood.after as keyof typeof MOOD_LABELS]}</Text>
-            </View>
-          </View>
-        </View>
+
 
         {entry.effects.length > 0 && (
           <View style={styles.section}>
@@ -159,10 +125,7 @@ export default function EntryDetailScreen() {
               {entry.effects.map(effect => (
                 <View 
                   key={effect.name}
-                  style={[
-                    styles.effectChip,
-                    { backgroundColor: theme.colors.primary }
-                  ]}
+                  style={styles.effectChip}
                 >
                   <Text style={styles.effectName}>{effect.name}</Text>
                   <View style={styles.intensityDots}>
@@ -212,7 +175,7 @@ export default function EntryDetailScreen() {
           onPress={handleDelete}
           disabled={isDeleting}
         >
-          <Trash2 size={20} color="#fff" />
+          <Trash2 size={18} color={theme.colors.error} />
           <Text style={styles.deleteButtonText}>
             {isDeleting ? 'Deleting...' : 'Delete Entry'}
           </Text>
@@ -235,10 +198,13 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 250,
+    height: 200,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
   },
   content: {
     padding: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
   },
   header: {
     flexDirection: 'row',
@@ -253,13 +219,15 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   strainName: {
     fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
+    fontWeight: '300',
     color: theme.colors.text,
+    letterSpacing: -0.5,
   },
   strainType: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.secondary,
-    marginTop: theme.spacing.xs,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+    fontWeight: '300',
   },
   dateRow: {
     flexDirection: 'row',
@@ -281,68 +249,37 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     minWidth: '45%',
     backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.lg,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
-    padding: theme.spacing.md,
+    padding: theme.spacing.lg,
     alignItems: 'center',
   },
   infoLabel: {
-    fontSize: theme.fontSize.sm,
+    fontSize: theme.fontSize.xs,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '300',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
+    fontSize: theme.fontSize.xl,
+    fontWeight: '300',
     color: theme.colors.text,
+    letterSpacing: -0.5,
   },
   section: {
     marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '300',
     color: theme.colors.text,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    letterSpacing: -0.3,
   },
-  moodJourney: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.lg,
-  },
-  moodItem: {
-    alignItems: 'center',
-  },
-  moodPhase: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
-  },
-  moodIndicator: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginBottom: theme.spacing.sm,
-  },
-  moodLabel: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.text,
-  },
-  moodArrowContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  moodArrow: {
-    fontSize: theme.fontSize.xl,
-    color: theme.colors.textSecondary,
-  },
+
   effectsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -352,37 +289,41 @@ const createStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
     borderRadius: theme.borderRadius.round,
+    backgroundColor: 'transparent',
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
   },
   effectName: {
     fontSize: theme.fontSize.sm,
-    color: '#fff',
-    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.text,
+    fontWeight: '300',
   },
   intensityDots: {
     flexDirection: 'row',
     gap: 2,
   },
   intensityDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: theme.colors.border,
   },
   intensityDotActive: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.text,
   },
   notes: {
     fontSize: theme.fontSize.md,
     color: theme.colors.text,
     lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
     backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.lg,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
-    padding: theme.spacing.md,
+    padding: theme.spacing.lg,
+    fontWeight: '300',
   },
   additionalRow: {
     flexDirection: 'row',
@@ -390,28 +331,31 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   additionalLabel: {
-    fontSize: theme.fontSize.md,
+    fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
+    fontWeight: '300',
   },
   additionalValue: {
     fontSize: theme.fontSize.md,
     color: theme.colors.text,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '300',
   },
   deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.sm,
-    backgroundColor: theme.colors.error,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    backgroundColor: 'transparent',
+    borderWidth: 0.5,
+    borderColor: theme.colors.error,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     marginTop: theme.spacing.xl,
     marginBottom: theme.spacing.lg,
   },
   deleteButtonText: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.semibold,
-    color: '#fff',
+    fontWeight: '300',
+    color: theme.colors.error,
   },
 });
