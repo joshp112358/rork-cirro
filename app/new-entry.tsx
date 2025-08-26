@@ -169,8 +169,7 @@ export default function NewEntryScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>New Entry</Text>
-            <Text style={styles.subtitle}>Record your experience</Text>
+            <Text style={styles.title}>Record your experience</Text>
           </View>
 
           {/* Photo Section */}
@@ -260,16 +259,16 @@ export default function NewEntryScreen() {
                 />
               </View>
               <View style={styles.inputThird}>
-                <Text style={styles.inputLabel}>CBD %</Text>
+                <Text style={styles.inputLabel}>THCA %</Text>
                 <TextInput
                   style={styles.input}
-                  value={cbdText}
+                  value={thcaText}
                   onChangeText={(text) => {
-                    setCbdText(text);
+                    setThcaText(text);
                     const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                    setStrain({...strain, cbd: isNaN(parsed!) ? undefined : parsed});
+                    setStrain({...strain, thca: isNaN(parsed!) ? undefined : parsed});
                   }}
-                  placeholder="0.5"
+                  placeholder="20.0"
                   keyboardType="numeric"
                   placeholderTextColor={theme.colors.textTertiary}
                 />
@@ -292,21 +291,6 @@ export default function NewEntryScreen() {
             </View>
             <View style={styles.row}>
               <View style={styles.inputThird}>
-                <Text style={styles.inputLabel}>THCA %</Text>
-                <TextInput
-                  style={styles.input}
-                  value={thcaText}
-                  onChangeText={(text) => {
-                    setThcaText(text);
-                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                    setStrain({...strain, thca: isNaN(parsed!) ? undefined : parsed});
-                  }}
-                  placeholder="20.0"
-                  keyboardType="numeric"
-                  placeholderTextColor={theme.colors.textTertiary}
-                />
-              </View>
-              <View style={styles.inputThird}>
                 <Text style={styles.inputLabel}>THCV %</Text>
                 <TextInput
                   style={styles.input}
@@ -317,6 +301,21 @@ export default function NewEntryScreen() {
                     setStrain({...strain, thcv: isNaN(parsed!) ? undefined : parsed});
                   }}
                   placeholder="1.2"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>CBD %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={cbdText}
+                  onChangeText={(text) => {
+                    setCbdText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, cbd: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="0.5"
                   keyboardType="numeric"
                   placeholderTextColor={theme.colors.textTertiary}
                 />
