@@ -48,6 +48,22 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
+        <TouchableOpacity 
+          style={styles.budtenderButton}
+          onPress={() => router.push('/(tabs)/budtender')}
+          testID="budtender-button"
+        >
+          <View style={styles.newEntryContent}>
+            <View style={styles.botIcon}>
+              <Text style={styles.botEmoji}>🤖</Text>
+            </View>
+            <View style={styles.newEntryText}>
+              <Text style={styles.newEntryTitle}>AI Budtender</Text>
+              <Text style={styles.newEntrySubtitle}>Get personalized recommendations</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
         {analytics && (
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
@@ -71,7 +87,7 @@ export default function HomeScreen() {
           <View style={styles.recentSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent Sessions</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/history')}>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/journal')}>
                 <Text style={styles.seeAll}>View All</Text>
               </TouchableOpacity>
             </View>
@@ -128,12 +144,32 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   newEntryButton: {
     marginHorizontal: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xl,
+  },
+  budtenderButton: {
+    marginHorizontal: theme.spacing.xl,
     marginBottom: theme.spacing.xxl,
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
     padding: theme.spacing.xl,
+  },
+  botIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.cardSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  botEmoji: {
+    fontSize: 20,
   },
   newEntryContent: {
     flexDirection: 'row',

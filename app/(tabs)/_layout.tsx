@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Clock, BarChart3, User } from "lucide-react-native";
+import { Home, BookOpen, Bot, Users, User } from "lucide-react-native";
 import React from "react";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -29,22 +29,29 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Today",
+          title: "Homepage",
           tabBarIcon: ({ color, size }) => <Home size={20} color={color} strokeWidth={1.5} />,
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="journal"
         options={{
           title: "Journal",
-          tabBarIcon: ({ color, size }) => <Clock size={20} color={color} strokeWidth={1.5} />,
+          tabBarIcon: ({ color, size }) => <BookOpen size={20} color={color} strokeWidth={1.5} />,
         }}
       />
       <Tabs.Screen
-        name="analytics"
+        name="budtender"
         options={{
-          title: "Insights",
-          tabBarIcon: ({ color, size }) => <BarChart3 size={20} color={color} strokeWidth={1.5} />,
+          title: "Budtender",
+          tabBarIcon: ({ color, size }) => <Bot size={20} color={color} strokeWidth={1.5} />,
+        }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{
+          title: "Discover",
+          tabBarIcon: ({ color, size }) => <Users size={20} color={color} strokeWidth={1.5} />,
         }}
       />
       <Tabs.Screen
