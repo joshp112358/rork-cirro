@@ -488,18 +488,6 @@ export default function DiscoverScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <View style={styles.trackingPrompt}>
-              <View style={styles.trackingIcon}>
-                <DollarSign size={20} color={theme.colors.primary} strokeWidth={1.5} />
-              </View>
-              <View style={styles.trackingContent}>
-                <Text style={styles.trackingTitle}>Track Your Savings</Text>
-                <Text style={styles.trackingText}>Enable location and purchase tracking to see personalized deals and savings analytics</Text>
-              </View>
-              <TouchableOpacity style={styles.trackingButton}>
-                <Text style={styles.trackingButtonText}>Enable</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         )}
 
@@ -1121,52 +1109,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  trackingPrompt: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.cardSecondary,
-    marginHorizontal: theme.spacing.xl,
-    marginTop: theme.spacing.lg,
-    padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    gap: theme.spacing.md,
-  },
-  trackingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trackingContent: {
-    flex: 1,
-  },
-  trackingTitle: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  trackingText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
-  },
-  trackingButton: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.lg,
-  },
-  trackingButtonText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.background,
-  },
+
   articlesSection: {
     paddingVertical: theme.spacing.lg,
     borderBottomWidth: 0.5,
