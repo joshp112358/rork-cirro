@@ -56,6 +56,18 @@ function RootLayoutNav() {
             headerTintColor: theme.colors.text,
           }} 
         />
+        <Stack.Screen 
+          name="login" 
+          options={{ 
+            headerShown: false,
+          }} 
+        />
+        <Stack.Screen 
+          name="signup" 
+          options={{ 
+            headerShown: false,
+          }} 
+        />
       </Stack>
     </>
   );

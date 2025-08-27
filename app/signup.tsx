@@ -14,28 +14,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
 import { useUser } from '@/hooks/use-user';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react-native';
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   const { theme } = useTheme();
-  const { signIn } = useUser();
+  const { signUp } = useUser();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const handleSignup = async () => {
+    if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
     setLoading(true);
     try {
-      await signIn(email, password);
+      await signUp(email, password, name);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'An error occurred during login');
+      Alert.alert('Signup Failed', error.message || 'An error occurred during signup');
     } finally {
       setLoading(false);
     }
@@ -97,7 +110,7 @@ export default function LoginScreen() {
     eyeIcon: {
       padding: 4,
     },
-    loginButton: {
+    signupButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: 12,
       height: 52,
@@ -105,40 +118,25 @@ export default function LoginScreen() {
       alignItems: 'center',
       marginTop: 24,
     },
-    loginButtonDisabled: {
+    signupButtonDisabled: {
       opacity: 0.6,
     },
-    loginButtonText: {
+    signupButtonText: {
       color: 'white',
       fontSize: 16,
       fontWeight: theme.fontWeight.semibold,
     },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: 32,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: theme.colors.border,
-    },
-    dividerText: {
-      marginHorizontal: 16,
-      color: theme.colors.textSecondary,
-      fontSize: 14,
-    },
-    signupContainer: {
+    loginContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 24,
     },
-    signupText: {
+    loginText: {
       color: theme.colors.textSecondary,
       fontSize: 14,
     },
-    signupLink: {
+    loginLink: {
       color: theme.colors.primary,
       fontSize: 14,
       fontWeight: theme.fontWeight.medium,
@@ -156,8 +154,23 @@ export default function LoginScreen() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join our cannabis community</Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Full Name</Text>
+            <View style={styles.inputWrapper}>
+              <User size={20} color={theme.colors.textSecondary} style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your full name"
+                placeholderTextColor={theme.colors.textSecondary}
+                value={name}
+                onChangeText={setName}
+                autoComplete="name"
+              />
+            </View>
+          </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
@@ -182,12 +195,12 @@ export default function LoginScreen() {
               <Lock size={20} color={theme.colors.textSecondary} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Enter your password"
+                placeholder="Create a password"
                 placeholderTextColor={theme.colors.textSecondary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                autoComplete="password"
+                autoComplete="new-password"
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -202,20 +215,46 @@ export default function LoginScreen() {
             </View>
           </View>
 
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <View style={styles.inputWrapper}>
+              <Lock size={20} color={theme.colors.textSecondary} style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm your password"
+                placeholderTextColor={theme.colors.textSecondary}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                autoComplete="new-password"
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color={theme.colors.textSecondary} />
+                ) : (
+                  <Eye size={20} color={theme.colors.textSecondary} />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-            onPress={handleLogin}
+            style={[styles.signupButton, loading && styles.signupButtonDisabled]}
+            onPress={handleSignup}
             disabled={loading}
           >
-            <Text style={styles.loginButtonText}>
-              {loading ? 'Signing In...' : 'Sign In'}
+            <Text style={styles.signupButtonText}>
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don&apos;t have an account?</Text>
-            <Link href="/signup">
-              <Text style={styles.signupLink}>Sign Up</Text>
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginText}>Already have an account?</Text>
+            <Link href="/login">
+              <Text style={styles.loginLink}>Sign In</Text>
             </Link>
           </View>
         </ScrollView>
