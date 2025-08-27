@@ -236,6 +236,7 @@ export default function ExploreScreen() {
   const [showComments, setShowComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
 
   // Get all unique tags from posts
   const allTags = Array.from(new Set(posts.flatMap(post => post.tags))).sort();
@@ -291,125 +292,214 @@ export default function ExploreScreen() {
     </TouchableOpacity>
   );
 
-  const renderPost = (post: ForumPost) => (
-    <TouchableOpacity key={post.id} style={[styles.postCard, { backgroundColor: theme.colors.card }, theme.shadow.small]}>
-      <View style={styles.postContainer}>
-        {/* Vote column */}
-        <View style={styles.voteColumn}>
-          <TouchableOpacity style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}>
-            <ArrowUp 
-              size={18} 
-              color={post.isUpvoted ? theme.colors.primary : theme.colors.textTertiary}
-              fill={post.isUpvoted ? theme.colors.primary : 'none'}
-            />
-          </TouchableOpacity>
-          <Text style={[styles.voteCount, { color: theme.colors.text }]}>
-            {(post.upvotes - post.downvotes).toLocaleString()}
-          </Text>
-          <TouchableOpacity style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}>
-            <ArrowDown 
-              size={18} 
-              color={post.isDownvoted ? theme.colors.error : theme.colors.textTertiary}
-              fill={post.isDownvoted ? theme.colors.error : 'none'}
-            />
-          </TouchableOpacity>
-        </View>
+  const togglePostExpansion = (postId: string) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
 
-        {/* Content column */}
-        <View style={styles.contentColumn}>
-          <View style={styles.postHeader}>
-            <View style={styles.postMeta}>
-              {post.isPinned && (
-                <View style={[styles.pinnedBadge, { backgroundColor: theme.colors.primary + '15' }]}>
-                  <Pin size={12} color={theme.colors.primary} />
-                  <Text style={[styles.pinnedText, { color: theme.colors.primary }]}>Pinned</Text>
-                </View>
-              )}
-              <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primary + '10' }]}>
-                <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
-                  {post.category}
-                </Text>
-              </View>
-            </View>
-            <Text style={[styles.authorText, { color: theme.colors.textTertiary }]}>
-              u/{post.author} • {post.timestamp}
-            </Text>
-          </View>
-          
-          <Text style={[styles.postTitle, { color: theme.colors.text }]} numberOfLines={3}>
-            {post.title}
-          </Text>
-          
-          <Text style={[styles.postContent, { color: theme.colors.textSecondary }]} numberOfLines={3}>
-            {post.content}
-          </Text>
-          
-          {/* Post Tags */}
-          {post.tags.length > 0 && (
-            <View style={styles.postTags}>
-              {post.tags.slice(0, 4).map(tag => (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.postTag, { backgroundColor: theme.colors.backgroundSecondary }]}
-                  onPress={() => toggleTag(tag)}
-                >
-                  <Hash size={10} color={theme.colors.textTertiary} />
-                  <Text style={[styles.postTagText, { color: theme.colors.textSecondary }]}>
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {post.tags.length > 4 && (
-                <Text style={[styles.moreTags, { color: theme.colors.textTertiary }]}>
-                  +{post.tags.length - 4}
-                </Text>
-              )}
-            </View>
-          )}
-          
-          {post.image && (
-            <Image 
-              source={{ uri: post.image }} 
-              style={[styles.postImage, theme.shadow.small]} 
-              resizeMode="cover"
-            />
-          )}
-          
-          <View style={styles.postActions}>
+  const renderPost = (post: ForumPost) => {
+    const isExpanded = expandedPosts.has(post.id);
+    const shouldShowReadMore = post.content.length > 150;
+    
+    return (
+      <TouchableOpacity 
+        key={post.id} 
+        style={[styles.postCard, { backgroundColor: theme.colors.card }, theme.shadow.small]}
+        onPress={() => togglePostExpansion(post.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.postContainer}>
+          {/* Vote column */}
+          <View style={styles.voteColumn}>
             <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => {
-                setSelectedPost(post);
-                setShowComments(true);
+              style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+              onPress={(e) => {
+                e.stopPropagation();
+                // Handle upvote logic here
               }}
             >
-              <MessageCircle size={16} color={theme.colors.textTertiary} />
-              <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
-                {post.comments.length}
-              </Text>
+              <ArrowUp 
+                size={18} 
+                color={post.isUpvoted ? theme.colors.primary : theme.colors.textTertiary}
+                fill={post.isUpvoted ? theme.colors.primary : 'none'}
+              />
             </TouchableOpacity>
+            <Text style={[styles.voteCount, { color: theme.colors.text }]}>
+              {(post.upvotes - post.downvotes).toLocaleString()}
+            </Text>
+            <TouchableOpacity 
+              style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+              onPress={(e) => {
+                e.stopPropagation();
+                // Handle downvote logic here
+              }}
+            >
+              <ArrowDown 
+                size={18} 
+                color={post.isDownvoted ? theme.colors.error : theme.colors.textTertiary}
+                fill={post.isDownvoted ? theme.colors.error : 'none'}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Content column */}
+          <View style={styles.contentColumn}>
+            <View style={styles.postHeader}>
+              <View style={styles.postMeta}>
+                {post.isPinned && (
+                  <View style={[styles.pinnedBadge, { backgroundColor: theme.colors.primary + '15' }]}>
+                    <Pin size={12} color={theme.colors.primary} />
+                    <Text style={[styles.pinnedText, { color: theme.colors.primary }]}>Pinned</Text>
+                  </View>
+                )}
+                <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primary + '10' }]}>
+                  <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
+                    {post.category}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.authorText, { color: theme.colors.textTertiary }]}>
+                u/{post.author} • {post.timestamp}
+              </Text>
+            </View>
             
-            {post.awards && post.awards > 0 && (
-              <TouchableOpacity style={styles.actionButton}>
-                <Award size={16} color={theme.colors.warning} />
-                <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
-                  {post.awards}
+            <Text style={[styles.postTitle, { color: theme.colors.text }]} numberOfLines={isExpanded ? undefined : 2}>
+              {post.title}
+            </Text>
+            
+            <Text 
+              style={[styles.postContent, { color: theme.colors.textSecondary }]} 
+              numberOfLines={isExpanded ? undefined : 3}
+            >
+              {post.content}
+            </Text>
+            
+            {shouldShowReadMore && (
+              <TouchableOpacity 
+                style={styles.readMoreButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  togglePostExpansion(post.id);
+                }}
+              >
+                <Text style={[styles.readMoreText, { color: theme.colors.primary }]}>
+                  {isExpanded ? 'Show less' : 'Read more'}
                 </Text>
               </TouchableOpacity>
             )}
             
-            <TouchableOpacity style={styles.actionButton}>
-              <Bookmark 
-                size={16} 
-                color={post.isBookmarked ? theme.colors.primary : theme.colors.textTertiary}
-                fill={post.isBookmarked ? theme.colors.primary : 'none'}
+            {/* Post Tags */}
+            {post.tags.length > 0 && (
+              <View style={styles.postTags}>
+                {(isExpanded ? post.tags : post.tags.slice(0, 4)).map(tag => (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[styles.postTag, { backgroundColor: theme.colors.backgroundSecondary }]}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      toggleTag(tag);
+                    }}
+                  >
+                    <Hash size={10} color={theme.colors.textTertiary} />
+                    <Text style={[styles.postTagText, { color: theme.colors.textSecondary }]}>
+                      {tag}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                {!isExpanded && post.tags.length > 4 && (
+                  <Text style={[styles.moreTags, { color: theme.colors.textTertiary }]}>
+                    +{post.tags.length - 4}
+                  </Text>
+                )}
+              </View>
+            )}
+            
+            {post.image && (
+              <Image 
+                source={{ uri: post.image }} 
+                style={[styles.postImage, theme.shadow.small]} 
+                resizeMode="cover"
               />
-            </TouchableOpacity>
+            )}
+            
+            {/* Expanded content */}
+            {isExpanded && (
+              <View style={styles.expandedContent}>
+                {post.comments.length > 0 && (
+                  <View style={styles.previewComments}>
+                    <Text style={[styles.previewCommentsTitle, { color: theme.colors.text }]}>
+                      Recent Comments
+                    </Text>
+                    {post.comments.slice(0, 2).map((comment) => (
+                      <View key={comment.id} style={[styles.previewComment, { backgroundColor: theme.colors.backgroundSecondary }]}>
+                        <Text style={[styles.previewCommentAuthor, { color: theme.colors.textSecondary }]}>
+                          {comment.author}
+                        </Text>
+                        <Text style={[styles.previewCommentContent, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+                          {comment.content}
+                        </Text>
+                      </View>
+                    ))}
+                    {post.comments.length > 2 && (
+                      <Text style={[styles.moreComments, { color: theme.colors.textTertiary }]}>
+                        +{post.comments.length - 2} more comments
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
+            
+            <View style={styles.postActions}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setSelectedPost(post);
+                  setShowComments(true);
+                }}
+              >
+                <MessageCircle size={16} color={theme.colors.textTertiary} />
+                <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
+                  {post.comments.length}
+                </Text>
+              </TouchableOpacity>
+              
+              {post.awards && post.awards > 0 && (
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={(e) => e.stopPropagation()}
+                >
+                  <Award size={16} color={theme.colors.warning} />
+                  <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
+                    {post.awards}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={(e) => e.stopPropagation()}
+              >
+                <Bookmark 
+                  size={16} 
+                  color={post.isBookmarked ? theme.colors.primary : theme.colors.textTertiary}
+                  fill={post.isBookmarked ? theme.colors.primary : 'none'}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => 
@@ -1141,5 +1231,45 @@ const styles = StyleSheet.create({
   sortScrollContainer: {
     paddingHorizontal: 20,
     gap: 12,
+  },
+  // Expandable post styles
+  readMoreButton: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  readMoreText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  expandedContent: {
+    marginTop: 12,
+  },
+  previewComments: {
+    marginTop: 8,
+  },
+  previewCommentsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  previewComment: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  previewCommentAuthor: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  previewCommentContent: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  moreComments: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 4,
   },
 });
