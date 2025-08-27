@@ -19,7 +19,7 @@ import {
   MessageCircle,
   Heart,
   Share,
-  TrendingUp,
+
   Clock,
   Users,
   Pin,
@@ -230,7 +230,7 @@ export default function ExploreScreen() {
   const { theme } = useTheme();
   const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'trending' | 'recent' | 'nearme'>('trending');
+  const [sortBy, setSortBy] = useState<'recent' | 'nearme'>('recent');
   const [posts, setPosts] = useState<ForumPost[]>(initialMockPosts);
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [showComments, setShowComments] = useState<boolean>(false);
@@ -251,9 +251,7 @@ export default function ExploreScreen() {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
     
-    if (sortBy === 'trending') {
-      return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
-    } else if (sortBy === 'recent') {
+    if (sortBy === 'recent') {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     } else if (sortBy === 'nearme') {
       // For demo purposes, just sort by trending when near me is selected
@@ -504,110 +502,67 @@ export default function ExploreScreen() {
       </View>
 
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
-        {/* Highlights Section */}
-        <View style={styles.highlightsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>🔥 Trending Today</Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Hot discussions in the Community</Text>
-          </View>
-          <FlatList
-            data={highlights}
-            renderItem={renderHighlight}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.highlightsContainer}
-            snapToInterval={260}
-            decelerationRate="fast"
-          />
-        </View>
+
 
         <View style={styles.sortContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sortScrollContainer}>
-            <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              { backgroundColor: sortBy === 'recent' ? theme.colors.primary : theme.colors.backgroundSecondary },
+              theme.shadow.small
+            ]}
+            onPress={() => setSortBy('recent')}
+          >
+            <Clock 
+              size={16} 
+              color={sortBy === 'recent' ? theme.colors.background : theme.colors.textTertiary} 
+            />
+            <Text
               style={[
-                styles.sortButton,
-                { backgroundColor: sortBy === 'trending' ? theme.colors.primary : theme.colors.backgroundSecondary },
-                theme.shadow.small
+                styles.sortText,
+                {
+                  color: sortBy === 'recent' ? theme.colors.background : theme.colors.textTertiary,
+                  fontWeight: sortBy === 'recent' ? '600' : '500',
+                }
               ]}
-              onPress={() => setSortBy('trending')}
             >
-              <TrendingUp 
-                size={16} 
-                color={sortBy === 'trending' ? theme.colors.background : theme.colors.textTertiary} 
-              />
-              <Text
-                style={[
-                  styles.sortText,
-                  {
-                    color: sortBy === 'trending' ? theme.colors.background : theme.colors.textTertiary,
-                    fontWeight: sortBy === 'trending' ? '600' : '500',
-                  }
-                ]}
-              >
-                Trending
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.sortButton,
-                { backgroundColor: sortBy === 'recent' ? theme.colors.primary : theme.colors.backgroundSecondary },
-                theme.shadow.small
-              ]}
-              onPress={() => setSortBy('recent')}
-            >
-              <Clock 
-                size={16} 
-                color={sortBy === 'recent' ? theme.colors.background : theme.colors.textTertiary} 
-              />
-              <Text
-                style={[
-                  styles.sortText,
-                  {
-                    color: sortBy === 'recent' ? theme.colors.background : theme.colors.textTertiary,
-                    fontWeight: sortBy === 'recent' ? '600' : '500',
-                  }
-                ]}
-              >
-                Recent
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.sortButton,
-                { backgroundColor: sortBy === 'nearme' ? theme.colors.primary : theme.colors.backgroundSecondary },
-                theme.shadow.small
-              ]}
-              onPress={async () => {
-                if (!hasPermission) {
-                  const granted = await requestPermission();
-                  if (granted) {
-                    setSortBy('nearme');
-                  }
-                } else {
+              Recent
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              { backgroundColor: sortBy === 'nearme' ? theme.colors.primary : theme.colors.backgroundSecondary },
+              theme.shadow.small
+            ]}
+            onPress={async () => {
+              if (!hasPermission) {
+                const granted = await requestPermission();
+                if (granted) {
                   setSortBy('nearme');
                 }
-              }}
+              } else {
+                setSortBy('nearme');
+              }
+            }}
+          >
+            <MapPin 
+              size={16} 
+              color={sortBy === 'nearme' ? theme.colors.background : theme.colors.textTertiary} 
+            />
+            <Text
+              style={[
+                styles.sortText,
+                {
+                  color: sortBy === 'nearme' ? theme.colors.background : theme.colors.textTertiary,
+                  fontWeight: sortBy === 'nearme' ? '600' : '500',
+                }
+              ]}
             >
-              <MapPin 
-                size={16} 
-                color={sortBy === 'nearme' ? theme.colors.background : theme.colors.textTertiary} 
-              />
-              <Text
-                style={[
-                  styles.sortText,
-                  {
-                    color: sortBy === 'nearme' ? theme.colors.background : theme.colors.textTertiary,
-                    fontWeight: sortBy === 'nearme' ? '600' : '500',
-                  }
-                ]}
-              >
-                {locationLoading ? 'Loading...' : 'Near Me'}
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
+              {locationLoading ? 'Loading...' : 'Near Me'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {sortedPosts.map(renderPost)}
