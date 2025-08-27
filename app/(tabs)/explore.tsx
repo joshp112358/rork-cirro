@@ -35,6 +35,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
+import { router } from 'expo-router';
 
 interface Comment {
   id: string;
@@ -548,7 +549,10 @@ export default function ExploreScreen() {
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Explore</Text>
           <Text style={[styles.headerSubtitle, { color: theme.colors.textTertiary }]}>Discover Community discussions</Text>
         </View>
-        <TouchableOpacity style={[styles.createButton, { backgroundColor: theme.colors.primary }, theme.shadow.small]}>
+        <TouchableOpacity 
+          style={[styles.createButton, { backgroundColor: theme.colors.primary }, theme.shadow.small]}
+          onPress={() => router.push('/create-thread')}
+        >
           <Plus size={20} color={theme.colors.background} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
