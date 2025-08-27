@@ -30,8 +30,10 @@ import {
   Image as ImageIcon,
   Send,
   X,
+  MapPin,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
+import { useLocation } from '@/hooks/use-location';
 
 interface Comment {
   id: string;
@@ -219,8 +221,9 @@ const highlights: Highlight[] = [
 
 export default function ExploreScreen() {
   const { theme } = useTheme();
+  const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'trending' | 'recent'>('trending');
+  const [sortBy, setSortBy] = useState<'trending' | 'recent' | 'nearme'>('trending');
   const [posts, setPosts] = useState<ForumPost[]>(initialMockPosts);
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [showComments, setShowComments] = useState<boolean>(false);
@@ -238,9 +241,14 @@ export default function ExploreScreen() {
     
     if (sortBy === 'trending') {
       return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
-    } else {
+    } else if (sortBy === 'recent') {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    } else if (sortBy === 'nearme') {
+      // For demo purposes, just sort by trending when near me is selected
+      // In a real app, this would sort by distance from user's location
+      return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
     }
+    return 0;
   });
 
   const renderHighlight = ({ item }: { item: Highlight }) => (
@@ -454,6 +462,38 @@ export default function ExploreScreen() {
               ]}
             >
               Recent
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              sortBy === 'nearme' && { backgroundColor: theme.colors.primary + '20' }
+            ]}
+            onPress={async () => {
+              if (!hasPermission) {
+                const granted = await requestPermission();
+                if (granted) {
+                  setSortBy('nearme');
+                }
+              } else {
+                setSortBy('nearme');
+              }
+            }}
+          >
+            <MapPin 
+              size={16} 
+              color={sortBy === 'nearme' ? theme.colors.primary : theme.colors.textTertiary} 
+            />
+            <Text
+              style={[
+                styles.sortText,
+                {
+                  color: sortBy === 'nearme' ? theme.colors.primary : theme.colors.textTertiary,
+                }
+              ]}
+            >
+              {locationLoading ? 'Loading...' : 'Near Me'}
             </Text>
           </TouchableOpacity>
         </View>
