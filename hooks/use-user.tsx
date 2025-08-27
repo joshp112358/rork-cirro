@@ -2,7 +2,6 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
 
 interface UserProfile {
   id: string;
@@ -115,161 +114,18 @@ export const [UserProvider, useUser] = createContextHook(() => {
   }, [profile, saveProfile]);
 
   const signOut = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-      await AsyncStorage.removeItem(STORAGE_KEY);
-      setProfile(defaultProfile);
-      setIsAuthenticated(false);
-      queryClient.clear();
-    } catch (error) {
-      console.error('Sign out error:', error);
-      throw error;
-    }
+    await AsyncStorage.removeItem(STORAGE_KEY);
+    setProfile(defaultProfile);
+    setIsAuthenticated(false);
+    queryClient.clear();
   }, [queryClient]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Fetch or create user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError && profileError.code !== 'PGRST116') {
-          throw profileError;
-        }
-
-        const userProfile: UserProfile = {
-          id: data.user.id,
-          name: profileData?.name || data.user.email?.split('@')[0] || 'User',
-          email: data.user.email || '',
-          avatar: profileData?.avatar_url,
-          joinedDate: new Date(data.user.created_at),
-          preferences: {
-            notifications: {
-              sessionReminders: true,
-              weeklyInsights: false,
-              communityUpdates: true,
-              newFeatures: true,
-            },
-            theme: 'system',
-          },
-        };
-
-        setProfile(userProfile);
-        setIsAuthenticated(true);
-        saveProfile(userProfile);
-      }
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
-    }
+  const signIn = useCallback((userProfile: Partial<UserProfile>) => {
+    const newProfile = { ...defaultProfile, ...userProfile, id: userProfile.id || Date.now().toString() };
+    setProfile(newProfile);
+    setIsAuthenticated(true);
+    saveProfile(newProfile);
   }, [saveProfile]);
-
-  const signUp = useCallback(async (email: string, password: string, name: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email || '',
-            name,
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-        }
-
-        const userProfile: UserProfile = {
-          id: data.user.id,
-          name,
-          email: data.user.email || '',
-          joinedDate: new Date(data.user.created_at),
-          preferences: {
-            notifications: {
-              sessionReminders: true,
-              weeklyInsights: false,
-              communityUpdates: true,
-              newFeatures: true,
-            },
-            theme: 'system',
-          },
-        };
-
-        setProfile(userProfile);
-        setIsAuthenticated(true);
-        saveProfile(userProfile);
-      }
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
-    }
-  }, [saveProfile]);
-
-  // Check for existing session on app start
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        // User is already signed in, fetch their profile
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profileData }) => {
-            if (profileData) {
-              const userProfile: UserProfile = {
-                id: session.user.id,
-                name: profileData.name,
-                email: session.user.email || '',
-                avatar: profileData.avatar_url,
-                joinedDate: new Date(session.user.created_at),
-                preferences: {
-                  notifications: {
-                    sessionReminders: true,
-                    weeklyInsights: false,
-                    communityUpdates: true,
-                    newFeatures: true,
-                  },
-                  theme: 'system',
-                },
-              };
-              setProfile(userProfile);
-              setIsAuthenticated(true);
-            }
-          });
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        setProfile(defaultProfile);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   return useMemo(() => ({
     profile,
@@ -278,11 +134,10 @@ export const [UserProvider, useUser] = createContextHook(() => {
     updateNotificationPreference,
     updateThemePreference,
     signIn,
-    signUp,
     signOut,
     isLoading: profileQuery.isLoading,
     isSaving: saveMutation.isPending
-  }), [profile, isAuthenticated, updateProfile, updateNotificationPreference, updateThemePreference, signIn, signUp, signOut, profileQuery.isLoading, saveMutation.isPending]);
+  }), [profile, isAuthenticated, updateProfile, updateNotificationPreference, updateThemePreference, signIn, signOut, profileQuery.isLoading, saveMutation.isPending]);
 });
 
 export type { UserProfile };
