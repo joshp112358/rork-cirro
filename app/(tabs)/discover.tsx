@@ -17,8 +17,18 @@ interface Comment {
   liked: boolean;
 }
 
+interface Community {
+  id: string;
+  name: string;
+  description: string;
+  memberCount: number;
+  icon: string;
+  color: string;
+}
+
 interface Post {
   id: string;
+  communityId: string;
   user: {
     name: string;
     avatar: string;
@@ -38,9 +48,45 @@ interface Post {
 
 
 
+const communities: Community[] = [
+  {
+    id: 'cirro',
+    name: 'Cirro',
+    description: 'Premium cannabis experiences and reviews',
+    memberCount: 12500,
+    icon: '🌟',
+    color: '#8B5CF6'
+  },
+  {
+    id: 'young-professional',
+    name: 'Young Professional',
+    description: 'Cannabis for the modern professional lifestyle',
+    memberCount: 8900,
+    icon: '💼',
+    color: '#10B981'
+  },
+  {
+    id: 'heavy-users',
+    name: 'Heavy Users',
+    description: 'For experienced cannabis enthusiasts',
+    memberCount: 15200,
+    icon: '🔥',
+    color: '#EF4444'
+  },
+  {
+    id: 'deals',
+    name: 'Deals',
+    description: 'Best cannabis deals and discounts',
+    memberCount: 22100,
+    icon: '💰',
+    color: '#F59E0B'
+  }
+];
+
 const mockPosts: Post[] = [
   {
     id: '1',
+    communityId: 'cirro',
     user: {
       name: 'Sarah M.',
       avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
@@ -82,6 +128,7 @@ const mockPosts: Post[] = [
   },
   {
     id: '2',
+    communityId: 'heavy-users',
     user: {
       name: 'Mike Chen',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
@@ -112,6 +159,7 @@ const mockPosts: Post[] = [
   },
   {
     id: '3',
+    communityId: 'young-professional',
     user: {
       name: 'Alex Rivera',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
@@ -151,12 +199,43 @@ const mockPosts: Post[] = [
     timestamp: '6h',
     liked: false,
   },
+  {
+    id: '4',
+    communityId: 'deals',
+    user: {
+      name: 'Jessica L.',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+      verified: false,
+    },
+    strain: {
+      name: 'Green Crack',
+      type: 'Sativa',
+    },
+    image: 'https://images.unsplash.com/photo-1583912267550-3c3f12d8d0c4?w=400&h=400&fit=crop',
+    caption: '30% off at Green Valley Dispensary! This energizing strain is perfect for daytime use.',
+    likes: 156,
+    comments: [
+      {
+        id: '6',
+        user: {
+          name: 'Mark D.',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'Thanks for sharing! Just picked some up.',
+        timestamp: '1h',
+        likes: 3,
+        liked: false,
+      },
+    ],
+    timestamp: '3h',
+    liked: true,
+  },
 ];
 
 export default function CommunitiesScreen() {
   const { theme } = useTheme();
   const [posts, setPosts] = useState(mockPosts);
-  const [activeTab, setActiveTab] = useState<'community'>('community');
+  const [selectedCommunity, setSelectedCommunity] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentText, setCommentText] = useState('');
   const [showComments, setShowComments] = useState(false);
@@ -264,6 +343,7 @@ export default function CommunitiesScreen() {
 
     const newPost: Post = {
       id: Date.now().toString(),
+      communityId: selectedCommunity || 'cirro',
       user: {
         name: 'You',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
@@ -316,6 +396,15 @@ export default function CommunitiesScreen() {
     setShowComments(true);
   };
 
+  const getFilteredPosts = () => {
+    if (!selectedCommunity) return posts;
+    return posts.filter(post => post.communityId === selectedCommunity);
+  };
+
+  const getCommunityById = (id: string) => {
+    return communities.find(community => community.id === id);
+  };
+
 
 
   const getStrainTypeColor = (type: string) => {
@@ -347,6 +436,47 @@ export default function CommunitiesScreen() {
             <Text style={styles.createPostButtonText}>Create Post</Text>
           </TouchableOpacity>
         </View>
+        
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.communitiesScroll}
+          contentContainerStyle={styles.communitiesContent}
+        >
+          <TouchableOpacity
+            style={[
+              styles.communityChip,
+              !selectedCommunity && styles.communityChipSelected
+            ]}
+            onPress={() => setSelectedCommunity(null)}
+          >
+            <Text style={styles.communityChipIcon}>🌍</Text>
+            <Text style={[
+              styles.communityChipText,
+              !selectedCommunity && styles.communityChipTextSelected
+            ]}>All</Text>
+          </TouchableOpacity>
+          
+          {communities.map((community) => (
+            <TouchableOpacity
+              key={community.id}
+              style={[
+                styles.communityChip,
+                selectedCommunity === community.id && [
+                  styles.communityChipSelected,
+                  { backgroundColor: community.color }
+                ]
+              ]}
+              onPress={() => setSelectedCommunity(community.id)}
+            >
+              <Text style={styles.communityChipIcon}>{community.icon}</Text>
+              <Text style={[
+                styles.communityChipText,
+                selectedCommunity === community.id && styles.communityChipTextSelected
+              ]}>{community.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       <ScrollView 
@@ -358,22 +488,39 @@ export default function CommunitiesScreen() {
         <View style={styles.postsSection}>
           <View style={styles.sectionHeader}>
             <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>Community Posts</Text>
+            <Text style={styles.sectionTitle}>
+              {selectedCommunity 
+                ? `${getCommunityById(selectedCommunity)?.name} Posts`
+                : 'All Community Posts'
+              }
+            </Text>
+            {selectedCommunity && (
+              <View style={styles.communityInfo}>
+                <Text style={styles.memberCount}>
+                  {getCommunityById(selectedCommunity)?.memberCount.toLocaleString()} members
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {posts.length === 0 ? (
+        {getFilteredPosts().length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
               <Users size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
             </View>
-            <Text style={styles.emptyTitle}>No posts yet</Text>
+            <Text style={styles.emptyTitle}>
+              {selectedCommunity ? 'No posts in this community yet' : 'No posts yet'}
+            </Text>
             <Text style={styles.emptyText}>
-              Follow other users to see their posts here
+              {selectedCommunity 
+                ? 'Be the first to share something in this community!'
+                : 'Follow other users to see their posts here'
+              }
             </Text>
           </View>
         ) : (
-          posts.map((post) => (
+          getFilteredPosts().map((post) => (
             <View key={post.id} style={styles.postCard}>
               <View style={styles.postHeader}>
                 <View style={styles.userInfo}>
@@ -386,6 +533,17 @@ export default function CommunitiesScreen() {
                           <Text style={styles.verifiedText}>✓</Text>
                         </View>
                       )}
+                      <View style={[
+                        styles.communityBadge,
+                        { backgroundColor: getCommunityById(post.communityId)?.color || theme.colors.primary }
+                      ]}>
+                        <Text style={styles.communityBadgeIcon}>
+                          {getCommunityById(post.communityId)?.icon || '🌍'}
+                        </Text>
+                        <Text style={styles.communityBadgeText}>
+                          {getCommunityById(post.communityId)?.name || 'Community'}
+                        </Text>
+                      </View>
                     </View>
                     <View style={styles.strainInfo}>
                       <View style={[
@@ -587,6 +745,46 @@ export default function CommunitiesScreen() {
                   <Text style={styles.characterCount}>
                     {newPostText.length}/500
                   </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.createPostCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Users size={18} color={theme.colors.primary} strokeWidth={1.5} />
+                </View>
+                <Text style={styles.cardTitle}>Community</Text>
+              </View>
+              
+              <View style={styles.strainInputSection}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Select Community</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.communitySelectScroll}
+                  >
+                    {communities.map((community) => (
+                      <TouchableOpacity
+                        key={community.id}
+                        style={[
+                          styles.communitySelectChip,
+                          selectedCommunity === community.id && [
+                            styles.communitySelectChipSelected,
+                            { backgroundColor: community.color }
+                          ]
+                        ]}
+                        onPress={() => setSelectedCommunity(community.id)}
+                      >
+                        <Text style={styles.communitySelectIcon}>{community.icon}</Text>
+                        <Text style={[
+                          styles.communitySelectText,
+                          selectedCommunity === community.id && styles.communitySelectTextSelected
+                        ]}>{community.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 </View>
               </View>
             </View>
@@ -911,6 +1109,25 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 10,
     color: theme.colors.background,
     fontWeight: theme.fontWeight.heavy,
+  },
+  communityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+    marginLeft: theme.spacing.sm,
+  },
+  communityBadgeIcon: {
+    fontSize: 10,
+  },
+  communityBadgeText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   strainInfo: {
     flexDirection: 'row',
@@ -1558,6 +1775,93 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   createPostFooter: {
     height: theme.spacing.xxl,
+  },
+  communitiesScroll: {
+    marginTop: theme.spacing.md,
+  },
+  communitiesContent: {
+    paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.sm,
+  },
+  communityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.cardSecondary,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    marginRight: theme.spacing.sm,
+  },
+  communityChipSelected: {
+    borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  communityChipIcon: {
+    fontSize: 16,
+  },
+  communityChipText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+  },
+  communityChipTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: theme.fontWeight.medium,
+  },
+  communityInfo: {
+    marginLeft: 'auto',
+  },
+  memberCount: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  communitySelectScroll: {
+    flexDirection: 'row',
+  },
+  communitySelectChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.cardSecondary,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    marginRight: theme.spacing.sm,
+    minWidth: 120,
+  },
+  communitySelectChipSelected: {
+    borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  communitySelectIcon: {
+    fontSize: 18,
+  },
+  communitySelectText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    flex: 1,
+    textAlign: 'center',
+  },
+  communitySelectTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: theme.fontWeight.medium,
   },
   inputGroup: {
     marginBottom: theme.spacing.lg,
