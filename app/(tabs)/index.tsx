@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
-import { Plus, TrendingUp, Calendar, Settings } from 'lucide-react-native';
+import { Plus, TrendingUp, Calendar, Settings, Bot } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries, useRecentEntries } from '@/hooks/use-entries';
@@ -67,7 +67,7 @@ export default function HomeScreen() {
         >
           <View style={styles.newEntryContent}>
             <View style={styles.botIcon}>
-              <Text style={styles.botEmoji}>🤖</Text>
+              <Bot size={20} color={theme.colors.primary} strokeWidth={1.5} />
             </View>
             <View style={styles.newEntryText}>
               <Text style={styles.newEntryTitle}>AI Budtender</Text>
