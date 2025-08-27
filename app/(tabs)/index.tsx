@@ -173,7 +173,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity 
           style={styles.budtenderButton}
-          onPress={() => router.push('/budtender')}
+          onPress={() => router.push('/(tabs)/budtender')}
           testID="budtender-button"
         >
           <View style={styles.newEntryContent}>
@@ -218,7 +218,92 @@ export default function HomeScreen() {
           </View>
         )}
 
-
+        <View style={styles.dealsSection}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderLeft}>
+              <ShoppingBag size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Today's Best Deals</Text>
+            </View>
+            {!hasPermission && (
+              <TouchableOpacity 
+                style={styles.locationButton}
+                onPress={handleLocationRequest}
+                disabled={locationLoading}
+              >
+                <Navigation size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                <Text style={styles.locationButtonText}>
+                  {locationLoading ? 'Finding...' : 'Near Me'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {hasPermission && location && (
+              <View style={styles.locationInfo}>
+                <MapPin size={14} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                <Text style={styles.locationText}>
+                  {location.address || `${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}`}
+                </Text>
+              </View>
+            )}
+          </View>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.dealsScroll}
+            contentContainerStyle={styles.dealsContent}
+          >
+            {deals.map((deal) => (
+              <TouchableOpacity key={deal.id} style={styles.dealCard}>
+                <View style={styles.dealImageContainer}>
+                  <Image source={{ uri: deal.image }} style={styles.dealImage} />
+                  <View style={styles.discountBadge}>
+                    <Text style={styles.discountText}>{deal.discount}% OFF</Text>
+                  </View>
+                </View>
+                <View style={styles.dealContent}>
+                  <View style={styles.dealHeader}>
+                    <View style={[
+                      styles.categoryBadge,
+                      { backgroundColor: getCategoryColor(deal.category) }
+                    ]}>
+                      <Text style={styles.categoryText}>{deal.category}</Text>
+                    </View>
+                    <View style={[
+                      styles.strainTypeBadge,
+                      { backgroundColor: getStrainTypeColor(deal.strainType) }
+                    ]}>
+                      <Text style={styles.strainTypeText}>{deal.strainType}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.dealStrainName} numberOfLines={1}>
+                    {deal.strainName}
+                  </Text>
+                  <Text style={styles.dealDispensary} numberOfLines={1}>
+                    {deal.dispensary}
+                  </Text>
+                  <View style={styles.dealPricing}>
+                    <Text style={styles.originalPrice}>${deal.originalPrice}</Text>
+                    <Text style={styles.salePrice}>${deal.salePrice}</Text>
+                  </View>
+                  <View style={styles.dealMeta}>
+                    <View style={styles.ratingContainer}>
+                      <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
+                      <Text style={styles.ratingText}>{deal.rating}</Text>
+                      <Text style={styles.reviewCount}>({deal.reviewCount})</Text>
+                    </View>
+                  </View>
+                  <View style={styles.dealFooter}>
+                    <View style={styles.locationContainer}>
+                      <MapPin size={12} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                      <Text style={styles.locationText}>{deal.location} • {deal.distance}mi</Text>
+                    </View>
+                    <Text style={styles.validUntil}>{deal.validUntil}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
 
       </ScrollView>

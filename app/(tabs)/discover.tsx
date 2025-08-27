@@ -220,7 +220,7 @@ const mockPosts: Post[] = [
 export default function DiscoverScreen() {
   const { theme } = useTheme();
   const [posts, setPosts] = useState(mockPosts);
-
+  const [activeTab, setActiveTab] = useState<'deals' | 'community'>('deals');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentText, setCommentText] = useState('');
   const [showComments, setShowComments] = useState(false);
@@ -385,12 +385,38 @@ export default function DiscoverScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Community</Text>
+          <Text style={styles.headerTitle}>Discover</Text>
           <TouchableOpacity 
             style={styles.createPostButton}
             onPress={() => setShowCreatePost(true)}
           >
             <Text style={styles.createPostButtonText}>Create Post</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'deals' && styles.activeTab]}
+            onPress={() => setActiveTab('deals')}
+          >
+            <Tag size={16} color={activeTab === 'deals' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
+            <Text style={[
+              styles.tabText,
+              activeTab === 'deals' && styles.activeTabText
+            ]}>
+              Deals
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'community' && styles.activeTab]}
+            onPress={() => setActiveTab('community')}
+          >
+            <Users size={16} color={activeTab === 'community' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
+            <Text style={[
+              styles.tabText,
+              activeTab === 'community' && styles.activeTabText
+            ]}>
+              Community
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -399,24 +425,92 @@ export default function DiscoverScreen() {
         style={styles.postsContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.postsSection}>
-          <View style={styles.sectionHeader}>
-            <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>Community Posts</Text>
+        {activeTab === 'deals' && (
+          <View style={styles.dealsSection}>
+            <View style={styles.sectionHeader}>
+              <ShoppingBag size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Today's Best Deals</Text>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.dealsScroll}
+              contentContainerStyle={styles.dealsContent}
+            >
+              {mockDeals.map((deal) => (
+                <TouchableOpacity key={deal.id} style={styles.dealCard}>
+                  <View style={styles.dealImageContainer}>
+                    <Image source={{ uri: deal.image }} style={styles.dealImage} />
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountText}>{deal.discount}% OFF</Text>
+                    </View>
+                  </View>
+                  <View style={styles.dealContent}>
+                    <View style={styles.dealHeader}>
+                      <View style={[
+                        styles.categoryBadge,
+                        { backgroundColor: getCategoryColor(deal.category) }
+                      ]}>
+                        <Text style={styles.categoryText}>{deal.category}</Text>
+                      </View>
+                      <View style={[
+                        styles.strainTypeBadge,
+                        { backgroundColor: getStrainTypeColor(deal.strainType) }
+                      ]}>
+                        <Text style={styles.strainTypeText}>{deal.strainType}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.dealStrainName} numberOfLines={1}>
+                      {deal.strainName}
+                    </Text>
+                    <Text style={styles.dealDispensary} numberOfLines={1}>
+                      {deal.dispensary}
+                    </Text>
+                    <View style={styles.dealPricing}>
+                      <Text style={styles.originalPrice}>${deal.originalPrice}</Text>
+                      <Text style={styles.salePrice}>${deal.salePrice}</Text>
+                    </View>
+                    <View style={styles.dealMeta}>
+                      <View style={styles.ratingContainer}>
+                        <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
+                        <Text style={styles.ratingText}>{deal.rating}</Text>
+                        <Text style={styles.reviewCount}>({deal.reviewCount})</Text>
+                      </View>
+                    </View>
+                    <View style={styles.dealFooter}>
+                      <View style={styles.locationContainer}>
+                        <MapPin size={12} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                        <Text style={styles.locationText}>{deal.location}</Text>
+                      </View>
+                      <Text style={styles.validUntil}>{deal.validUntil}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-        </View>
+        )}
 
-        {posts.length === 0 ? (
+        {activeTab === 'community' && (
+          <View style={styles.postsSection}>
+            <View style={styles.sectionHeader}>
+              <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Community Posts</Text>
+            </View>
+          </View>
+        )}
+
+        {activeTab === 'community' && posts.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
               <Users size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
             </View>
             <Text style={styles.emptyTitle}>No posts yet</Text>
             <Text style={styles.emptyText}>
-              Be the first to share your cannabis experience!
+              Follow other users to see their posts here
             </Text>
           </View>
-        ) : (
+        ) : activeTab === 'community' ? (
           posts.map((post) => (
             <View key={post.id} style={styles.postCard}>
               <View style={styles.postHeader}>
@@ -489,7 +583,7 @@ export default function DiscoverScreen() {
               </View>
             </View>
           ))
-        )}
+        ) : null}
       </ScrollView>
 
       <Modal
@@ -762,7 +856,34 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.background,
     letterSpacing: 0.3,
   },
-
+  tabContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.card,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+  },
+  activeTab: {
+    backgroundColor: theme.colors.cardSecondary,
+    borderColor: theme.colors.primary,
+  },
+  tabText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  activeTabText: {
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
   postsContainer: {
     flex: 1,
   },

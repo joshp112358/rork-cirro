@@ -1,364 +1,198 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, FlatList, Image, Alert } from 'react-native';
-import { MessageSquare, Plus, Heart, MessageCircle, Share, MoreHorizontal, Search, TrendingUp, Clock, Users } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Bot, Send, MessageCircle, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
-interface ForumPost {
+interface Message {
   id: string;
-  title: string;
-  content: string;
-  author: {
-    name: string;
-    avatar: string;
-    verified: boolean;
-  };
-  category: 'General' | 'Strains' | 'Growing' | 'Medical' | 'Reviews' | 'News';
-  likes: number;
-  replies: number;
-  views: number;
-  timestamp: string;
-  liked: boolean;
-  pinned?: boolean;
-  tags: string[];
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
 }
 
-interface Reply {
-  id: string;
-  content: string;
-  author: {
-    name: string;
-    avatar: string;
-    verified: boolean;
-  };
-  likes: number;
-  timestamp: string;
-  liked: boolean;
-}
-
-const mockForumPosts: ForumPost[] = [
-  {
-    id: '1',
-    title: 'Best strains for anxiety relief?',
-    content: 'Looking for recommendations for strains that help with anxiety without making me too sleepy. Any suggestions?',
-    author: {
-      name: 'Sarah M.',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-    },
-    category: 'Medical',
-    likes: 24,
-    replies: 12,
-    views: 156,
-    timestamp: '2h',
-    liked: false,
-    pinned: true,
-    tags: ['anxiety', 'medical', 'recommendations'],
-  },
-  {
-    id: '2',
-    title: 'Purple Haze Review - Amazing for creativity!',
-    content: 'Just tried Purple Haze for the first time and wow! Perfect for creative sessions. The colors are incredible and my focus is on point.',
-    author: {
-      name: 'Mike Chen',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      verified: false,
-    },
-    category: 'Reviews',
-    likes: 18,
-    replies: 8,
-    views: 89,
-    timestamp: '4h',
-    liked: true,
-    tags: ['purple-haze', 'sativa', 'creativity', 'review'],
-  },
-  {
-    id: '3',
-    title: 'Growing tips for beginners?',
-    content: 'Starting my first grow setup. Any essential tips for a complete beginner? What mistakes should I avoid?',
-    author: {
-      name: 'Alex Rivera',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-    },
-    category: 'Growing',
-    likes: 31,
-    replies: 15,
-    views: 203,
-    timestamp: '6h',
-    liked: false,
-    tags: ['growing', 'beginner', 'tips', 'setup'],
-  },
-  {
-    id: '4',
-    title: 'New dispensary opened downtown!',
-    content: 'Green Valley Dispensary just opened on Main Street. Great selection and friendly staff. Anyone else been there yet?',
-    author: {
-      name: 'Emma K.',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      verified: false,
-    },
-    category: 'News',
-    likes: 12,
-    replies: 6,
-    views: 67,
-    timestamp: '8h',
-    liked: false,
-    tags: ['dispensary', 'news', 'downtown'],
-  },
-];
-
-export default function ForumsScreen() {
+export default function BudtenderScreen() {
   const { theme } = useTheme();
-  const [posts, setPosts] = useState<ForumPost[]>(mockForumPosts);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'trending' | 'recent'>('all');
-  const [searchText, setSearchText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: "Hi! I'm your AI budtender. I can help you find the perfect strain, suggest consumption methods, or answer questions about cannabis. What would you like to know?",
+      isUser: false,
+      timestamp: new Date(),
+    }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const categories = ['All', 'General', 'Strains', 'Growing', 'Medical', 'Reviews', 'News'];
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const quickQuestions = [
+    "Recommend a strain for relaxation",
+    "Best strains for creativity",
+    "Help with sleep issues",
+    "Strains for social situations"
+  ];
 
-  const handleLike = (postId: string) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? {
-              ...post,
-              liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText.trim(),
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputText('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('https://toolkit.rork.com/text/llm/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert cannabis budtender AI assistant. Provide helpful, accurate information about cannabis strains, consumption methods, effects, and general cannabis knowledge. Be friendly, professional, and informative. Always remind users to consume responsibly and follow local laws.'
+            },
+            ...messages.map(msg => ({
+              role: msg.isUser ? 'user' : 'assistant',
+              content: msg.text
+            })),
+            {
+              role: 'user',
+              content: userMessage.text
             }
-          : post
-      )
-    );
-  };
+          ]
+        }),
+      });
 
-  const handleCreatePost = () => {
-    Alert.alert('Create Post', 'Post creation feature coming soon!');
-  };
+      const data = await response.json();
+      
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.completion,
+        isUser: false,
+        timestamp: new Date(),
+      };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'General':
-        return '#6B7280';
-      case 'Strains':
-        return '#10B981';
-      case 'Growing':
-        return '#059669';
-      case 'Medical':
-        return '#DC2626';
-      case 'Reviews':
-        return '#7C3AED';
-      case 'News':
-        return '#2563EB';
-      default:
-        return theme.colors.textSecondary;
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I'm having trouble connecting right now. Please try again later.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
-    const matchesSearch = searchText === '' || 
-      post.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchText.toLowerCase()) ||
-      post.tags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
-
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    
-    switch (activeFilter) {
-      case 'trending':
-        return (b.likes + b.replies) - (a.likes + a.replies);
-      case 'recent':
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-      default:
-        return 0;
-    }
-  });
+  const handleQuickQuestion = (question: string) => {
+    setInputText(question);
+  };
 
   const styles = createStyles(theme);
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View style={styles.headerLeft}>
-            <MessageSquare size={24} color={theme.colors.primary} strokeWidth={1.5} />
-            <Text style={styles.headerTitle}>Forums</Text>
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.botIcon}>
+              <Bot size={24} color={theme.colors.primary} strokeWidth={1.5} />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>AI Budtender</Text>
+              <Text style={styles.headerSubtitle}>Your cannabis expert</Text>
+            </View>
           </View>
-          <TouchableOpacity 
-            style={styles.createButton}
-            onPress={handleCreatePost}
-          >
-            <Plus size={18} color={theme.colors.background} strokeWidth={1.5} />
-            <Text style={styles.createButtonText}>New Post</Text>
-          </TouchableOpacity>
         </View>
-        
-        <View style={styles.searchContainer}>
-          <Search size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search forums..."
-            placeholderTextColor={theme.colors.textSecondary}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-        </View>
-        
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesScroll}
-          contentContainerStyle={styles.categoriesContent}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryChip,
-                selectedCategory === category && styles.categoryChipSelected
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text style={[
-                styles.categoryChipText,
-                selectedCategory === category && styles.categoryChipTextSelected
-              ]}>
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        
-        <View style={styles.filterContainer}>
-          {(['all', 'trending', 'recent'] as const).map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                activeFilter === filter && styles.filterButtonActive
-              ]}
-              onPress={() => setActiveFilter(filter)}
-            >
-              {filter === 'trending' && <TrendingUp size={16} color={activeFilter === filter ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />}
-              {filter === 'recent' && <Clock size={16} color={activeFilter === filter ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />}
-              {filter === 'all' && <Users size={16} color={activeFilter === filter ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />}
-              <Text style={[
-                styles.filterButtonText,
-                activeFilter === filter && styles.filterButtonTextActive
-              ]}>
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
 
-      <FlatList
-        data={sortedPosts}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.postsContent}
-        renderItem={({ item: post }) => (
-          <TouchableOpacity style={styles.postCard}>
-            {post.pinned && (
-              <View style={styles.pinnedBadge}>
-                <Text style={styles.pinnedText}>PINNED</Text>
-              </View>
-            )}
-            
-            <View style={styles.postHeader}>
-              <View style={styles.authorInfo}>
-                <Image source={{ uri: post.author.avatar }} style={styles.authorAvatar} />
-                <View style={styles.authorDetails}>
-                  <View style={styles.authorNameRow}>
-                    <Text style={styles.authorName}>{post.author.name}</Text>
-                    {post.author.verified && (
-                      <View style={styles.verifiedBadge}>
-                        <Text style={styles.verifiedText}>✓</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.postTimestamp}>{post.timestamp}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.postMeta}>
-                <View style={[
-                  styles.categoryBadge,
-                  { backgroundColor: getCategoryColor(post.category) }
-                ]}>
-                  <Text style={styles.categoryText}>{post.category}</Text>
-                </View>
-                <TouchableOpacity style={styles.moreButton}>
-                  <MoreHorizontal size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
-                </TouchableOpacity>
-              </View>
-            </View>
-            
-            <View style={styles.postContent}>
-              <Text style={styles.postTitle}>{post.title}</Text>
-              <Text style={styles.postContentText} numberOfLines={3}>
-                {post.content}
+        <ScrollView 
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.messagesContent}
+        >
+          {messages.map((message) => (
+            <View
+              key={message.id}
+              style={[
+                styles.messageContainer,
+                message.isUser ? styles.userMessage : styles.aiMessage
+              ]}
+            >
+              <Text style={[
+                styles.messageText,
+                message.isUser ? styles.userMessageText : styles.aiMessageText
+              ]}>
+                {message.text}
               </Text>
-              
-              <View style={styles.tagsContainer}>
-                {post.tags.slice(0, 3).map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>#{tag}</Text>
-                  </View>
-                ))}
-                {post.tags.length > 3 && (
-                  <Text style={styles.moreTags}>+{post.tags.length - 3}</Text>
-                )}
+            </View>
+          ))}
+
+          {isLoading && (
+            <View style={[styles.messageContainer, styles.aiMessage]}>
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Thinking...</Text>
+                <View style={styles.loadingDots}>
+                  <View style={styles.loadingDot} />
+                  <View style={styles.loadingDot} />
+                  <View style={styles.loadingDot} />
+                </View>
               </View>
             </View>
-            
-            <View style={styles.postActions}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleLike(post.id)}
-              >
-                <Heart 
-                  size={18} 
-                  color={post.liked ? '#EF4444' : theme.colors.textSecondary}
-                  fill={post.liked ? '#EF4444' : 'none'}
-                  strokeWidth={1.5}
-                />
-                <Text style={[
-                  styles.actionText,
-                  post.liked && { color: '#EF4444' }
-                ]}>
-                  {post.likes}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionButton}>
-                <MessageCircle size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
-                <Text style={styles.actionText}>{post.replies}</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionButton}>
-                <Share size={18} color={theme.colors.textSecondary} strokeWidth={1.5} />
-              </TouchableOpacity>
-              
-              <View style={styles.viewsContainer}>
-                <Text style={styles.viewsText}>{post.views} views</Text>
-              </View>
+          )}
+
+          {messages.length === 1 && (
+            <View style={styles.quickQuestionsContainer}>
+              <Text style={styles.quickQuestionsTitle}>Quick Questions</Text>
+              {quickQuestions.map((question, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.quickQuestionButton}
+                  onPress={() => handleQuickQuestion(question)}
+                >
+                  <Sparkles size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                  <Text style={styles.quickQuestionText}>{question}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <MessageSquare size={48} color={theme.colors.textSecondary} strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>No posts found</Text>
-            <Text style={styles.emptyText}>
-              {searchText ? 'Try adjusting your search terms' : 'Be the first to start a discussion!'}
-            </Text>
+          )}
+        </ScrollView>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Ask me anything about cannabis..."
+              placeholderTextColor={theme.colors.textSecondary}
+              multiline
+              maxLength={500}
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!inputText.trim() || isLoading) && styles.sendButtonDisabled
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputText.trim() || isLoading}
+            >
+              <Send size={20} color={theme.colors.background} strokeWidth={1.5} />
+            </TouchableOpacity>
           </View>
-        }
-      />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -368,6 +202,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardContainer: {
+    flex: 1,
+  },
   header: {
     paddingHorizontal: theme.spacing.xl,
     paddingTop: theme.spacing.lg,
@@ -375,16 +212,18 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: theme.colors.border,
   },
-  headerTop: {
+  headerContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.lg,
   },
-  headerLeft: {
-    flexDirection: 'row',
+  botIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.cardSecondary,
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: theme.fontSize.xxl,
@@ -392,21 +231,84 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text,
     letterSpacing: -0.5,
   },
-  createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.round,
-  },
-  createButtonText: {
+  headerSubtitle: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  messagesContainer: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+  },
+  messagesContent: {
+    paddingBottom: theme.spacing.lg,
+  },
+  messageContainer: {
+    marginBottom: theme.spacing.lg,
+    maxWidth: '85%',
+  },
+  userMessage: {
+    alignSelf: 'flex-end',
+  },
+  aiMessage: {
+    alignSelf: 'flex-start',
+  },
+  messageText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+  },
+  userMessageText: {
+    backgroundColor: theme.colors.primary,
     color: theme.colors.background,
   },
-  searchContainer: {
+  aiMessageText: {
+    backgroundColor: theme.colors.card,
+    color: theme.colors.text,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+  },
+  loadingText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  loadingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.textSecondary,
+  },
+  quickQuestionsContainer: {
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
+  },
+  quickQuestionsTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
+  },
+  quickQuestionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
@@ -414,250 +316,48 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: theme.borderRadius.lg,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    marginBottom: theme.spacing.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.sm,
   },
-  searchInput: {
+  quickQuestionText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  inputContainer: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.colors.border,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  textInput: {
     flex: 1,
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
+    maxHeight: 100,
   },
-  categoriesScroll: {
-    marginBottom: theme.spacing.lg,
-  },
-  categoriesContent: {
-    paddingRight: theme.spacing.xl,
-  },
-  categoryChip: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.round,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    marginRight: theme.spacing.sm,
-  },
-  categoryChipSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  categoryChipText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.text,
-  },
-  categoryChipTextSelected: {
-    color: theme.colors.background,
-    fontWeight: theme.fontWeight.medium,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.sm,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-  },
-  filterButtonActive: {
-    backgroundColor: theme.colors.cardSecondary,
-    borderColor: theme.colors.primary,
-  },
-  filterButtonText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  filterButtonTextActive: {
-    color: theme.colors.primary,
-    fontWeight: theme.fontWeight.medium,
-  },
-  postsContent: {
-    paddingBottom: theme.spacing.xl,
-  },
-  postCard: {
-    backgroundColor: theme.colors.card,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.border,
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.xl,
-    position: 'relative',
-  },
-  pinnedBadge: {
-    position: 'absolute',
-    top: theme.spacing.sm,
-    right: theme.spacing.xl,
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
-  },
-  pinnedText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.heavy,
-    color: theme.colors.background,
-    letterSpacing: 0.5,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.md,
-  },
-  authorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    flex: 1,
-  },
-  authorAvatar: {
+  sendButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-  },
-  authorDetails: {
-    flex: 1,
-  },
-  authorNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginBottom: 2,
-  },
-  authorName: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
-  },
-  verifiedBadge: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  verifiedText: {
-    fontSize: 8,
-    color: theme.colors.background,
-    fontWeight: theme.fontWeight.heavy,
-  },
-  postTimestamp: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-  },
-  postMeta: {
-    alignItems: 'flex-end',
-    gap: theme.spacing.xs,
-  },
-  categoryBadge: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
-  },
-  categoryText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.medium,
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  moreButton: {
-    padding: theme.spacing.xs,
-  },
-  postContent: {
-    marginBottom: theme.spacing.md,
-  },
-  postTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
-    lineHeight: theme.lineHeight.tight * theme.fontSize.lg,
-    marginBottom: theme.spacing.sm,
-  },
-  postContentText: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
-    marginBottom: theme.spacing.md,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    flexWrap: 'wrap',
-  },
-  tag: {
-    backgroundColor: theme.colors.cardSecondary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
-  },
-  tagText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-  },
-  moreTags: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-  },
-  postActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-  },
-  actionText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-  },
-  viewsContainer: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  viewsText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.xxl * 2,
-    paddingHorizontal: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
-  },
-  emptyText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+  sendButtonDisabled: {
+    backgroundColor: theme.colors.textTertiary,
   },
 });
