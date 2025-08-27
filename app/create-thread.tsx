@@ -22,6 +22,7 @@ import {
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
 import { router } from 'expo-router';
+import { useUser } from '@/hooks/use-user';
 
 interface ThreadData {
   title: string;
@@ -74,6 +75,7 @@ const popularTags = [
 export default function CreateThreadScreen() {
   const { theme } = useTheme();
   const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
+  const { profile } = useUser();
   const [threadData, setThreadData] = useState<ThreadData>({
     title: '',
     content: '',
@@ -152,22 +154,34 @@ export default function CreateThreadScreen() {
     setIsSubmitting(true);
     
     try {
-      // In a real app, this would make an API call to create the thread
-      console.log('Creating thread:', threadData);
+      // Create the new thread object
+      const newThread = {
+        id: Date.now().toString(),
+        title: threadData.title.trim(),
+        content: threadData.content.trim(),
+        author: profile?.name || 'Anonymous',
+        timestamp: 'now',
+        upvotes: 0,
+        downvotes: 0,
+        comments: [],
+        category: threadData.category,
+        tags: threadData.tags,
+        ...(threadData.location && { location: threadData.location })
+      };
+      
+      console.log('Creating thread:', newThread);
       
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      Alert.alert(
-        'Success!', 
-        'Your thread has been created successfully.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back()
-          }
-        ]
-      );
+      // Navigate back immediately with success feedback
+      router.back();
+      
+      // Show success message after navigation
+      setTimeout(() => {
+        Alert.alert('Success!', 'Your thread has been created successfully.');
+      }, 100);
+      
     } catch (error) {
       console.error('Error creating thread:', error);
       Alert.alert('Error', 'Failed to create thread. Please try again.');
