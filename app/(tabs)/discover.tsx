@@ -1,24 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList, Alert } from 'react-native';
-import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type, MapPin, DollarSign, Star, ShoppingBag, Tag } from 'lucide-react-native';
+import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
-interface Deal {
-  id: string;
-  dispensary: string;
-  strainName: string;
-  strainType: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
-  originalPrice: number;
-  salePrice: number;
-  discount: number;
-  image: string;
-  description: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  validUntil: string;
-  category: 'Flower' | 'Edibles' | 'Concentrates' | 'Vapes' | 'Accessories';
-}
+
 
 interface Comment {
   id: string;
@@ -51,56 +36,7 @@ interface Post {
   liked: boolean;
 }
 
-const mockDeals: Deal[] = [
-  {
-    id: '1',
-    dispensary: 'Green Valley Dispensary',
-    strainName: 'Blue Dream',
-    strainType: 'Hybrid',
-    originalPrice: 45,
-    salePrice: 32,
-    discount: 29,
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-    description: 'Premium indoor grown Blue Dream with exceptional terpene profile',
-    location: 'Downtown, 2.3 miles',
-    rating: 4.8,
-    reviewCount: 127,
-    validUntil: 'Today only',
-    category: 'Flower',
-  },
-  {
-    id: '2',
-    dispensary: 'Sunset Cannabis Co.',
-    strainName: 'Gorilla Glue #4',
-    strainType: 'Indica',
-    originalPrice: 55,
-    salePrice: 38,
-    discount: 31,
-    image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop',
-    description: 'Heavy hitting indica perfect for evening relaxation',
-    location: 'Midtown, 1.8 miles',
-    rating: 4.6,
-    reviewCount: 89,
-    validUntil: 'Ends tomorrow',
-    category: 'Flower',
-  },
-  {
-    id: '3',
-    dispensary: 'Elevated Wellness',
-    strainName: 'Sour Diesel Gummies',
-    strainType: 'Sativa',
-    originalPrice: 25,
-    salePrice: 18,
-    discount: 28,
-    image: 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=400&h=300&fit=crop',
-    description: '10mg THC gummies with natural fruit flavors',
-    location: 'Westside, 3.1 miles',
-    rating: 4.7,
-    reviewCount: 203,
-    validUntil: '3 days left',
-    category: 'Edibles',
-  },
-];
+
 
 const mockPosts: Post[] = [
   {
@@ -217,10 +153,10 @@ const mockPosts: Post[] = [
   },
 ];
 
-export default function DiscoverScreen() {
+export default function CommunitiesScreen() {
   const { theme } = useTheme();
   const [posts, setPosts] = useState(mockPosts);
-  const [activeTab, setActiveTab] = useState<'deals' | 'community'>('deals');
+  const [activeTab, setActiveTab] = useState<'community'>('community');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentText, setCommentText] = useState('');
   const [showComments, setShowComments] = useState(false);
@@ -380,22 +316,7 @@ export default function DiscoverScreen() {
     setShowComments(true);
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'Flower':
-        return '#10B981';
-      case 'Edibles':
-        return '#F59E0B';
-      case 'Concentrates':
-        return '#8B5CF6';
-      case 'Vapes':
-        return '#06B6D4';
-      case 'Accessories':
-        return '#EF4444';
-      default:
-        return theme.colors.textSecondary;
-    }
-  };
+
 
   const getStrainTypeColor = (type: string) => {
     switch (type) {
@@ -418,38 +339,12 @@ export default function DiscoverScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Discover</Text>
+          <Text style={styles.headerTitle}>Communities</Text>
           <TouchableOpacity 
             style={styles.createPostButton}
             onPress={() => setShowCreatePost(true)}
           >
             <Text style={styles.createPostButtonText}>Create Post</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'deals' && styles.activeTab]}
-            onPress={() => setActiveTab('deals')}
-          >
-            <Tag size={16} color={activeTab === 'deals' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
-            <Text style={[
-              styles.tabText,
-              activeTab === 'deals' && styles.activeTabText
-            ]}>
-              Deals
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'community' && styles.activeTab]}
-            onPress={() => setActiveTab('community')}
-          >
-            <Users size={16} color={activeTab === 'community' ? theme.colors.primary : theme.colors.textSecondary} strokeWidth={1.5} />
-            <Text style={[
-              styles.tabText,
-              activeTab === 'community' && styles.activeTabText
-            ]}>
-              Community
-            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -458,82 +353,16 @@ export default function DiscoverScreen() {
         style={styles.postsContainer}
         showsVerticalScrollIndicator={false}
       >
-        {activeTab === 'deals' && (
-          <View style={styles.dealsSection}>
-            <View style={styles.sectionHeader}>
-              <ShoppingBag size={20} color={theme.colors.text} strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>Today's Best Deals</Text>
-            </View>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.dealsScroll}
-              contentContainerStyle={styles.dealsContent}
-            >
-              {mockDeals.map((deal) => (
-                <TouchableOpacity key={deal.id} style={styles.dealCard}>
-                  <View style={styles.dealImageContainer}>
-                    <Image source={{ uri: deal.image }} style={styles.dealImage} />
-                    <View style={styles.discountBadge}>
-                      <Text style={styles.discountText}>{deal.discount}% OFF</Text>
-                    </View>
-                  </View>
-                  <View style={styles.dealContent}>
-                    <View style={styles.dealHeader}>
-                      <View style={[
-                        styles.categoryBadge,
-                        { backgroundColor: getCategoryColor(deal.category) }
-                      ]}>
-                        <Text style={styles.categoryText}>{deal.category}</Text>
-                      </View>
-                      <View style={[
-                        styles.strainTypeBadge,
-                        { backgroundColor: getStrainTypeColor(deal.strainType) }
-                      ]}>
-                        <Text style={styles.strainTypeText}>{deal.strainType}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.dealStrainName} numberOfLines={1}>
-                      {deal.strainName}
-                    </Text>
-                    <Text style={styles.dealDispensary} numberOfLines={1}>
-                      {deal.dispensary}
-                    </Text>
-                    <View style={styles.dealPricing}>
-                      <Text style={styles.originalPrice}>${deal.originalPrice}</Text>
-                      <Text style={styles.salePrice}>${deal.salePrice}</Text>
-                    </View>
-                    <View style={styles.dealMeta}>
-                      <View style={styles.ratingContainer}>
-                        <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
-                        <Text style={styles.ratingText}>{deal.rating}</Text>
-                        <Text style={styles.reviewCount}>({deal.reviewCount})</Text>
-                      </View>
-                    </View>
-                    <View style={styles.dealFooter}>
-                      <View style={styles.locationContainer}>
-                        <MapPin size={12} color={theme.colors.textSecondary} strokeWidth={1.5} />
-                        <Text style={styles.locationText}>{deal.location}</Text>
-                      </View>
-                      <Text style={styles.validUntil}>{deal.validUntil}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
-        {activeTab === 'community' && (
-          <View style={styles.postsSection}>
-            <View style={styles.sectionHeader}>
-              <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>Community Posts</Text>
-            </View>
-          </View>
-        )}
 
-        {activeTab === 'community' && posts.length === 0 ? (
+        <View style={styles.postsSection}>
+          <View style={styles.sectionHeader}>
+            <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
+            <Text style={styles.sectionTitle}>Community Posts</Text>
+          </View>
+        </View>
+
+        {posts.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
               <Users size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
@@ -543,7 +372,7 @@ export default function DiscoverScreen() {
               Follow other users to see their posts here
             </Text>
           </View>
-        ) : activeTab === 'community' ? (
+        ) : (
           posts.map((post) => (
             <View key={post.id} style={styles.postCard}>
               <View style={styles.postHeader}>
@@ -616,7 +445,7 @@ export default function DiscoverScreen() {
               </View>
             </View>
           ))
-        ) : null}
+        )}
       </ScrollView>
 
       <Modal
