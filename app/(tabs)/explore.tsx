@@ -110,7 +110,7 @@ const mockPosts: ForumPost[] = [
   },
 ];
 
-const categories = ['All', 'Medical', 'Dispensaries', 'Edibles', 'General', 'Growing'];
+
 
 interface Highlight {
   id: string;
@@ -161,14 +161,13 @@ const highlights: Highlight[] = [
 export default function ExploreScreen() {
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
   const [sortBy, setSortBy] = useState<'trending' | 'recent'>('trending');
 
   const filteredPosts = mockPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -342,36 +341,7 @@ export default function ExploreScreen() {
         />
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[
-              styles.categoryChip,
-              {
-                backgroundColor: selectedCategory === category 
-                  ? theme.colors.primary 
-                  : theme.colors.card,
-                borderColor: theme.colors.border,
-              }
-            ]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text
-              style={[
-                styles.categoryChipText,
-                {
-                  color: selectedCategory === category 
-                    ? theme.colors.background 
-                    : theme.colors.text,
-                }
-              ]}
-            >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+
 
       <View style={styles.sortContainer}>
         <TouchableOpacity
