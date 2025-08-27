@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList, Alert } from 'react-native';
-import { Heart, MessageCircle, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type } from 'lucide-react-native';
+import { Heart, MessageCircle, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type, UserPlus, Search } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 
@@ -186,6 +186,17 @@ export default function CommunitiesScreen() {
     location: ''
   });
   const [newPostImage, setNewPostImage] = useState('');
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [friendUsername, setFriendUsername] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{
+    id: string;
+    username: string;
+    name: string;
+    avatar: string;
+    verified: boolean;
+    mutualFriends: number;
+  }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const handleLike = (postId: string) => {
     setPosts(prevPosts =>
@@ -299,6 +310,52 @@ export default function CommunitiesScreen() {
     setShowCreatePost(false);
   };
 
+  const handleSearchFriend = async () => {
+    if (!friendUsername.trim()) return;
+    
+    setIsSearching(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      const mockResults = [
+        {
+          id: '1',
+          username: friendUsername.toLowerCase(),
+          name: 'John Smith',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+          verified: true,
+          mutualFriends: 3,
+        },
+        {
+          id: '2',
+          username: friendUsername.toLowerCase() + '123',
+          name: 'Jane Doe',
+          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          verified: false,
+          mutualFriends: 1,
+        },
+      ];
+      setSearchResults(mockResults);
+      setIsSearching(false);
+    }, 1000);
+  };
+
+  const handleAddFriend = (userId: string, username: string) => {
+    Alert.alert(
+      'Friend Request Sent',
+      `Friend request sent to @${username}`,
+      [{ text: 'OK' }]
+    );
+    setSearchResults(prev => prev.filter(user => user.id !== userId));
+  };
+
+  const handleCloseFriendModal = () => {
+    setShowAddFriend(false);
+    setFriendUsername('');
+    setSearchResults([]);
+    setIsSearching(false);
+  };
+
   const handleAddPhoto = () => {
     Alert.alert(
       'Add Photo',
@@ -340,12 +397,20 @@ export default function CommunitiesScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>Communities</Text>
-          <TouchableOpacity 
-            style={styles.createPostButton}
-            onPress={() => setShowCreatePost(true)}
-          >
-            <Text style={styles.createPostButtonText}>Create Post</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity 
+              style={styles.addFriendButton}
+              onPress={() => setShowAddFriend(true)}
+            >
+              <UserPlus size={18} color={theme.colors.primary} strokeWidth={1.5} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.createPostButton}
+              onPress={() => setShowCreatePost(true)}
+            >
+              <Text style={styles.createPostButtonText}>Create Post</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -862,6 +927,109 @@ export default function CommunitiesScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Add Friend Modal */}
+      <Modal
+        visible={showAddFriend}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity 
+              onPress={handleCloseFriendModal}
+              style={styles.closeButton}
+            >
+              <X size={24} color={theme.colors.text} strokeWidth={1.5} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Add Friend</Text>
+            <View style={styles.closeButton} />
+          </View>
+
+          <View style={styles.addFriendContent}>
+            <View style={styles.searchSection}>
+              <View style={styles.searchInputContainer}>
+                <Search size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Enter username"
+                  placeholderTextColor={theme.colors.textSecondary}
+                  value={friendUsername}
+                  onChangeText={setFriendUsername}
+                  onSubmitEditing={handleSearchFriend}
+                  returnKeyType="search"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity 
+                  style={[
+                    styles.searchButton,
+                    { opacity: friendUsername.trim() ? 1 : 0.5 }
+                  ]}
+                  onPress={handleSearchFriend}
+                  disabled={!friendUsername.trim() || isSearching}
+                >
+                  <Text style={styles.searchButtonText}>
+                    {isSearching ? 'Searching...' : 'Search'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.searchHint}>
+                Search for friends by their username to send them a friend request.
+              </Text>
+            </View>
+
+            {searchResults.length > 0 && (
+              <View style={styles.resultsSection}>
+                <Text style={styles.resultsTitle}>Search Results</Text>
+                {searchResults.map((user) => (
+                  <View key={user.id} style={styles.userResultCard}>
+                    <View style={styles.userResultInfo}>
+                      <Image source={{ uri: user.avatar }} style={styles.userResultAvatar} />
+                      <View style={styles.userResultDetails}>
+                        <View style={styles.userResultNameRow}>
+                          <Text style={styles.userResultName}>{user.name}</Text>
+                          {user.verified && (
+                            <View style={styles.verifiedBadge}>
+                              <Text style={styles.verifiedText}>✓</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.userResultUsername}>@{user.username}</Text>
+                        {user.mutualFriends > 0 && (
+                          <Text style={styles.mutualFriendsText}>
+                            {user.mutualFriends} mutual friend{user.mutualFriends > 1 ? 's' : ''}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.addFriendActionButton}
+                      onPress={() => handleAddFriend(user.id, user.username)}
+                    >
+                      <UserPlus size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                      <Text style={styles.addFriendActionText}>Add</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {friendUsername.trim() && searchResults.length === 0 && !isSearching && (
+              <View style={styles.noResultsContainer}>
+                <View style={styles.noResultsIcon}>
+                  <Search size={32} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                </View>
+                <Text style={styles.noResultsTitle}>No users found</Text>
+                <Text style={styles.noResultsText}>
+                  No users found with username "{friendUsername}". Try a different username.
+                </Text>
+              </View>
+            )}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -908,6 +1076,21 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.light,
     color: theme.colors.background,
     letterSpacing: 0.3,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  addFriendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.cardSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -1769,5 +1952,148 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text,
     backgroundColor: theme.colors.cardSecondary,
     textAlign: 'center',
+  },
+  addFriendContent: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+  },
+  searchSection: {
+    marginBottom: theme.spacing.xl,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.cardSecondary,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    paddingVertical: theme.spacing.xs,
+  },
+  searchButton: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.md,
+  },
+  searchButtonText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.background,
+  },
+  searchHint: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+  },
+  resultsSection: {
+    flex: 1,
+  },
+  resultsTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
+  },
+  userResultCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+  },
+  userResultInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: theme.spacing.sm,
+  },
+  userResultAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  userResultDetails: {
+    flex: 1,
+  },
+  userResultNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
+  },
+  userResultName: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  userResultUsername: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+  },
+  mutualFriendsText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.primary,
+  },
+  addFriendActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.cardSecondary,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.primary,
+  },
+  addFriendActionText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.primary,
+  },
+  noResultsContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xxl * 2,
+  },
+  noResultsIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.cardSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  noResultsTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  noResultsText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+    maxWidth: 280,
   },
 });
