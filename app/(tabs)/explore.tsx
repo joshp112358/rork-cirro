@@ -9,6 +9,9 @@ import {
   SafeAreaView,
   Image,
   FlatList,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {
   Search,
@@ -25,8 +28,21 @@ import {
   Bookmark,
   Award,
   Image as ImageIcon,
+  Send,
+  X,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
+
+interface Comment {
+  id: string;
+  content: string;
+  author: string;
+  timestamp: string;
+  upvotes: number;
+  downvotes: number;
+  isUpvoted?: boolean;
+  isDownvoted?: boolean;
+}
 
 interface ForumPost {
   id: string;
@@ -36,7 +52,7 @@ interface ForumPost {
   timestamp: string;
   upvotes: number;
   downvotes: number;
-  comments: number;
+  comments: Comment[];
   category: string;
   isPinned?: boolean;
   isUpvoted?: boolean;
@@ -46,7 +62,7 @@ interface ForumPost {
   awards?: number;
 }
 
-const mockPosts: ForumPost[] = [
+const initialMockPosts: ForumPost[] = [
   {
     id: '1',
     title: 'Best strains for anxiety relief?',
@@ -55,7 +71,24 @@ const mockPosts: ForumPost[] = [
     timestamp: '2h ago',
     upvotes: 124,
     downvotes: 5,
-    comments: 42,
+    comments: [
+      {
+        id: 'c1',
+        content: 'I recommend Blue Dream or Northern Lights. Both are great for anxiety without being too sedating.',
+        author: 'MedicalUser',
+        timestamp: '1h ago',
+        upvotes: 12,
+        downvotes: 0,
+      },
+      {
+        id: 'c2',
+        content: 'CBD dominant strains like Charlotte\'s Web work wonders for me!',
+        author: 'AnxietyFree',
+        timestamp: '45m ago',
+        upvotes: 8,
+        downvotes: 1,
+      },
+    ],
     category: 'Medical',
     isPinned: true,
     awards: 2,
@@ -68,7 +101,16 @@ const mockPosts: ForumPost[] = [
     timestamp: '4h ago',
     upvotes: 98,
     downvotes: 12,
-    comments: 28,
+    comments: [
+      {
+        id: 'c3',
+        content: 'Thanks for the heads up! Will definitely check it out.',
+        author: 'LocalBud',
+        timestamp: '3h ago',
+        upvotes: 5,
+        downvotes: 0,
+      },
+    ],
     category: 'Dispensaries',
     image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
   },
@@ -80,7 +122,24 @@ const mockPosts: ForumPost[] = [
     timestamp: '6h ago',
     upvotes: 231,
     downvotes: 8,
-    comments: 65,
+    comments: [
+      {
+        id: 'c4',
+        content: 'Start low, go slow! 5-10mg is a good starting point.',
+        author: 'EdibleExpert',
+        timestamp: '5h ago',
+        upvotes: 15,
+        downvotes: 0,
+      },
+      {
+        id: 'c5',
+        content: 'Make sure to decarb your flower properly first!',
+        author: 'HomeBaker',
+        timestamp: '4h ago',
+        upvotes: 12,
+        downvotes: 0,
+      },
+    ],
     category: 'Edibles',
     awards: 1,
   },
@@ -92,7 +151,7 @@ const mockPosts: ForumPost[] = [
     timestamp: '8h ago',
     upvotes: 342,
     downvotes: 18,
-    comments: 123,
+    comments: [],
     category: 'General',
     image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
   },
@@ -104,7 +163,7 @@ const mockPosts: ForumPost[] = [
     timestamp: '12h ago',
     upvotes: 467,
     downvotes: 21,
-    comments: 134,
+    comments: [],
     category: 'Growing',
     awards: 3,
   },
@@ -161,10 +220,13 @@ const highlights: Highlight[] = [
 export default function ExploreScreen() {
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState<string>('');
-
   const [sortBy, setSortBy] = useState<'trending' | 'recent'>('trending');
+  const [posts, setPosts] = useState<ForumPost[]>(initialMockPosts);
+  const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
+  const [showComments, setShowComments] = useState<boolean>(false);
+  const [newComment, setNewComment] = useState<string>('');
 
-  const filteredPosts = mockPosts.filter(post => {
+  const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
@@ -268,10 +330,16 @@ export default function ExploreScreen() {
           )}
           
           <View style={styles.postActions}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => {
+                setSelectedPost(post);
+                setShowComments(true);
+              }}
+            >
               <MessageCircle size={16} color={theme.colors.textTertiary} />
               <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
-                {post.comments} Comments
+                {post.comments.length} Comments
               </Text>
             </TouchableOpacity>
             
@@ -392,6 +460,150 @@ export default function ExploreScreen() {
 
         {sortedPosts.map(renderPost)}
       </ScrollView>
+
+      {/* Comments Modal */}
+      <Modal
+        visible={showComments}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+          <KeyboardAvoidingView 
+            style={styles.modalContent}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            {/* Modal Header */}
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Comments</Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  setShowComments(false);
+                  setSelectedPost(null);
+                  setNewComment('');
+                }}
+              >
+                <X size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedPost && (
+              <>
+                {/* Post Summary */}
+                <View style={[styles.postSummary, { backgroundColor: theme.colors.card }]}>
+                  <Text style={[styles.postSummaryTitle, { color: theme.colors.text }]} numberOfLines={2}>
+                    {selectedPost.title}
+                  </Text>
+                  <Text style={[styles.postSummaryMeta, { color: theme.colors.textTertiary }]}>
+                    by {selectedPost.author} • {selectedPost.timestamp}
+                  </Text>
+                </View>
+
+                {/* Comments List */}
+                <ScrollView style={styles.commentsList} showsVerticalScrollIndicator={false}>
+                  {selectedPost.comments.map((comment) => (
+                    <View key={comment.id} style={[styles.commentItem, { backgroundColor: theme.colors.card }]}>
+                      <View style={styles.commentHeader}>
+                        <Text style={[styles.commentAuthor, { color: theme.colors.text }]}>
+                          {comment.author}
+                        </Text>
+                        <Text style={[styles.commentTimestamp, { color: theme.colors.textTertiary }]}>
+                          {comment.timestamp}
+                        </Text>
+                      </View>
+                      <Text style={[styles.commentContent, { color: theme.colors.textSecondary }]}>
+                        {comment.content}
+                      </Text>
+                      <View style={styles.commentActions}>
+                        <TouchableOpacity style={styles.commentVote}>
+                          <ArrowUp 
+                            size={14} 
+                            color={comment.isUpvoted ? theme.colors.primary : theme.colors.textTertiary}
+                            fill={comment.isUpvoted ? theme.colors.primary : 'none'}
+                          />
+                          <Text style={[styles.commentVoteCount, { color: theme.colors.textTertiary }]}>
+                            {comment.upvotes - comment.downvotes}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.commentVote}>
+                          <ArrowDown 
+                            size={14} 
+                            color={comment.isDownvoted ? theme.colors.error : theme.colors.textTertiary}
+                            fill={comment.isDownvoted ? theme.colors.error : 'none'}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                  
+                  {selectedPost.comments.length === 0 && (
+                    <View style={styles.noComments}>
+                      <MessageCircle size={48} color={theme.colors.textTertiary} />
+                      <Text style={[styles.noCommentsText, { color: theme.colors.textTertiary }]}>
+                        No comments yet. Be the first to comment!
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
+
+                {/* Comment Input */}
+                <View style={[styles.commentInput, { backgroundColor: theme.colors.card, borderTopColor: theme.colors.border }]}>
+                  <TextInput
+                    style={[styles.commentTextInput, { color: theme.colors.text, borderColor: theme.colors.border }]}
+                    placeholder="Add a comment..."
+                    placeholderTextColor={theme.colors.textTertiary}
+                    value={newComment}
+                    onChangeText={setNewComment}
+                    multiline
+                    maxLength={500}
+                  />
+                  <TouchableOpacity 
+                    style={[
+                      styles.sendButton, 
+                      { 
+                        backgroundColor: newComment.trim() ? theme.colors.primary : theme.colors.textTertiary + '30'
+                      }
+                    ]}
+                    onPress={() => {
+                      if (newComment.trim() && selectedPost) {
+                        const newCommentObj: Comment = {
+                          id: `c${Date.now()}`,
+                          content: newComment.trim(),
+                          author: 'You', // In a real app, this would be the current user
+                          timestamp: 'now',
+                          upvotes: 0,
+                          downvotes: 0,
+                        };
+                        
+                        // Update the posts state
+                        setPosts(prevPosts => 
+                          prevPosts.map(post => 
+                            post.id === selectedPost.id 
+                              ? { ...post, comments: [...post.comments, newCommentObj] }
+                              : post
+                          )
+                        );
+                        
+                        // Update the selected post
+                        setSelectedPost(prev => 
+                          prev ? { ...prev, comments: [...prev.comments, newCommentObj] } : null
+                        );
+                        
+                        setNewComment('');
+                      }
+                    }}
+                    disabled={!newComment.trim()}
+                  >
+                    <Send 
+                      size={20} 
+                      color={newComment.trim() ? theme.colors.background : theme.colors.textTertiary} 
+                    />
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -604,5 +816,114 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  postSummary: {
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 12,
+  },
+  postSummaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  postSummaryMeta: {
+    fontSize: 12,
+  },
+  commentsList: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  commentItem: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  commentTimestamp: {
+    fontSize: 12,
+  },
+  commentContent: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  commentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  commentVote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  commentVoteCount: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  noComments: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 16,
+  },
+  noCommentsText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  commentInput: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    gap: 12,
+  },
+  commentTextInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
