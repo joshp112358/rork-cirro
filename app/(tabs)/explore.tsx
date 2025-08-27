@@ -458,7 +458,7 @@ export default function ExploreScreen() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Explore</Text>
-          <Text style={[styles.headerSubtitle, { color: theme.colors.textTertiary }]}>Discover cannabis discussions</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.colors.textTertiary }]}>Discover Community discussions</Text>
         </View>
         <TouchableOpacity style={[styles.createButton, { backgroundColor: theme.colors.primary }, theme.shadow.small]}>
           <Plus size={20} color={theme.colors.background} strokeWidth={2.5} />
@@ -508,7 +508,7 @@ export default function ExploreScreen() {
         <View style={styles.highlightsSection}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>🔥 Trending Today</Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Hot discussions in the community</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Hot discussions in the Community</Text>
           </View>
           <FlatList
             data={highlights}
