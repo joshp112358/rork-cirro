@@ -264,16 +264,16 @@ export default function ExploreScreen() {
   });
 
   const renderHighlight = ({ item }: { item: Highlight }) => (
-    <TouchableOpacity style={styles.highlightCard}>
+    <TouchableOpacity style={[styles.highlightCard, theme.shadow.medium]}>
       <Image 
         source={{ uri: item.image }} 
         style={styles.highlightImage} 
         resizeMode="cover"
       />
-      <View style={[styles.highlightOverlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
+      <View style={styles.highlightOverlay}>
         <View style={styles.highlightContent}>
-          <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primary + '30' }]}>
-            <Text style={[styles.categoryText, { color: theme.colors.background }]}>
+          <View style={[styles.categoryBadge, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
+            <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
               {item.category}
             </Text>
           </View>
@@ -281,10 +281,12 @@ export default function ExploreScreen() {
             {item.title}
           </Text>
           <View style={styles.highlightMeta}>
-            <ArrowUp size={14} color={theme.colors.background} />
-            <Text style={[styles.highlightUpvotes, { color: theme.colors.background }]}>
-              {item.upvotes}
-            </Text>
+            <View style={styles.highlightMetaItem}>
+              <ArrowUp size={12} color={theme.colors.background} />
+              <Text style={[styles.highlightUpvotes, { color: theme.colors.background }]}>
+                {item.upvotes.toLocaleString()}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -292,23 +294,23 @@ export default function ExploreScreen() {
   );
 
   const renderPost = (post: ForumPost) => (
-    <TouchableOpacity key={post.id} style={[styles.postCard, { backgroundColor: theme.colors.card }]}>
+    <TouchableOpacity key={post.id} style={[styles.postCard, { backgroundColor: theme.colors.card }, theme.shadow.small]}>
       <View style={styles.postContainer}>
         {/* Vote column */}
         <View style={styles.voteColumn}>
-          <TouchableOpacity style={styles.voteButton}>
+          <TouchableOpacity style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}>
             <ArrowUp 
-              size={16} 
+              size={18} 
               color={post.isUpvoted ? theme.colors.primary : theme.colors.textTertiary}
               fill={post.isUpvoted ? theme.colors.primary : 'none'}
             />
           </TouchableOpacity>
           <Text style={[styles.voteCount, { color: theme.colors.text }]}>
-            {post.upvotes - post.downvotes}
+            {(post.upvotes - post.downvotes).toLocaleString()}
           </Text>
-          <TouchableOpacity style={styles.voteButton}>
+          <TouchableOpacity style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}>
             <ArrowDown 
-              size={16} 
+              size={18} 
               color={post.isDownvoted ? theme.colors.error : theme.colors.textTertiary}
               fill={post.isDownvoted ? theme.colors.error : 'none'}
             />
@@ -320,45 +322,48 @@ export default function ExploreScreen() {
           <View style={styles.postHeader}>
             <View style={styles.postMeta}>
               {post.isPinned && (
-                <Pin size={14} color={theme.colors.primary} style={styles.pinIcon} />
+                <View style={[styles.pinnedBadge, { backgroundColor: theme.colors.primary + '15' }]}>
+                  <Pin size={12} color={theme.colors.primary} />
+                  <Text style={[styles.pinnedText, { color: theme.colors.primary }]}>Pinned</Text>
+                </View>
               )}
-              <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primary + '20' }]}>
+              <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primary + '10' }]}>
                 <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
                   {post.category}
                 </Text>
               </View>
-              <Text style={[styles.authorText, { color: theme.colors.textTertiary }]}>
-                Posted by {post.author} • {post.timestamp}
-              </Text>
             </View>
+            <Text style={[styles.authorText, { color: theme.colors.textTertiary }]}>
+              u/{post.author} • {post.timestamp}
+            </Text>
           </View>
           
-          <Text style={[styles.postTitle, { color: theme.colors.text }]} numberOfLines={2}>
+          <Text style={[styles.postTitle, { color: theme.colors.text }]} numberOfLines={3}>
             {post.title}
           </Text>
           
-          <Text style={[styles.postContent, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+          <Text style={[styles.postContent, { color: theme.colors.textSecondary }]} numberOfLines={3}>
             {post.content}
           </Text>
           
           {/* Post Tags */}
           {post.tags.length > 0 && (
             <View style={styles.postTags}>
-              {post.tags.slice(0, 3).map(tag => (
+              {post.tags.slice(0, 4).map(tag => (
                 <TouchableOpacity
                   key={tag}
-                  style={[styles.postTag, { backgroundColor: theme.colors.primary + '15' }]}
+                  style={[styles.postTag, { backgroundColor: theme.colors.backgroundSecondary }]}
                   onPress={() => toggleTag(tag)}
                 >
-                  <Hash size={10} color={theme.colors.primary} />
-                  <Text style={[styles.postTagText, { color: theme.colors.primary }]}>
+                  <Hash size={10} color={theme.colors.textTertiary} />
+                  <Text style={[styles.postTagText, { color: theme.colors.textSecondary }]}>
                     {tag}
                   </Text>
                 </TouchableOpacity>
               ))}
-              {post.tags.length > 3 && (
+              {post.tags.length > 4 && (
                 <Text style={[styles.moreTags, { color: theme.colors.textTertiary }]}>
-                  +{post.tags.length - 3} more
+                  +{post.tags.length - 4}
                 </Text>
               )}
             </View>
@@ -367,7 +372,7 @@ export default function ExploreScreen() {
           {post.image && (
             <Image 
               source={{ uri: post.image }} 
-              style={styles.postImage} 
+              style={[styles.postImage, theme.shadow.small]} 
               resizeMode="cover"
             />
           )}
@@ -382,7 +387,7 @@ export default function ExploreScreen() {
             >
               <MessageCircle size={16} color={theme.colors.textTertiary} />
               <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
-                {post.comments.length} Comments
+                {post.comments.length}
               </Text>
             </TouchableOpacity>
             
@@ -394,13 +399,6 @@ export default function ExploreScreen() {
                 </Text>
               </TouchableOpacity>
             )}
-            
-            <TouchableOpacity style={styles.actionButton}>
-              <Share size={16} color={theme.colors.textTertiary} />
-              <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
-                Share
-              </Text>
-            </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionButton}>
               <Bookmark 
@@ -458,18 +456,21 @@ export default function ExploreScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Explore</Text>
-        <TouchableOpacity style={[styles.createButton, { backgroundColor: theme.colors.primary }]}>
-          <Plus size={20} color={theme.colors.background} strokeWidth={2} />
+        <View>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Explore</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.colors.textTertiary }]}>Discover cannabis discussions</Text>
+        </View>
+        <TouchableOpacity style={[styles.createButton, { backgroundColor: theme.colors.primary }, theme.shadow.small]}>
+          <Plus size={20} color={theme.colors.background} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-          <Search size={20} color={theme.colors.textTertiary} />
+        <View style={[styles.searchBar, { backgroundColor: theme.colors.backgroundSecondary, borderColor: theme.colors.border }, theme.shadow.small]}>
+          <Search size={18} color={theme.colors.textTertiary} />
           <TextInput
             style={[styles.searchInput, { color: theme.colors.text }]}
-            placeholder="Search discussions..."
+            placeholder="Search discussions, tags, users..."
             placeholderTextColor={theme.colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -479,6 +480,20 @@ export default function ExploreScreen() {
 
       {/* Tags Section */}
       <View style={styles.tagsSection}>
+        <View style={styles.tagsSectionHeader}>
+          <Text style={[styles.tagsTitle, { color: theme.colors.text }]}>Popular Tags</Text>
+          {selectedTags.length > 0 && (
+            <TouchableOpacity 
+              style={[styles.clearTagsButton, { backgroundColor: theme.colors.error + '15' }]}
+              onPress={() => setSelectedTags([])}
+            >
+              <X size={12} color={theme.colors.error} />
+              <Text style={[styles.clearTagsText, { color: theme.colors.error }]}>
+                Clear ({selectedTags.length})
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -486,24 +501,14 @@ export default function ExploreScreen() {
         >
           {allTags.map(renderTag)}
         </ScrollView>
-        {selectedTags.length > 0 && (
-          <TouchableOpacity 
-            style={[styles.clearTagsButton, { backgroundColor: theme.colors.error + '20' }]}
-            onPress={() => setSelectedTags([])}
-          >
-            <X size={14} color={theme.colors.error} />
-            <Text style={[styles.clearTagsText, { color: theme.colors.error }]}>
-              Clear ({selectedTags.length})
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
         {/* Highlights Section */}
         <View style={styles.highlightsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Trending Today</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>🔥 Trending Today</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Hot discussions in the community</Text>
           </View>
           <FlatList
             data={highlights}
@@ -512,87 +517,97 @@ export default function ExploreScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.highlightsContainer}
+            snapToInterval={260}
+            decelerationRate="fast"
           />
         </View>
 
         <View style={styles.sortContainer}>
-          <TouchableOpacity
-            style={[
-              styles.sortButton,
-              sortBy === 'trending' && { backgroundColor: theme.colors.primary + '20' }
-            ]}
-            onPress={() => setSortBy('trending')}
-          >
-            <TrendingUp 
-              size={16} 
-              color={sortBy === 'trending' ? theme.colors.primary : theme.colors.textTertiary} 
-            />
-            <Text
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sortScrollContainer}>
+            <TouchableOpacity
               style={[
-                styles.sortText,
-                {
-                  color: sortBy === 'trending' ? theme.colors.primary : theme.colors.textTertiary,
-                }
+                styles.sortButton,
+                { backgroundColor: sortBy === 'trending' ? theme.colors.primary : theme.colors.backgroundSecondary },
+                theme.shadow.small
               ]}
+              onPress={() => setSortBy('trending')}
             >
-              Trending
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.sortButton,
-              sortBy === 'recent' && { backgroundColor: theme.colors.primary + '20' }
-            ]}
-            onPress={() => setSortBy('recent')}
-          >
-            <Clock 
-              size={16} 
-              color={sortBy === 'recent' ? theme.colors.primary : theme.colors.textTertiary} 
-            />
-            <Text
+              <TrendingUp 
+                size={16} 
+                color={sortBy === 'trending' ? theme.colors.background : theme.colors.textTertiary} 
+              />
+              <Text
+                style={[
+                  styles.sortText,
+                  {
+                    color: sortBy === 'trending' ? theme.colors.background : theme.colors.textTertiary,
+                    fontWeight: sortBy === 'trending' ? '600' : '500',
+                  }
+                ]}
+              >
+                Trending
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
               style={[
-                styles.sortText,
-                {
-                  color: sortBy === 'recent' ? theme.colors.primary : theme.colors.textTertiary,
-                }
+                styles.sortButton,
+                { backgroundColor: sortBy === 'recent' ? theme.colors.primary : theme.colors.backgroundSecondary },
+                theme.shadow.small
               ]}
+              onPress={() => setSortBy('recent')}
             >
-              Recent
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.sortButton,
-              sortBy === 'nearme' && { backgroundColor: theme.colors.primary + '20' }
-            ]}
-            onPress={async () => {
-              if (!hasPermission) {
-                const granted = await requestPermission();
-                if (granted) {
+              <Clock 
+                size={16} 
+                color={sortBy === 'recent' ? theme.colors.background : theme.colors.textTertiary} 
+              />
+              <Text
+                style={[
+                  styles.sortText,
+                  {
+                    color: sortBy === 'recent' ? theme.colors.background : theme.colors.textTertiary,
+                    fontWeight: sortBy === 'recent' ? '600' : '500',
+                  }
+                ]}
+              >
+                Recent
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.sortButton,
+                { backgroundColor: sortBy === 'nearme' ? theme.colors.primary : theme.colors.backgroundSecondary },
+                theme.shadow.small
+              ]}
+              onPress={async () => {
+                if (!hasPermission) {
+                  const granted = await requestPermission();
+                  if (granted) {
+                    setSortBy('nearme');
+                  }
+                } else {
                   setSortBy('nearme');
                 }
-              } else {
-                setSortBy('nearme');
-              }
-            }}
-          >
-            <MapPin 
-              size={16} 
-              color={sortBy === 'nearme' ? theme.colors.primary : theme.colors.textTertiary} 
-            />
-            <Text
-              style={[
-                styles.sortText,
-                {
-                  color: sortBy === 'nearme' ? theme.colors.primary : theme.colors.textTertiary,
-                }
-              ]}
+              }}
             >
-              {locationLoading ? 'Loading...' : 'Near Me'}
-            </Text>
-          </TouchableOpacity>
+              <MapPin 
+                size={16} 
+                color={sortBy === 'nearme' ? theme.colors.background : theme.colors.textTertiary} 
+              />
+              <Text
+                style={[
+                  styles.sortText,
+                  {
+                    color: sortBy === 'nearme' ? theme.colors.background : theme.colors.textTertiary,
+                    fontWeight: sortBy === 'nearme' ? '600' : '500',
+                  }
+                ]}
+              >
+                {locationLoading ? 'Loading...' : 'Near Me'}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
 
         {sortedPosts.map(renderPost)}
@@ -776,9 +791,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 0,
   },
   searchInput: {
     flex: 1,
@@ -802,10 +817,10 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   highlightCard: {
-    width: 240,
-    height: 160,
-    borderRadius: 12,
-    marginRight: 12,
+    width: 260,
+    height: 180,
+    borderRadius: 16,
+    marginRight: 16,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -860,10 +875,12 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     gap: 6,
+    minWidth: 80,
+    justifyContent: 'center',
   },
   sortText: {
     fontSize: 14,
@@ -874,10 +891,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   postCard: {
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 16,
     marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   postContainer: {
     flexDirection: 'row',
@@ -888,7 +907,10 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   voteButton: {
-    padding: 4,
+    padding: 8,
+    borderRadius: 8,
+    minWidth: 32,
+    alignItems: 'center',
   },
   voteCount: {
     fontSize: 13,
@@ -1075,9 +1097,9 @@ const styles = StyleSheet.create({
   tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
     gap: 4,
   },
@@ -1122,5 +1144,47 @@ const styles = StyleSheet.create({
   moreTags: {
     fontSize: 10,
     fontStyle: 'italic',
+  },
+  // New styles for improved UI
+  headerSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    marginTop: 2,
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginTop: 2,
+  },
+  highlightMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  pinnedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  pinnedText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  tagsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  tagsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  sortScrollContainer: {
+    paddingHorizontal: 20,
+    gap: 12,
   },
 });
