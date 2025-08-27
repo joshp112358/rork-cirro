@@ -326,72 +326,70 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-      {/* Highlights Section */}
-      <View style={styles.highlightsSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Trending Today</Text>
-        </View>
-        <FlatList
-          data={highlights}
-          renderItem={renderHighlight}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.highlightsContainer}
-        />
-      </View>
-
-
-
-      <View style={styles.sortContainer}>
-        <TouchableOpacity
-          style={[
-            styles.sortButton,
-            sortBy === 'trending' && { backgroundColor: theme.colors.primary + '20' }
-          ]}
-          onPress={() => setSortBy('trending')}
-        >
-          <TrendingUp 
-            size={16} 
-            color={sortBy === 'trending' ? theme.colors.primary : theme.colors.textTertiary} 
-          />
-          <Text
-            style={[
-              styles.sortText,
-              {
-                color: sortBy === 'trending' ? theme.colors.primary : theme.colors.textTertiary,
-              }
-            ]}
-          >
-            Trending
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.sortButton,
-            sortBy === 'recent' && { backgroundColor: theme.colors.primary + '20' }
-          ]}
-          onPress={() => setSortBy('recent')}
-        >
-          <Clock 
-            size={16} 
-            color={sortBy === 'recent' ? theme.colors.primary : theme.colors.textTertiary} 
-          />
-          <Text
-            style={[
-              styles.sortText,
-              {
-                color: sortBy === 'recent' ? theme.colors.primary : theme.colors.textTertiary,
-              }
-            ]}
-          >
-            Recent
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
+        {/* Highlights Section */}
+        <View style={styles.highlightsSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Trending Today</Text>
+          </View>
+          <FlatList
+            data={highlights}
+            renderItem={renderHighlight}
+            keyExtractor={item => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.highlightsContainer}
+          />
+        </View>
+
+        <View style={styles.sortContainer}>
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              sortBy === 'trending' && { backgroundColor: theme.colors.primary + '20' }
+            ]}
+            onPress={() => setSortBy('trending')}
+          >
+            <TrendingUp 
+              size={16} 
+              color={sortBy === 'trending' ? theme.colors.primary : theme.colors.textTertiary} 
+            />
+            <Text
+              style={[
+                styles.sortText,
+                {
+                  color: sortBy === 'trending' ? theme.colors.primary : theme.colors.textTertiary,
+                }
+              ]}
+            >
+              Trending
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              sortBy === 'recent' && { backgroundColor: theme.colors.primary + '20' }
+            ]}
+            onPress={() => setSortBy('recent')}
+          >
+            <Clock 
+              size={16} 
+              color={sortBy === 'recent' ? theme.colors.primary : theme.colors.textTertiary} 
+            />
+            <Text
+              style={[
+                styles.sortText,
+                {
+                  color: sortBy === 'recent' ? theme.colors.primary : theme.colors.textTertiary,
+                }
+              ]}
+            >
+              Recent
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {sortedPosts.map(renderPost)}
       </ScrollView>
     </SafeAreaView>
@@ -441,9 +439,9 @@ const styles = StyleSheet.create({
   // Highlights section
   highlightsSection: {
     marginBottom: 16,
+    paddingHorizontal: 20,
   },
   sectionHeader: {
-    paddingHorizontal: 20,
     marginBottom: 12,
   },
   sectionTitle: {
@@ -525,12 +523,12 @@ const styles = StyleSheet.create({
   // Posts
   postsContainer: {
     flex: 1,
-    paddingHorizontal: 20,
   },
   postCard: {
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
+    marginHorizontal: 20,
   },
   postContainer: {
     flexDirection: 'row',
