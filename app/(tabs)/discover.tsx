@@ -438,6 +438,89 @@ export default function CommunitiesScreen() {
                     <Text style={styles.actionText}>{post.comments.length}</Text>
                   </TouchableOpacity>
                 </View>
+
+                {/* Quick Comment Section */}
+                <View style={styles.quickCommentSection}>
+                  <View style={styles.quickCommentInputContainer}>
+                    <Image 
+                      source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face' }} 
+                      style={styles.quickCommentAvatar} 
+                    />
+                    <TextInput
+                      style={styles.quickCommentInput}
+                      placeholder="Add a comment..."
+                      placeholderTextColor={theme.colors.textSecondary}
+                      value={commentText}
+                      onChangeText={setCommentText}
+                      onSubmitEditing={() => {
+                        if (commentText.trim()) {
+                          setSelectedPost(post);
+                          handleAddComment();
+                        }
+                      }}
+                      returnKeyType="send"
+                      multiline={false}
+                    />
+                    {commentText.trim() ? (
+                      <TouchableOpacity 
+                        style={styles.quickSendButton}
+                        onPress={() => {
+                          setSelectedPost(post);
+                          handleAddComment();
+                        }}
+                      >
+                        <Send size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                  
+                  {/* Show recent comments */}
+                  {post.comments.length > 0 && (
+                    <View style={styles.recentCommentsContainer}>
+                      {post.comments.slice(-2).map((comment) => (
+                        <View key={comment.id} style={styles.recentCommentItem}>
+                          <Image source={{ uri: comment.user.avatar }} style={styles.recentCommentAvatar} />
+                          <View style={styles.recentCommentContent}>
+                            <Text style={styles.recentCommentText}>
+                              <Text style={styles.recentCommentUserName}>{comment.user.name}</Text>
+                              {' '}{comment.text}
+                            </Text>
+                            <View style={styles.recentCommentMeta}>
+                              <Text style={styles.recentCommentTimestamp}>{comment.timestamp}</Text>
+                              <TouchableOpacity 
+                                style={styles.recentCommentLikeButton}
+                                onPress={() => handleCommentLike(post.id, comment.id)}
+                              >
+                                <Heart 
+                                  size={12} 
+                                  color={comment.liked ? '#EF4444' : theme.colors.textSecondary}
+                                  fill={comment.liked ? '#EF4444' : 'none'}
+                                  strokeWidth={1.5}
+                                />
+                                <Text style={[
+                                  styles.recentCommentLikeText,
+                                  comment.liked && { color: '#EF4444' }
+                                ]}>
+                                  {comment.likes}
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                      {post.comments.length > 2 && (
+                        <TouchableOpacity 
+                          style={styles.viewAllCommentsButton}
+                          onPress={() => openComments(post)}
+                        >
+                          <Text style={styles.viewAllCommentsText}>
+                            View all {post.comments.length} comments
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           ))
@@ -1125,6 +1208,97 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: '#EF4444',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  quickCommentSection: {
+    marginTop: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.colors.border,
+  },
+  quickCommentInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  quickCommentAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  quickCommentInput: {
+    flex: 1,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.cardSecondary,
+    maxHeight: 80,
+  },
+  quickSendButton: {
+    padding: theme.spacing.xs,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  recentCommentsContainer: {
+    gap: theme.spacing.sm,
+  },
+  recentCommentItem: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  recentCommentAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  recentCommentContent: {
+    flex: 1,
+  },
+  recentCommentText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
+    lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
+    marginBottom: theme.spacing.xs,
+  },
+  recentCommentUserName: {
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  recentCommentMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  recentCommentTimestamp: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  recentCommentLikeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  recentCommentLikeText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  viewAllCommentsButton: {
+    paddingVertical: theme.spacing.xs,
+    marginTop: theme.spacing.xs,
+  },
+  viewAllCommentsText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.textSecondary,
   },
 
   articlesSection: {
