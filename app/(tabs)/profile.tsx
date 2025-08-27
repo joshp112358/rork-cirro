@@ -108,8 +108,6 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-
-
         <View style={styles.footer}>
           <Text style={styles.version}>Cirro v1.0.0</Text>
           <Text style={styles.footerText}>Track responsibly 🌱</Text>
