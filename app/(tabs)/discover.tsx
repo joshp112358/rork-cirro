@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList, Alert } from 'react-native';
-import { Heart, MessageCircle, Share, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type } from 'lucide-react-native';
+import { Heart, MessageCircle, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 
@@ -436,10 +436,6 @@ export default function CommunitiesScreen() {
                   >
                     <MessageCircle size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
                     <Text style={styles.actionText}>{post.comments.length}</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.actionButton}>
-                    <Share size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
                   </TouchableOpacity>
                 </View>
               </View>
