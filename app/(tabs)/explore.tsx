@@ -31,6 +31,7 @@ import {
   Send,
   X,
   MapPin,
+  Hash,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
@@ -62,6 +63,7 @@ interface ForumPost {
   isBookmarked?: boolean;
   image?: string;
   awards?: number;
+  tags: string[];
 }
 
 const initialMockPosts: ForumPost[] = [
@@ -94,6 +96,7 @@ const initialMockPosts: ForumPost[] = [
     category: 'Medical',
     isPinned: true,
     awards: 2,
+    tags: ['anxiety', 'medical', 'strains', 'cbd'],
   },
   {
     id: '2',
@@ -115,6 +118,7 @@ const initialMockPosts: ForumPost[] = [
     ],
     category: 'Dispensaries',
     image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
+    tags: ['dispensary', 'downtown', 'review', 'local'],
   },
   {
     id: '3',
@@ -144,6 +148,7 @@ const initialMockPosts: ForumPost[] = [
     ],
     category: 'Edibles',
     awards: 1,
+    tags: ['edibles', 'dosage', 'homemade', 'brownies', 'beginner'],
   },
   {
     id: '4',
@@ -156,6 +161,7 @@ const initialMockPosts: ForumPost[] = [
     comments: [],
     category: 'General',
     image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
+    tags: ['vape', 'flower', 'comparison', 'vaporizer'],
   },
   {
     id: '5',
@@ -168,6 +174,7 @@ const initialMockPosts: ForumPost[] = [
     comments: [],
     category: 'Growing',
     awards: 3,
+    tags: ['growing', 'beginner', 'setup', 'tips'],
   },
 ];
 
@@ -228,11 +235,16 @@ export default function ExploreScreen() {
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Get all unique tags from posts
+  const allTags = Array.from(new Set(posts.flatMap(post => post.tags))).sort();
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => post.tags.includes(tag));
+    return matchesSearch && matchesTags;
   });
 
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -329,6 +341,29 @@ export default function ExploreScreen() {
             {post.content}
           </Text>
           
+          {/* Post Tags */}
+          {post.tags.length > 0 && (
+            <View style={styles.postTags}>
+              {post.tags.slice(0, 3).map(tag => (
+                <TouchableOpacity
+                  key={tag}
+                  style={[styles.postTag, { backgroundColor: theme.colors.primary + '15' }]}
+                  onPress={() => toggleTag(tag)}
+                >
+                  <Hash size={10} color={theme.colors.primary} />
+                  <Text style={[styles.postTagText, { color: theme.colors.primary }]}>
+                    {tag}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {post.tags.length > 3 && (
+                <Text style={[styles.moreTags, { color: theme.colors.textTertiary }]}>
+                  +{post.tags.length - 3} more
+                </Text>
+              )}
+            </View>
+          )}
+          
           {post.image && (
             <Image 
               source={{ uri: post.image }} 
@@ -380,6 +415,46 @@ export default function ExploreScreen() {
     </TouchableOpacity>
   );
 
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  const renderTag = (tag: string) => {
+    const isSelected = selectedTags.includes(tag);
+    return (
+      <TouchableOpacity
+        key={tag}
+        style={[
+          styles.tagChip,
+          {
+            backgroundColor: isSelected ? theme.colors.primary : theme.colors.card,
+            borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+          }
+        ]}
+        onPress={() => toggleTag(tag)}
+      >
+        <Hash 
+          size={12} 
+          color={isSelected ? theme.colors.background : theme.colors.textTertiary} 
+        />
+        <Text
+          style={[
+            styles.tagText,
+            {
+              color: isSelected ? theme.colors.background : theme.colors.textTertiary,
+            }
+          ]}
+        >
+          {tag}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
@@ -400,6 +475,28 @@ export default function ExploreScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
+      </View>
+
+      {/* Tags Section */}
+      <View style={styles.tagsSection}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tagsContainer}
+        >
+          {allTags.map(renderTag)}
+        </ScrollView>
+        {selectedTags.length > 0 && (
+          <TouchableOpacity 
+            style={[styles.clearTagsButton, { backgroundColor: theme.colors.error + '20' }]}
+            onPress={() => setSelectedTags([])}
+          >
+            <X size={14} color={theme.colors.error} />
+            <Text style={[styles.clearTagsText, { color: theme.colors.error }]}>
+              Clear ({selectedTags.length})
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
@@ -965,5 +1062,65 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Tags styles
+  tagsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  tagsContainer: {
+    paddingRight: 20,
+    gap: 8,
+  },
+  tagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 4,
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  clearTagsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginTop: 8,
+    gap: 4,
+  },
+  clearTagsText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  // Post tags styles
+  postTags: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+  },
+  postTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 3,
+  },
+  postTagText: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  moreTags: {
+    fontSize: 10,
+    fontStyle: 'italic',
   },
 });
