@@ -62,7 +62,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity 
           style={styles.budtenderButton}
-          onPress={() => router.push('/(tabs)/budtender')}
+          onPress={() => router.push('../budtender' as any)}
           testID="budtender-button"
         >
           <View style={styles.newEntryContent}>

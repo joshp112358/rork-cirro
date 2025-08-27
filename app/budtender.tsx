@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAr
 import { Bot, Send, MessageCircle, Sparkles, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { router } from 'expo-router';
+import { Stack } from 'expo-router';
 
 interface Message {
   id: string;
@@ -100,107 +101,121 @@ export default function BudtenderScreen() {
   const styles = createStyles(theme);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
+    <>
+      <Stack.Screen 
+        options={{
+          title: "AI Budtender",
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: theme.colors.text,
+          headerTitleStyle: {
+            fontWeight: theme.fontWeight.medium,
+          },
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
               <ArrowLeft size={24} color={theme.colors.text} strokeWidth={1.5} />
             </TouchableOpacity>
-            <View style={styles.botIcon}>
-              <Bot size={24} color={theme.colors.primary} strokeWidth={1.5} />
-            </View>
-            <View>
-              <Text style={styles.headerTitle}>AI Budtender</Text>
-              <Text style={styles.headerSubtitle}>Your cannabis expert</Text>
-            </View>
-          </View>
-        </View>
-
-        <ScrollView 
-          style={styles.messagesContainer}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.messagesContent}
+          ),
+        }}
+      />
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView 
+          style={styles.keyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          {messages.map((message) => (
-            <View
-              key={message.id}
-              style={[
-                styles.messageContainer,
-                message.isUser ? styles.userMessage : styles.aiMessage
-              ]}
-            >
-              <Text style={[
-                styles.messageText,
-                message.isUser ? styles.userMessageText : styles.aiMessageText
-              ]}>
-                {message.text}
-              </Text>
-            </View>
-          ))}
-
-          {isLoading && (
-            <View style={[styles.messageContainer, styles.aiMessage]}>
-              <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Thinking...</Text>
-                <View style={styles.loadingDots}>
-                  <View style={styles.loadingDot} />
-                  <View style={styles.loadingDot} />
-                  <View style={styles.loadingDot} />
-                </View>
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <View style={styles.botIcon}>
+                <Bot size={24} color={theme.colors.primary} strokeWidth={1.5} />
+              </View>
+              <View>
+                <Text style={styles.headerTitle}>AI Budtender</Text>
+                <Text style={styles.headerSubtitle}>Your cannabis expert</Text>
               </View>
             </View>
-          )}
-
-          {messages.length === 1 && (
-            <View style={styles.quickQuestionsContainer}>
-              <Text style={styles.quickQuestionsTitle}>Quick Questions</Text>
-              {quickQuestions.map((question, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.quickQuestionButton}
-                  onPress={() => handleQuickQuestion(question)}
-                >
-                  <Sparkles size={16} color={theme.colors.primary} strokeWidth={1.5} />
-                  <Text style={styles.quickQuestionText}>{question}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.textInput}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Ask me anything about cannabis..."
-              placeholderTextColor={theme.colors.textSecondary}
-              multiline
-              maxLength={500}
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!inputText.trim() || isLoading) && styles.sendButtonDisabled
-              ]}
-              onPress={handleSendMessage}
-              disabled={!inputText.trim() || isLoading}
-            >
-              <Send size={20} color={theme.colors.background} strokeWidth={1.5} />
-            </TouchableOpacity>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          <ScrollView 
+            style={styles.messagesContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.messagesContent}
+          >
+            {messages.map((message) => (
+              <View
+                key={message.id}
+                style={[
+                  styles.messageContainer,
+                  message.isUser ? styles.userMessage : styles.aiMessage
+                ]}
+              >
+                <Text style={[
+                  styles.messageText,
+                  message.isUser ? styles.userMessageText : styles.aiMessageText
+                ]}>
+                  {message.text}
+                </Text>
+              </View>
+            ))}
+
+            {isLoading && (
+              <View style={[styles.messageContainer, styles.aiMessage]}>
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>Thinking...</Text>
+                  <View style={styles.loadingDots}>
+                    <View style={styles.loadingDot} />
+                    <View style={styles.loadingDot} />
+                    <View style={styles.loadingDot} />
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {messages.length === 1 && (
+              <View style={styles.quickQuestionsContainer}>
+                <Text style={styles.quickQuestionsTitle}>Quick Questions</Text>
+                {quickQuestions.map((question, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.quickQuestionButton}
+                    onPress={() => handleQuickQuestion(question)}
+                  >
+                    <Sparkles size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                    <Text style={styles.quickQuestionText}>{question}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </ScrollView>
+
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask me anything about cannabis..."
+                placeholderTextColor={theme.colors.textSecondary}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  (!inputText.trim() || isLoading) && styles.sendButtonDisabled
+                ]}
+                onPress={handleSendMessage}
+                disabled={!inputText.trim() || isLoading}
+              >
+                <Send size={20} color={theme.colors.background} strokeWidth={1.5} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </>
   );
 }
 
@@ -223,9 +238,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.lg,
-  },
-  backButton: {
-    padding: theme.spacing.xs,
   },
   botIcon: {
     width: 48,
