@@ -25,6 +25,8 @@ import {
   Bookmark,
   Award,
   Image as ImageIcon,
+  UserPlus,
+  Camera,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -161,7 +163,7 @@ const highlights: Highlight[] = [
 export default function ExploreScreen() {
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState<string>('');
-
+  const [postText, setPostText] = useState<string>('');
   const [sortBy, setSortBy] = useState<'trending' | 'recent'>('trending');
 
   const filteredPosts = mockPosts.filter(post => {
@@ -308,8 +310,8 @@ export default function ExploreScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Explore</Text>
-        <TouchableOpacity style={[styles.createButton, { backgroundColor: theme.colors.primary }]}>
-          <Plus size={20} color={theme.colors.background} strokeWidth={2} />
+        <TouchableOpacity style={[styles.addFriendButton, { backgroundColor: theme.colors.primary }]}>
+          <UserPlus size={20} color={theme.colors.background} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -327,6 +329,36 @@ export default function ExploreScreen() {
       </View>
 
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
+        {/* Create Post Section */}
+        <View style={[styles.createPostSection, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          <View style={styles.createPostHeader}>
+            <View style={styles.userAvatar}>
+              <Text style={[styles.avatarText, { color: theme.colors.background }]}>You</Text>
+            </View>
+            <TextInput
+              style={[styles.createPostInput, { color: theme.colors.text }]}
+              placeholder="What's on your mind?"
+              placeholderTextColor={theme.colors.textTertiary}
+              value={postText}
+              onChangeText={setPostText}
+              multiline
+            />
+          </View>
+          <View style={[styles.createPostActions, { borderTopColor: theme.colors.border }]}>
+            <TouchableOpacity style={styles.createActionButton}>
+              <ImageIcon size={20} color={theme.colors.primary} />
+              <Text style={[styles.createActionText, { color: theme.colors.textSecondary }]}>Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.createActionButton}>
+              <Camera size={20} color={theme.colors.primary} />
+              <Text style={[styles.createActionText, { color: theme.colors.textSecondary }]}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.postButton, { backgroundColor: postText.trim() ? theme.colors.primary : theme.colors.border }]} disabled={!postText.trim()}>
+              <Text style={[styles.postButtonText, { color: postText.trim() ? theme.colors.background : theme.colors.textTertiary }]}>Post</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Highlights Section */}
         <View style={styles.highlightsSection}>
           <View style={styles.sectionHeader}>
@@ -412,12 +444,71 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
   },
-  createButton: {
+  addFriendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Create post section
+  createPostSection: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  createPostHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 16,
+    gap: 12,
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  createPostInput: {
+    flex: 1,
+    fontSize: 16,
+    minHeight: 40,
+    textAlignVertical: 'top',
+  },
+  createPostActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    gap: 16,
+  },
+  createActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  createActionText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  postButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  postButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   searchContainer: {
     paddingHorizontal: 20,
