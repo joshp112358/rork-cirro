@@ -23,6 +23,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
 import { router } from 'expo-router';
 import { useUser } from '@/hooks/use-user';
+import { useThreads } from '@/hooks/use-threads';
 
 interface ThreadData {
   title: string;
@@ -76,6 +77,7 @@ export default function CreateThreadScreen() {
   const { theme } = useTheme();
   const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
   const { profile } = useUser();
+  const { addThread } = useThreads();
   const [threadData, setThreadData] = useState<ThreadData>({
     title: '',
     content: '',
@@ -154,27 +156,19 @@ export default function CreateThreadScreen() {
     setIsSubmitting(true);
     
     try {
-      // Create the new thread object
-      const newThread = {
-        id: Date.now().toString(),
+      // Create the new thread using the context
+      await addThread({
         title: threadData.title.trim(),
         content: threadData.content.trim(),
         author: profile?.name || 'Anonymous',
-        timestamp: 'now',
-        upvotes: 0,
-        downvotes: 0,
-        comments: [],
         category: threadData.category,
         tags: threadData.tags,
         ...(threadData.location && { location: threadData.location })
-      };
+      });
       
-      console.log('Creating thread:', newThread);
+      console.log('Thread created successfully!');
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Navigate back immediately with success feedback
+      // Navigate back immediately
       router.back();
       
       // Show success message after navigation

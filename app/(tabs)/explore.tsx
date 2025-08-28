@@ -36,148 +36,9 @@ import {
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
 import { router } from 'expo-router';
+import { useThreads, type ForumPost, type Comment } from '@/hooks/use-threads';
 
-interface Comment {
-  id: string;
-  content: string;
-  author: string;
-  timestamp: string;
-  upvotes: number;
-  downvotes: number;
-  isUpvoted?: boolean;
-  isDownvoted?: boolean;
-}
 
-interface ForumPost {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  timestamp: string;
-  upvotes: number;
-  downvotes: number;
-  comments: Comment[];
-  category: string;
-  isPinned?: boolean;
-  isUpvoted?: boolean;
-  isDownvoted?: boolean;
-  isBookmarked?: boolean;
-  image?: string;
-  awards?: number;
-  tags: string[];
-}
-
-const initialMockPosts: ForumPost[] = [
-  {
-    id: '1',
-    title: 'Best strains for anxiety relief?',
-    content: 'Looking for recommendations on strains that help with anxiety without making me too sleepy...',
-    author: 'GreenThumb420',
-    timestamp: '2h ago',
-    upvotes: 124,
-    downvotes: 5,
-    comments: [
-      {
-        id: 'c1',
-        content: 'I recommend Blue Dream or Northern Lights. Both are great for anxiety without being too sedating.',
-        author: 'MedicalUser',
-        timestamp: '1h ago',
-        upvotes: 12,
-        downvotes: 0,
-      },
-      {
-        id: 'c2',
-        content: 'CBD dominant strains like Charlotte\'s Web work wonders for me!',
-        author: 'AnxietyFree',
-        timestamp: '45m ago',
-        upvotes: 8,
-        downvotes: 1,
-      },
-    ],
-    category: 'Medical',
-    isPinned: true,
-    awards: 2,
-    tags: ['anxiety', 'medical', 'strains', 'cbd'],
-  },
-  {
-    id: '2',
-    title: 'New dispensary opened downtown!',
-    content: 'Just visited the new Green Valley dispensary. Great selection and friendly staff...',
-    author: 'LocalExplorer',
-    timestamp: '4h ago',
-    upvotes: 98,
-    downvotes: 12,
-    comments: [
-      {
-        id: 'c3',
-        content: 'Thanks for the heads up! Will definitely check it out.',
-        author: 'LocalBud',
-        timestamp: '3h ago',
-        upvotes: 5,
-        downvotes: 0,
-      },
-    ],
-    category: 'Dispensaries',
-    image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
-    tags: ['dispensary', 'downtown', 'review', 'local'],
-  },
-  {
-    id: '3',
-    title: 'Homemade edibles - dosage tips?',
-    content: 'First time making brownies at home. Any advice on getting the dosage right?',
-    author: 'BakeAndBake',
-    timestamp: '6h ago',
-    upvotes: 231,
-    downvotes: 8,
-    comments: [
-      {
-        id: 'c4',
-        content: 'Start low, go slow! 5-10mg is a good starting point.',
-        author: 'EdibleExpert',
-        timestamp: '5h ago',
-        upvotes: 15,
-        downvotes: 0,
-      },
-      {
-        id: 'c5',
-        content: 'Make sure to decarb your flower properly first!',
-        author: 'HomeBaker',
-        timestamp: '4h ago',
-        upvotes: 12,
-        downvotes: 0,
-      },
-    ],
-    category: 'Edibles',
-    awards: 1,
-    tags: ['edibles', 'dosage', 'homemade', 'brownies', 'beginner'],
-  },
-  {
-    id: '4',
-    title: 'Vape vs flower - what do you prefer?',
-    content: 'Trying to decide between getting a new vaporizer or sticking with flower...',
-    author: 'VapeDebate',
-    timestamp: '8h ago',
-    upvotes: 342,
-    downvotes: 18,
-    comments: [],
-    category: 'General',
-    image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
-    tags: ['vape', 'flower', 'comparison', 'vaporizer'],
-  },
-  {
-    id: '5',
-    title: 'Growing tips for beginners',
-    content: 'Starting my first grow setup. What are the most important things to know?',
-    author: 'NewGrower',
-    timestamp: '12h ago',
-    upvotes: 467,
-    downvotes: 21,
-    comments: [],
-    category: 'Growing',
-    awards: 3,
-    tags: ['growing', 'beginner', 'setup', 'tips'],
-  },
-];
 
 
 
@@ -230,9 +91,9 @@ const highlights: Highlight[] = [
 export default function ExploreScreen() {
   const { theme } = useTheme();
   const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
+  const { posts, addComment, toggleVote, toggleBookmark } = useThreads();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'recent' | 'nearme'>('recent');
-  const [posts, setPosts] = useState<ForumPost[]>(initialMockPosts);
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>('');
@@ -323,7 +184,7 @@ export default function ExploreScreen() {
               style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}
               onPress={(e) => {
                 e.stopPropagation();
-                // Handle upvote logic here
+                toggleVote(post.id, 'up');
               }}
             >
               <ArrowUp 
@@ -339,7 +200,7 @@ export default function ExploreScreen() {
               style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}
               onPress={(e) => {
                 e.stopPropagation();
-                // Handle downvote logic here
+                toggleVote(post.id, 'down');
               }}
             >
               <ArrowDown 
@@ -487,7 +348,10 @@ export default function ExploreScreen() {
               
               <TouchableOpacity 
                 style={styles.actionButton}
-                onPress={(e) => e.stopPropagation()}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleBookmark(post.id);
+                }}
               >
                 <Bookmark 
                   size={16} 
@@ -764,27 +628,14 @@ export default function ExploreScreen() {
                         backgroundColor: newComment.trim() ? theme.colors.primary : theme.colors.textTertiary + '30'
                       }
                     ]}
-                    onPress={() => {
+                    onPress={async () => {
                       if (newComment.trim() && selectedPost) {
-                        const newCommentObj: Comment = {
-                          id: `c${Date.now()}`,
+                        const newCommentObj = await addComment(selectedPost.id, {
                           content: newComment.trim(),
                           author: 'You', // In a real app, this would be the current user
-                          timestamp: 'now',
-                          upvotes: 0,
-                          downvotes: 0,
-                        };
+                        });
                         
-                        // Update the posts state
-                        setPosts(prevPosts => 
-                          prevPosts.map(post => 
-                            post.id === selectedPost.id 
-                              ? { ...post, comments: [...post.comments, newCommentObj] }
-                              : post
-                          )
-                        );
-                        
-                        // Update the selected post
+                        // Update the selected post with the new comment
                         setSelectedPost(prev => 
                           prev ? { ...prev, comments: [...prev.comments, newCommentObj] } : null
                         );
