@@ -362,7 +362,7 @@ export default function CommunitiesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Communities</Text>
+          <Text style={styles.headerTitle}>Community</Text>
           <View style={styles.headerButtons}>
             <TouchableOpacity 
               style={styles.addFriendButton}
