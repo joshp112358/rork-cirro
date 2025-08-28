@@ -153,7 +153,7 @@ const mockPosts: Post[] = [
   },
 ];
 
-export default function CommunityScreen() {
+export default function CommunitiesScreen() {
   const { theme } = useTheme();
   const [posts, setPosts] = useState(mockPosts);
   const [activeTab, setActiveTab] = useState<'community'>('community');
@@ -396,7 +396,7 @@ export default function CommunityScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Community</Text>
+          <Text style={styles.headerTitle}>Communities</Text>
           <View style={styles.headerButtons}>
             <TouchableOpacity 
               style={styles.addFriendButton}

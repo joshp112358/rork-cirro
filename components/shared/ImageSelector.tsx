@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { Camera, ImageIcon, X, Plus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks/use-theme';
@@ -23,9 +23,6 @@ export function ImageSelector({
   const styles = createStyles(theme);
 
   const requestMediaLibraryPermissions = async () => {
-    if (Platform.OS === 'web') {
-      return true; // Web doesn't need explicit media library permissions for ImagePicker
-    }
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please grant permission to access your photo library.');
@@ -35,9 +32,6 @@ export function ImageSelector({
   };
 
   const requestCameraPermissions = async () => {
-    if (Platform.OS === 'web') {
-      return true; // Web doesn't need explicit camera permissions for ImagePicker
-    }
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please grant permission to access your camera.');
@@ -47,24 +41,16 @@ export function ImageSelector({
   };
 
   const pickImages = async () => {
-    console.log('Picking images from library...');
-    
     const hasPermission = await requestMediaLibraryPermissions();
-    if (!hasPermission) {
-      console.log('Media library permission denied');
-      return;
-    }
+    if (!hasPermission) return;
 
     try {
-      console.log('Launching image library...');
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
         selectionLimit: maxImages - images.length,
       });
-
-      console.log('Image library result:', result);
 
       if (!result.canceled && result.assets) {
         const newImages = result.assets.map(asset => asset.uri);
@@ -75,7 +61,6 @@ export function ImageSelector({
           return;
         }
         
-        console.log('Adding images:', newImages);
         onImagesChange([...images, ...newImages]);
       }
     } catch (error) {
@@ -85,32 +70,23 @@ export function ImageSelector({
   };
 
   const takePhoto = async () => {
-    console.log('Taking photo...');
-    
+    const hasPermission = await requestCameraPermissions();
+    if (!hasPermission) return;
+
     if (images.length >= maxImages) {
       Alert.alert('Too many images', `You can only add up to ${maxImages} images.`);
       return;
     }
 
-    const hasPermission = await requestCameraPermissions();
-    if (!hasPermission) {
-      console.log('Camera permission denied');
-      return;
-    }
-
     try {
-      console.log('Launching camera...');
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.8,
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: [1, 1],
       });
 
-      console.log('Camera result:', result);
-
       if (!result.canceled && result.assets && result.assets[0]) {
-        console.log('Adding photo to images:', result.assets[0].uri);
         onImagesChange([...images, result.assets[0].uri]);
       }
     } catch (error) {

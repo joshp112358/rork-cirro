@@ -32,7 +32,6 @@ export interface JournalEntry {
   notes: string;
   imageUri?: string;
   rating: number; // 1-5 stars
-  location?: string;
 }
 
 export const POSITIVE_EFFECTS = [
