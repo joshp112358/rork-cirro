@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { 
-  View, 
   StyleSheet, 
   ScrollView, 
   KeyboardAvoidingView,
@@ -8,16 +7,12 @@ import {
   Alert,
   Animated
 } from 'react-native';
-import { Save } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
-import { MoodSelector } from '@/components/MoodSelector';
-import { EffectSelector } from '@/components/EffectSelector';
-import { StarRating } from '@/components/StarRating';
 import { FormSection, FormInput, FormHeader, ActionButton, ImageSelector } from '@/components/shared';
-import { MoodRating, Effect } from '@/types/entry';
 
 export default function NewEntryScreen() {
   const { theme } = useTheme();
@@ -30,12 +25,6 @@ export default function NewEntryScreen() {
   const [dispensary, setDispensary] = useState('');
   const [location, setLocation] = useState('');
   const [postContent, setPostContent] = useState('');
-  const [mood, setMood] = useState<MoodRating>({
-    overall: 3
-  });
-  const [effects, setEffects] = useState<Effect[]>([]);
-  const [notes, setNotes] = useState('');
-  const [rating, setRating] = useState(3);
 
 
 
@@ -56,10 +45,6 @@ export default function NewEntryScreen() {
       dispensary,
       location,
       postContent,
-      mood,
-      effects,
-      notes,
-      rating,
       imageUri
     });
 
@@ -79,10 +64,10 @@ export default function NewEntryScreen() {
         },
         amount: 0,
         method: 'Flower',
-        mood,
-        effects,
-        notes: postContent || notes,
-        rating,
+        mood: { overall: 3 },
+        effects: [],
+        notes: postContent,
+        rating: 3,
         imageUri,
         location
       });
@@ -137,6 +122,17 @@ export default function NewEntryScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <FormHeader title="Create Post" />
 
+          <FormSection title="What's on your mind?">
+            <FormInput
+              value={postContent}
+              onChangeText={setPostContent}
+              placeholder="Share your thoughts..."
+              multiline
+              numberOfLines={8}
+              style={styles.textArea}
+            />
+          </FormSection>
+
           <FormSection title="Photo">
             <ImageSelector
               images={imageUri ? [imageUri] : []}
@@ -150,22 +146,11 @@ export default function NewEntryScreen() {
             />
           </FormSection>
 
-          <FormSection title="Post Content">
-            <FormInput
-              value={postContent}
-              onChangeText={setPostContent}
-              placeholder="What's on your mind?"
-              multiline
-              numberOfLines={4}
-              style={styles.textArea}
-            />
-          </FormSection>
-
           <FormSection title="Dispensary">
             <FormInput
               value={dispensary}
               onChangeText={setDispensary}
-              placeholder="Dispensary name (optional)"
+              placeholder="Tag a dispensary (optional)"
             />
           </FormSection>
 
@@ -173,44 +158,13 @@ export default function NewEntryScreen() {
             <FormInput
               value={location}
               onChangeText={setLocation}
-              placeholder="Location (optional)"
+              placeholder="Add location (optional)"
             />
-          </FormSection>
-
-          <FormSection title="Mood">
-            <MoodSelector 
-              value={mood.overall}
-              onChange={(value) => setMood({overall: value})}
-            />
-          </FormSection>
-
-          <FormSection title="Effects">
-            <EffectSelector 
-              effects={effects}
-              onChange={setEffects}
-            />
-          </FormSection>
-
-          <FormSection title="Additional Notes">
-            <FormInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Any additional thoughts? (optional)"
-              multiline
-              numberOfLines={3}
-              style={styles.textArea}
-            />
-          </FormSection>
-
-          <FormSection title="Overall Rating">
-            <View style={styles.ratingContainer}>
-              <StarRating rating={rating} onChange={setRating} />
-            </View>
           </FormSection>
 
           <ActionButton
-            title="Create Post"
-            icon={Save}
+            title="Share Post"
+            icon={Send}
             onPress={handleSave}
             loading={isSavingEntry || isSaving}
             style={styles.saveButton}
@@ -280,7 +234,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: theme.colors.border,
   },
   textArea: {
-    minHeight: 100,
+    minHeight: 120,
     textAlignVertical: 'top',
   },
   row: {
