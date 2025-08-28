@@ -156,7 +156,7 @@ export default function CreateThreadScreen() {
     }
   };
 
-  const requestImagePermissions = async () => {
+  const requestMediaLibraryPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please grant permission to access your photo library.');
@@ -165,56 +165,89 @@ export default function CreateThreadScreen() {
     return true;
   };
 
+  const requestCameraPermissions = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant permission to access your camera.');
+      return false;
+    }
+    return true;
+  };
+
   const pickImages = async () => {
-    const hasPermission = await requestImagePermissions();
-    if (!hasPermission) return;
+    console.log('Requesting media library permissions...');
+    const hasPermission = await requestMediaLibraryPermissions();
+    if (!hasPermission) {
+      console.log('Media library permission denied');
+      return;
+    }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.8,
-      aspect: [1, 1],
-    });
+    console.log('Launching image library...');
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        selectionLimit: 10 - threadData.images.length, // Limit selection based on remaining slots
+      });
 
-    if (!result.canceled && result.assets) {
-      const newImages = result.assets.map(asset => asset.uri);
-      const totalImages = threadData.images.length + newImages.length;
-      
-      if (totalImages > 10) {
-        Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
-        return;
+      console.log('Image picker result:', result);
+
+      if (!result.canceled && result.assets) {
+        const newImages = result.assets.map(asset => asset.uri);
+        const totalImages = threadData.images.length + newImages.length;
+        
+        if (totalImages > 10) {
+          Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
+          return;
+        }
+        
+        console.log('Adding images:', newImages);
+        setThreadData(prev => ({
+          ...prev,
+          images: [...prev.images, ...newImages]
+        }));
       }
-      
-      setThreadData(prev => ({
-        ...prev,
-        images: [...prev.images, ...newImages]
-      }));
+    } catch (error) {
+      console.error('Error picking images:', error);
+      Alert.alert('Error', 'Failed to pick images. Please try again.');
     }
   };
 
   const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant permission to access your camera.');
+    console.log('Requesting camera permissions...');
+    const hasPermission = await requestCameraPermissions();
+    if (!hasPermission) {
+      console.log('Camera permission denied');
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-      aspect: [1, 1],
-    });
+    if (threadData.images.length >= 10) {
+      Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
+      return;
+    }
 
-    if (!result.canceled && result.assets && result.assets[0]) {
-      if (threadData.images.length >= 10) {
-        Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
-        return;
+    console.log('Launching camera...');
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+
+      console.log('Camera result:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Adding photo from camera:', result.assets[0].uri);
+        setThreadData(prev => ({
+          ...prev,
+          images: [...prev.images, result.assets[0].uri]
+        }));
       }
-      
-      setThreadData(prev => ({
-        ...prev,
-        images: [...prev.images, result.assets[0].uri]
-      }));
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
     }
   };
 
@@ -226,12 +259,17 @@ export default function CreateThreadScreen() {
   };
 
   const showImageOptions = () => {
+    if (threadData.images.length >= 10) {
+      Alert.alert('Maximum images reached', 'You can only add up to 10 images per thread.');
+      return;
+    }
+
     Alert.alert(
       'Add Images',
       'Choose how you want to add images to your thread',
       [
-        { text: 'Camera', onPress: takePhoto },
-        { text: 'Photo Library', onPress: pickImages },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Library', onPress: pickImages },
         { text: 'Cancel', style: 'cancel' },
       ]
     );
