@@ -548,8 +548,8 @@ export default function CreateThreadScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Popular Tags */}
-            <Text style={[styles.popularTagsTitle, { color: theme.colors.textSecondary }]}>Popular tags:</Text>
+            {/* Tags */}
+            <Text style={[styles.popularTagsTitle, { color: theme.colors.textSecondary }]}>Tags:</Text>
             <View style={styles.popularTags}>
               {popularTags.filter(tag => !threadData.tags.includes(tag)).slice(0, 15).map((tag) => (
                 <TouchableOpacity
