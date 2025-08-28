@@ -16,10 +16,8 @@ import {
 import {
   X,
   MapPin,
-  Hash,
   Send,
   Plus,
-  Minus,
   Trash2,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -32,8 +30,6 @@ import { useThreads } from '@/hooks/use-threads';
 interface ThreadData {
   title: string;
   content: string;
-  category: string;
-  tags: string[];
   images: string[];
   location?: {
     latitude: number;
@@ -41,42 +37,6 @@ interface ThreadData {
     address?: string;
   };
 }
-
-const categories = [
-  'General',
-  'Medical',
-  'Strains',
-  'Edibles',
-  'Growing',
-  'Dispensaries',
-  'Reviews',
-  'News',
-  'Legal',
-  'Lifestyle'
-];
-
-const popularTags = [
-  'beginner',
-  'advice',
-  'review',
-  'medical',
-  'recreational',
-  'cbd',
-  'thc',
-  'indica',
-  'sativa',
-  'hybrid',
-  'edibles',
-  'vape',
-  'flower',
-  'concentrate',
-  'growing',
-  'dispensary',
-  'local',
-  'deals',
-  'news',
-  'legal'
-];
 
 export default function CreateThreadScreen() {
   const { theme } = useTheme();
@@ -86,12 +46,9 @@ export default function CreateThreadScreen() {
   const [threadData, setThreadData] = useState<ThreadData>({
     title: '',
     content: '',
-    category: 'General',
-    tags: [],
     images: [],
   });
   const [includeLocation, setIncludeLocation] = useState<boolean>(false);
-  const [customTag, setCustomTag] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const { width: screenWidth } = Dimensions.get('window');
@@ -132,29 +89,7 @@ export default function CreateThreadScreen() {
     }
   };
 
-  const addTag = (tag: string) => {
-    if (!threadData.tags.includes(tag) && threadData.tags.length < 10) {
-      setThreadData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
-    }
-  };
 
-  const removeTag = (tag: string) => {
-    setThreadData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag)
-    }));
-  };
-
-  const addCustomTag = () => {
-    const tag = customTag.trim().toLowerCase();
-    if (tag && !threadData.tags.includes(tag) && threadData.tags.length < 10) {
-      addTag(tag);
-      setCustomTag('');
-    }
-  };
 
   const requestMediaLibraryPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -289,8 +224,8 @@ export default function CreateThreadScreen() {
         title: threadData.title.trim(),
         content: threadData.content.trim(),
         author: profile?.name || 'Anonymous',
-        category: threadData.category,
-        tags: threadData.tags,
+        category: 'General',
+        tags: [],
         images: threadData.images,
         ...(threadData.location && { location: threadData.location })
       });
@@ -397,46 +332,7 @@ export default function CreateThreadScreen() {
             </Text>
           </View>
 
-          {/* Category Selection */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Category</Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesContainer}
-            >
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category}
-                  style={[
-                    styles.categoryChip,
-                    {
-                      backgroundColor: threadData.category === category 
-                        ? theme.colors.primary 
-                        : theme.colors.card,
-                      borderColor: threadData.category === category 
-                        ? theme.colors.primary 
-                        : theme.colors.border,
-                    }
-                  ]}
-                  onPress={() => setThreadData(prev => ({ ...prev, category }))}
-                >
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      {
-                        color: threadData.category === category 
-                          ? theme.colors.background 
-                          : theme.colors.text,
-                      }
-                    ]}
-                  >
-                    {category}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+
 
           {/* Images Section */}
           <View style={styles.section}>
@@ -491,92 +387,7 @@ export default function CreateThreadScreen() {
             )}
           </View>
 
-          {/* Tags Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Tags</Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Help others find your thread</Text>
-            
-            {/* Selected Tags */}
-            {threadData.tags.length > 0 && (
-              <View style={styles.selectedTags}>
-                {threadData.tags.map((tag) => (
-                  <TouchableOpacity
-                    key={tag}
-                    style={[styles.selectedTag, { backgroundColor: theme.colors.primary + '15' }]}
-                    onPress={() => removeTag(tag)}
-                  >
-                    <Hash size={12} color={theme.colors.primary} />
-                    <Text style={[styles.selectedTagText, { color: theme.colors.primary }]}>
-                      {tag}
-                    </Text>
-                    <Minus size={12} color={theme.colors.primary} />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
 
-            {/* Custom Tag Input */}
-            <View style={styles.customTagContainer}>
-              <TextInput
-                style={[
-                  styles.customTagInput,
-                  {
-                    color: theme.colors.text,
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                  }
-                ]}
-                placeholder="Add custom tag..."
-                placeholderTextColor={theme.colors.textTertiary}
-                value={customTag}
-                onChangeText={setCustomTag}
-                onSubmitEditing={addCustomTag}
-                maxLength={20}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.addTagButton,
-                  { backgroundColor: customTag.trim() ? theme.colors.primary : theme.colors.textTertiary + '30' }
-                ]}
-                onPress={addCustomTag}
-                disabled={!customTag.trim()}
-              >
-                <Plus 
-                  size={16} 
-                  color={customTag.trim() ? theme.colors.background : theme.colors.textTertiary} 
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Tags */}
-            <Text style={[styles.popularTagsTitle, { color: theme.colors.textSecondary }]}>Tags:</Text>
-            <View style={styles.popularTags}>
-              {popularTags.filter(tag => !threadData.tags.includes(tag)).slice(0, 15).map((tag) => (
-                <TouchableOpacity
-                  key={tag}
-                  style={[
-                    styles.popularTag,
-                    {
-                      backgroundColor: theme.colors.backgroundSecondary,
-                      borderColor: theme.colors.border,
-                    }
-                  ]}
-                  onPress={() => addTag(tag)}
-                  disabled={threadData.tags.length >= 10}
-                >
-                  <Hash size={10} color={theme.colors.textTertiary} />
-                  <Text style={[styles.popularTagText, { color: theme.colors.textSecondary }]}>
-                    {tag}
-                  </Text>
-                  <Plus size={10} color={theme.colors.textTertiary} />
-                </TouchableOpacity>
-              ))}
-            </View>
-            
-            {threadData.tags.length >= 10 && (
-              <Text style={[styles.tagLimit, { color: theme.colors.warning }]}>Maximum 10 tags allowed</Text>
-            )}
-          </View>
 
           {/* Location Section */}
           <View style={styles.section}>
@@ -698,85 +509,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 4,
   },
-  categoriesContainer: {
-    paddingRight: 20,
-    gap: 8,
-  },
-  categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  selectedTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  selectedTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 4,
-  },
-  selectedTagText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  customTagContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  customTagInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
-  },
-  addTagButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  popularTagsTitle: {
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  popularTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  popularTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 3,
-  },
-  popularTagText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  tagLimit: {
-    fontSize: 12,
-    marginTop: 8,
-    textAlign: 'center',
-  },
+
   locationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
