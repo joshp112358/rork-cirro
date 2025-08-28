@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
+  Dimensions,
 } from 'react-native';
 import {
   X,
@@ -18,7 +20,9 @@ import {
   Send,
   Plus,
   Minus,
+  Trash2,
 } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
 import { router } from 'expo-router';
@@ -30,6 +34,7 @@ interface ThreadData {
   content: string;
   category: string;
   tags: string[];
+  images: string[];
   location?: {
     latitude: number;
     longitude: number;
@@ -83,10 +88,14 @@ export default function CreateThreadScreen() {
     content: '',
     category: 'General',
     tags: [],
+    images: [],
   });
   const [includeLocation, setIncludeLocation] = useState<boolean>(false);
   const [customTag, setCustomTag] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const { width: screenWidth } = Dimensions.get('window');
+  const imageSize = (screenWidth - 60) / 3; // 3 images per row with padding
 
   const handleLocationToggle = async () => {
     if (!includeLocation) {
@@ -147,6 +156,87 @@ export default function CreateThreadScreen() {
     }
   };
 
+  const requestImagePermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant permission to access your photo library.');
+      return false;
+    }
+    return true;
+  };
+
+  const pickImages = async () => {
+    const hasPermission = await requestImagePermissions();
+    if (!hasPermission) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+      aspect: [1, 1],
+    });
+
+    if (!result.canceled && result.assets) {
+      const newImages = result.assets.map(asset => asset.uri);
+      const totalImages = threadData.images.length + newImages.length;
+      
+      if (totalImages > 10) {
+        Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
+        return;
+      }
+      
+      setThreadData(prev => ({
+        ...prev,
+        images: [...prev.images, ...newImages]
+      }));
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant permission to access your camera.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      aspect: [1, 1],
+    });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      if (threadData.images.length >= 10) {
+        Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
+        return;
+      }
+      
+      setThreadData(prev => ({
+        ...prev,
+        images: [...prev.images, result.assets[0].uri]
+      }));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setThreadData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const showImageOptions = () => {
+    Alert.alert(
+      'Add Images',
+      'Choose how you want to add images to your thread',
+      [
+        { text: 'Camera', onPress: takePhoto },
+        { text: 'Photo Library', onPress: pickImages },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
   const handleSubmit = async () => {
     if (!threadData.title.trim() || !threadData.content.trim()) {
       Alert.alert('Error', 'Please fill in both title and content.');
@@ -163,6 +253,7 @@ export default function CreateThreadScreen() {
         author: profile?.name || 'Anonymous',
         category: threadData.category,
         tags: threadData.tags,
+        images: threadData.images,
         ...(threadData.location && { location: threadData.location })
       });
       
@@ -307,6 +398,59 @@ export default function CreateThreadScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+
+          {/* Images Section */}
+          <View style={styles.section}>
+            <View style={styles.imagesHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Images</Text>
+              <TouchableOpacity
+                style={[
+                  styles.addImageButton,
+                  {
+                    backgroundColor: theme.colors.primary + '15',
+                    borderColor: theme.colors.primary,
+                  }
+                ]}
+                onPress={showImageOptions}
+                disabled={threadData.images.length >= 10}
+              >
+                <Plus size={16} color={theme.colors.primary} />
+                <Text style={[styles.addImageText, { color: theme.colors.primary }]}>
+                  Add Images
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
+              Add up to 10 images to your thread
+            </Text>
+            
+            {threadData.images.length > 0 && (
+              <View style={styles.imagesGrid}>
+                {threadData.images.map((imageUri, index) => (
+                  <View key={index} style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.threadImage}
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      style={[styles.removeImageButton, { backgroundColor: theme.colors.error }]}
+                      onPress={() => removeImage(index)}
+                    >
+                      <Trash2 size={12} color={theme.colors.background} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+            
+            {threadData.images.length >= 10 && (
+              <Text style={[styles.imageLimit, { color: theme.colors.warning }]}>
+                Maximum 10 images allowed
+              </Text>
+            )}
           </View>
 
           {/* Tags Section */}
@@ -632,5 +776,54 @@ const styles = StyleSheet.create({
   locationCoords: {
     fontSize: 12,
     marginTop: 2,
+  },
+  imagesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+  },
+  addImageText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  imagesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  imageContainer: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  threadImage: {
+    width: '100%',
+    height: '100%',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageLimit: {
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
