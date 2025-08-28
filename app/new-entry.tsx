@@ -4,21 +4,24 @@ import {
   Text, 
   StyleSheet, 
   ScrollView, 
+  TextInput, 
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
   ActivityIndicator,
   Animated
 } from 'react-native';
-import { Save, Sparkles } from 'lucide-react-native';
+import { Camera, Save, X, ImageIcon, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries } from '@/hooks/use-entries';
 import { MoodSelector } from '@/components/MoodSelector';
 import { EffectSelector } from '@/components/EffectSelector';
 import { StarRating } from '@/components/StarRating';
-import { FormSection, FormInput, FormHeader, ChipSelector, ActionButton, ImageSelector } from '@/components/shared';
 import { StrainInfo, MoodRating, Effect } from '@/types/entry';
 
 export default function NewEntryScreen() {
@@ -61,6 +64,19 @@ export default function NewEntryScreen() {
   const [rating, setRating] = useState(3);
 
 
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      await analyzePackaging(result.assets[0].uri);
+    }
+  };
 
   const analyzePackaging = async (uri: string) => {
     setIsAnalyzingImage(true);
@@ -203,7 +219,23 @@ export default function NewEntryScreen() {
     }
   };
 
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission needed', 'Please allow camera access to take photos');
+      return;
+    }
 
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      await analyzePackaging(result.assets[0].uri);
+    }
+  };
 
   const handleSave = async () => {
     setIsSavingEntry(true);
@@ -279,198 +311,315 @@ export default function NewEntryScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          <FormHeader title="Record your experience" />
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Record your experience</Text>
+          </View>
 
-          <FormSection title="Photo">
-            <View style={styles.aiIndicator}>
-              <Sparkles size={14} color={theme.colors.textSecondary} strokeWidth={1.5} />
-              <Text style={styles.aiText}>AI Analysis</Text>
+          {/* Photo Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionLabel}>Photo</Text>
+              <View style={styles.aiIndicator}>
+                <Sparkles size={14} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                <Text style={styles.aiText}>AI Analysis</Text>
+              </View>
             </View>
-            <ImageSelector
-              images={imageUri ? [imageUri] : []}
-              onImagesChange={(images) => {
-                const newUri = images[0] || '';
-                setImageUri(newUri);
-                if (newUri && newUri !== imageUri) {
-                  analyzePackaging(newUri);
-                }
-              }}
-              maxImages={1}
-              title=""
-              subtitle="Take a photo or select from gallery for AI analysis"
-            />
-            {isAnalyzingImage && imageUri && (
-              <View style={styles.analysisOverlay}>
-                <View style={styles.analysisContent}>
-                  <ActivityIndicator size="large" color={theme.colors.background} />
-                  <Text style={styles.analysisText}>Analyzing packaging...</Text>
-                  <Sparkles size={20} color={theme.colors.background} strokeWidth={1.5} />
-                </View>
+            {imageUri ? (
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: imageUri }} style={styles.image} />
+                {isAnalyzingImage && (
+                  <View style={styles.analysisOverlay}>
+                    <View style={styles.analysisContent}>
+                      <ActivityIndicator size="large" color={theme.colors.background} />
+                      <Text style={styles.analysisText}>Analyzing packaging...</Text>
+                      <Sparkles size={20} color={theme.colors.background} strokeWidth={1.5} />
+                    </View>
+                  </View>
+                )}
+                <TouchableOpacity 
+                  style={styles.removeImage}
+                  onPress={() => setImageUri('')}
+                  disabled={isAnalyzingImage}
+                >
+                  <X size={16} color={theme.colors.text} strokeWidth={1.5} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.photoButtons}>
+                <TouchableOpacity 
+                  style={styles.photoButton}
+                  onPress={takePhoto}
+                  disabled={isAnalyzingImage}
+                >
+                  <Camera size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                  <Text style={styles.photoButtonText}>Camera</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.photoButton}
+                  onPress={pickImage}
+                  disabled={isAnalyzingImage}
+                >
+                  <ImageIcon size={20} color={theme.colors.textSecondary} strokeWidth={1.5} />
+                  <Text style={styles.photoButtonText}>Gallery</Text>
+                </TouchableOpacity>
               </View>
             )}
-          </FormSection>
+          </View>
 
-          <FormSection title="Brand Name">
-            <FormInput
-              value={strain.brand}
-              onChangeText={(text) => setStrain({...strain, brand: text})}
-              placeholder="Brand name"
-            />
-          </FormSection>
-
-          <FormSection title="Strain Name">
-            <FormInput
-              value={strain.name}
-              onChangeText={(text) => setStrain({...strain, name: text})}
-              placeholder="Strain name"
-            />
-          </FormSection>
-
-          <FormSection title="Consumption">
-            <ChipSelector
-              options={['Flower', 'Vape', 'Dab', 'Edible']}
-              selected={method}
-              onSelect={(value) => setMethod(value as typeof method)}
-              horizontal
-            />
-          </FormSection>
-
-          <FormSection title="Amount">
-            <FormInput
-              label={`Amount (${method === 'Flower' ? 'g' : method === 'Vape' ? 'puffs' : method === 'Dab' ? 'g' : 'mg'})`}
-              value={amount}
-              onChangeText={setAmount}
-              placeholder={method === 'Flower' ? '0.5' : method === 'Vape' ? '10' : method === 'Dab' ? '0.1' : '5'}
-              keyboardType="numeric"
-            />
-          </FormSection>
-
-          <FormSection title="Strain Type">
-            <ChipSelector
-              options={['Indica', 'Sativa', 'Hybrid', 'CBD']}
-              selected={strain.type}
-              onSelect={(value) => setStrain({...strain, type: value as typeof strain.type})}
-              horizontal
-            />
-          </FormSection>
-
-          <FormSection title="Cannabinoids">
-            <View style={styles.row}>
-              <FormInput
-                label="THC %"
-                value={thcText}
-                onChangeText={(text) => {
-                  setThcText(text);
-                  const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                  setStrain({...strain, thc: isNaN(parsed!) ? undefined : parsed});
-                }}
-                placeholder="22.5"
-                keyboardType="numeric"
-                containerStyle={styles.inputThird}
-              />
-              <FormInput
-                label="THCA %"
-                value={thcaText}
-                onChangeText={(text) => {
-                  setThcaText(text);
-                  const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                  setStrain({...strain, thca: isNaN(parsed!) ? undefined : parsed});
-                }}
-                placeholder="20.0"
-                keyboardType="numeric"
-                containerStyle={styles.inputThird}
-              />
-              <FormInput
-                label="THCV %"
-                value={thcvText}
-                onChangeText={(text) => {
-                  setThcvText(text);
-                  const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                  setStrain({...strain, thcv: isNaN(parsed!) ? undefined : parsed});
-                }}
-                placeholder="1.2"
-                keyboardType="numeric"
-                containerStyle={styles.inputThird}
+          {/* Brand Name */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Brand Name</Text>
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={styles.input}
+                value={strain.brand}
+                onChangeText={(text) => setStrain({...strain, brand: text})}
+                placeholder="Brand name"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
-            <View style={styles.row}>
-              <FormInput
-                label="CBD %"
-                value={cbdText}
-                onChangeText={(text) => {
-                  setCbdText(text);
-                  const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                  setStrain({...strain, cbd: isNaN(parsed!) ? undefined : parsed});
-                }}
-                placeholder="0.5"
-                keyboardType="numeric"
-                containerStyle={styles.inputThird}
-              />
-              <FormInput
-                label="CBDA %"
-                value={cbdaText}
-                onChangeText={(text) => {
-                  setCbdaText(text);
-                  const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                  setStrain({...strain, cbda: isNaN(parsed!) ? undefined : parsed});
-                }}
-                placeholder="0.3"
-                keyboardType="numeric"
-                containerStyle={styles.inputThird}
-              />
-              <FormInput
-                label="CBDV %"
-                value={cbdvText}
-                onChangeText={(text) => {
-                  setCbdvText(text);
-                  const parsed = text.trim() === '' ? undefined : parseFloat(text);
-                  setStrain({...strain, cbdv: isNaN(parsed!) ? undefined : parsed});
-                }}
-                placeholder="0.2"
-                keyboardType="numeric"
-                containerStyle={styles.inputThird}
+          </View>
+
+          {/* Strain Name */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Strain Name</Text>
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={styles.input}
+                value={strain.name}
+                onChangeText={(text) => setStrain({...strain, name: text})}
+                placeholder="Strain name"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
-          </FormSection>
+          </View>
 
-          <FormSection title="Mood">
+          {/* Consumption */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Consumption</Text>
+            <View style={styles.methodGrid}>
+              {(['Flower', 'Vape', 'Dab', 'Edible'] as const).map(m => (
+                <TouchableOpacity
+                  key={m}
+                  style={[
+                    styles.methodChip,
+                    method === m && styles.methodChipActive
+                  ]}
+                  onPress={() => setMethod(m)}
+                >
+                  <Text style={[
+                    styles.methodChipText,
+                    method === m && styles.methodChipTextActive
+                  ]}>
+                    {m}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Amount */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Amount</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                Amount ({method === 'Flower' ? 'g' : method === 'Vape' ? 'puffs' : method === 'Dab' ? 'g' : 'mg'})
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={amount}
+                onChangeText={setAmount}
+                placeholder={method === 'Flower' ? '0.5' : method === 'Vape' ? '10' : method === 'Dab' ? '0.1' : '5'}
+                keyboardType="numeric"
+                placeholderTextColor={theme.colors.textTertiary}
+              />
+            </View>
+          </View>
+
+          {/* Strain Type */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Strain Type</Text>
+            <View style={styles.typeGrid}>
+              {(['Indica', 'Sativa', 'Hybrid', 'CBD'] as const).map(type => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeChip,
+                    strain.type === type && styles.typeChipActive
+                  ]}
+                  onPress={() => setStrain({...strain, type})}
+                >
+                  <Text style={[
+                    styles.typeChipText,
+                    strain.type === type && styles.typeChipTextActive
+                  ]}>
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Cannabinoids */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Cannabinoids</Text>
+            <View style={styles.row}>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>THC %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={thcText}
+                  onChangeText={(text) => {
+                    setThcText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, thc: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="22.5"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>THCA %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={thcaText}
+                  onChangeText={(text) => {
+                    setThcaText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, thca: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="20.0"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>THCV %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={thcvText}
+                  onChangeText={(text) => {
+                    setThcvText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, thcv: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="1.2"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>CBD %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={cbdText}
+                  onChangeText={(text) => {
+                    setCbdText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, cbd: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="0.5"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>CBDA %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={cbdaText}
+                  onChangeText={(text) => {
+                    setCbdaText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, cbda: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="0.3"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputThird}>
+                <Text style={styles.inputLabel}>CBDV %</Text>
+                <TextInput
+                  style={styles.input}
+                  value={cbdvText}
+                  onChangeText={(text) => {
+                    setCbdvText(text);
+                    const parsed = text.trim() === '' ? undefined : parseFloat(text);
+                    setStrain({...strain, cbdv: isNaN(parsed!) ? undefined : parsed});
+                  }}
+                  placeholder="0.2"
+                  keyboardType="numeric"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Mood Tracking */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Mood</Text>
             <MoodSelector 
               value={mood.overall}
               onChange={(value) => setMood({overall: value})}
             />
-          </FormSection>
+          </View>
 
-          <FormSection title="Effects">
+          {/* Effects */}
+          <View style={styles.section}>
             <EffectSelector 
               effects={effects}
               onChange={setEffects}
             />
-          </FormSection>
+          </View>
 
-          <FormSection title="Notes">
-            <FormInput
+          {/* Notes */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Notes</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
               value={notes}
               onChangeText={setNotes}
               placeholder="How was your experience?"
+              placeholderTextColor={theme.colors.textTertiary}
               multiline
               numberOfLines={4}
-              style={styles.textArea}
             />
-          </FormSection>
+          </View>
 
-          <FormSection title="Overall Rating">
+          {/* Rating */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Overall Rating</Text>
             <View style={styles.ratingContainer}>
               <StarRating rating={rating} onChange={setRating} />
             </View>
-          </FormSection>
+          </View>
 
-          <ActionButton
-            title="Save Entry"
-            icon={Save}
+          {/* Save Button */}
+          <TouchableOpacity 
+            style={[
+              styles.saveButton,
+              (isSavingEntry || isSaving) && styles.saveButtonDisabled
+            ]}
             onPress={handleSave}
-            loading={isSavingEntry || isSaving}
-            style={styles.saveButton}
-          />
+            disabled={isSavingEntry || isSaving}
+          >
+            {(isSavingEntry || isSaving) ? (
+              <>
+                <ActivityIndicator size="small" color={theme.colors.background} />
+                <Text style={styles.saveButtonText}>Saving...</Text>
+              </>
+            ) : (
+              <>
+                <Save size={18} color={theme.colors.background} strokeWidth={1.5} />
+                <Text style={styles.saveButtonText}>Save Entry</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </Animated.View>

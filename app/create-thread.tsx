@@ -4,11 +4,14 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
+  Dimensions,
 } from 'react-native';
 import {
   X,
@@ -17,13 +20,14 @@ import {
   Send,
   Plus,
   Minus,
+  Trash2,
 } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
 import { router } from 'expo-router';
 import { useUser } from '@/hooks/use-user';
 import { useThreads } from '@/hooks/use-threads';
-import { FormSection, FormInput, ChipSelector, ImageSelector } from '@/components/shared';
 
 interface ThreadData {
   title: string;
@@ -90,7 +94,8 @@ export default function CreateThreadScreen() {
   const [customTag, setCustomTag] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-
+  const { width: screenWidth } = Dimensions.get('window');
+  const imageSize = (screenWidth - 60) / 3; // 3 images per row with padding
 
   const handleLocationToggle = async () => {
     if (!includeLocation) {
@@ -151,7 +156,124 @@ export default function CreateThreadScreen() {
     }
   };
 
+  const requestMediaLibraryPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant permission to access your photo library.');
+      return false;
+    }
+    return true;
+  };
 
+  const requestCameraPermissions = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant permission to access your camera.');
+      return false;
+    }
+    return true;
+  };
+
+  const pickImages = async () => {
+    console.log('Requesting media library permissions...');
+    const hasPermission = await requestMediaLibraryPermissions();
+    if (!hasPermission) {
+      console.log('Media library permission denied');
+      return;
+    }
+
+    console.log('Launching image library...');
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        selectionLimit: 10 - threadData.images.length, // Limit selection based on remaining slots
+      });
+
+      console.log('Image picker result:', result);
+
+      if (!result.canceled && result.assets) {
+        const newImages = result.assets.map(asset => asset.uri);
+        const totalImages = threadData.images.length + newImages.length;
+        
+        if (totalImages > 10) {
+          Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
+          return;
+        }
+        
+        console.log('Adding images:', newImages);
+        setThreadData(prev => ({
+          ...prev,
+          images: [...prev.images, ...newImages]
+        }));
+      }
+    } catch (error) {
+      console.error('Error picking images:', error);
+      Alert.alert('Error', 'Failed to pick images. Please try again.');
+    }
+  };
+
+  const takePhoto = async () => {
+    console.log('Requesting camera permissions...');
+    const hasPermission = await requestCameraPermissions();
+    if (!hasPermission) {
+      console.log('Camera permission denied');
+      return;
+    }
+
+    if (threadData.images.length >= 10) {
+      Alert.alert('Too many images', 'You can only add up to 10 images per thread.');
+      return;
+    }
+
+    console.log('Launching camera...');
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+
+      console.log('Camera result:', result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Adding photo from camera:', result.assets[0].uri);
+        setThreadData(prev => ({
+          ...prev,
+          images: [...prev.images, result.assets[0].uri]
+        }));
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setThreadData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const showImageOptions = () => {
+    if (threadData.images.length >= 10) {
+      Alert.alert('Maximum images reached', 'You can only add up to 10 images per thread.');
+      return;
+    }
+
+    Alert.alert(
+      'Add Images',
+      'Choose how you want to add images to your thread',
+      [
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Library', onPress: pickImages },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
 
   const handleSubmit = async () => {
     if (!threadData.title.trim() || !threadData.content.trim()) {
@@ -226,51 +348,154 @@ export default function CreateThreadScreen() {
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <FormSection title="Title">
-            <FormInput
+          {/* Title Input */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Title</Text>
+            <TextInput
+              style={[
+                styles.titleInput,
+                {
+                  color: theme.colors.text,
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                }
+              ]}
               placeholder="What's your thread about?"
+              placeholderTextColor={theme.colors.textTertiary}
               value={threadData.title}
               onChangeText={(text) => setThreadData(prev => ({ ...prev, title: text }))}
               maxLength={200}
               multiline
-              showCharCount
-              style={styles.titleInput}
             />
-          </FormSection>
+            <Text style={[styles.charCount, { color: theme.colors.textTertiary }]}>
+              {threadData.title.length}/200
+            </Text>
+          </View>
 
-          <FormSection title="Content">
-            <FormInput
+          {/* Content Input */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Content</Text>
+            <TextInput
+              style={[
+                styles.contentInput,
+                {
+                  color: theme.colors.text,
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                }
+              ]}
               placeholder="Share your thoughts, ask questions, or start a discussion..."
+              placeholderTextColor={theme.colors.textTertiary}
               value={threadData.content}
               onChangeText={(text) => setThreadData(prev => ({ ...prev, content: text }))}
               maxLength={5000}
               multiline
-              numberOfLines={6}
-              showCharCount
-              style={styles.contentInput}
+              textAlignVertical="top"
             />
-          </FormSection>
+            <Text style={[styles.charCount, { color: theme.colors.textTertiary }]}>
+              {threadData.content.length}/5000
+            </Text>
+          </View>
 
-          <FormSection title="Category">
-            <ChipSelector
-              options={categories}
-              selected={threadData.category}
-              onSelect={(category) => setThreadData(prev => ({ ...prev, category }))}
-              horizontal
-            />
-          </FormSection>
+          {/* Category Selection */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Category</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriesContainer}
+            >
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      backgroundColor: threadData.category === category 
+                        ? theme.colors.primary 
+                        : theme.colors.card,
+                      borderColor: threadData.category === category 
+                        ? theme.colors.primary 
+                        : theme.colors.border,
+                    }
+                  ]}
+                  onPress={() => setThreadData(prev => ({ ...prev, category }))}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      {
+                        color: threadData.category === category 
+                          ? theme.colors.background 
+                          : theme.colors.text,
+                      }
+                    ]}
+                  >
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
 
-          <FormSection title="Images" subtitle="Add up to 10 images to your thread">
-            <ImageSelector
-              images={threadData.images}
-              onImagesChange={(images) => setThreadData(prev => ({ ...prev, images }))}
-              maxImages={10}
-              title=""
-              subtitle=""
-            />
-          </FormSection>
+          {/* Images Section */}
+          <View style={styles.section}>
+            <View style={styles.imagesHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Images</Text>
+              <TouchableOpacity
+                style={[
+                  styles.addImageButton,
+                  {
+                    backgroundColor: theme.colors.primary + '15',
+                    borderColor: theme.colors.primary,
+                  }
+                ]}
+                onPress={showImageOptions}
+                disabled={threadData.images.length >= 10}
+              >
+                <Plus size={16} color={theme.colors.primary} />
+                <Text style={[styles.addImageText, { color: theme.colors.primary }]}>
+                  Add Images
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
+              Add up to 10 images to your thread
+            </Text>
+            
+            {threadData.images.length > 0 && (
+              <View style={styles.imagesGrid}>
+                {threadData.images.map((imageUri, index) => (
+                  <View key={index} style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.threadImage}
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      style={[styles.removeImageButton, { backgroundColor: theme.colors.error }]}
+                      onPress={() => removeImage(index)}
+                    >
+                      <Trash2 size={12} color={theme.colors.background} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+            
+            {threadData.images.length >= 10 && (
+              <Text style={[styles.imageLimit, { color: theme.colors.warning }]}>
+                Maximum 10 images allowed
+              </Text>
+            )}
+          </View>
 
-          <FormSection title="Tags" subtitle="Help others find your thread">
+          {/* Tags Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Tags</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Help others find your thread</Text>
+            
             {/* Selected Tags */}
             {threadData.tags.length > 0 && (
               <View style={styles.selectedTags}>
@@ -292,13 +517,21 @@ export default function CreateThreadScreen() {
 
             {/* Custom Tag Input */}
             <View style={styles.customTagContainer}>
-              <FormInput
+              <TextInput
+                style={[
+                  styles.customTagInput,
+                  {
+                    color: theme.colors.text,
+                    backgroundColor: theme.colors.card,
+                    borderColor: theme.colors.border,
+                  }
+                ]}
                 placeholder="Add custom tag..."
+                placeholderTextColor={theme.colors.textTertiary}
                 value={customTag}
                 onChangeText={setCustomTag}
                 onSubmitEditing={addCustomTag}
                 maxLength={20}
-                containerStyle={styles.customTagInputContainer}
               />
               <TouchableOpacity
                 style={[
@@ -343,10 +576,12 @@ export default function CreateThreadScreen() {
             {threadData.tags.length >= 10 && (
               <Text style={[styles.tagLimit, { color: theme.colors.warning }]}>Maximum 10 tags allowed</Text>
             )}
-          </FormSection>
+          </View>
 
-          <FormSection title="Location" subtitle="Help others find local discussions">
+          {/* Location Section */}
+          <View style={styles.section}>
             <View style={styles.locationHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Location</Text>
               <TouchableOpacity
                 style={[
                   styles.locationToggle,
@@ -388,7 +623,9 @@ export default function CreateThreadScreen() {
                 </View>
               </View>
             )}
-          </FormSection>
+            
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Help others find local discussions</Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -497,11 +734,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 16,
-    alignItems: 'flex-start',
   },
-  customTagInputContainer: {
+  customTagInput: {
     flex: 1,
-    marginBottom: 0,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
   },
   addTagButton: {
     width: 36,
