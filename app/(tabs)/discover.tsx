@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput, Modal, FlatList, Alert } from 'react-native';
-import { Heart, MessageCircle, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type, UserPlus, Search } from 'lucide-react-native';
+import { Heart, MessageCircle, MoreHorizontal, Users, TrendingUp, BookOpen, Clock, X, Send, Plus, Camera, Type, UserPlus, Search, MapPin } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 
@@ -24,7 +24,7 @@ interface Post {
     avatar: string;
     verified: boolean;
   };
-  strain: {
+  strain?: {
     name: string;
     type: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
   };
@@ -34,6 +34,8 @@ interface Post {
   comments: Comment[];
   timestamp: string;
   liked: boolean;
+  dispensary?: string;
+  location?: string;
 }
 
 
@@ -162,29 +164,8 @@ export default function CommunitiesScreen() {
   const [showComments, setShowComments] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostText, setNewPostText] = useState('');
-  const [newPostStrain, setNewPostStrain] = useState<{ 
-    name: string; 
-    type: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
-    thc: string;
-    thca: string;
-    thcv: string;
-    cbd: string;
-    cbda: string;
-    cbdg: string;
-    dispensary: string;
-    location: string;
-  }>({ 
-    name: '', 
-    type: 'Hybrid',
-    thc: '',
-    thca: '',
-    thcv: '',
-    cbd: '',
-    cbda: '',
-    cbdg: '',
-    dispensary: '',
-    location: ''
-  });
+  const [newPostLocation, setNewPostLocation] = useState<string>('');
+  const [newPostDispensary, setNewPostDispensary] = useState<string>('');
   const [newPostImage, setNewPostImage] = useState('');
   const [showAddFriend, setShowAddFriend] = useState(false);
   const [friendUsername, setFriendUsername] = useState('');
@@ -268,10 +249,7 @@ export default function CommunitiesScreen() {
       return;
     }
 
-    if (!newPostStrain.name.trim()) {
-      Alert.alert('Error', 'Please enter a strain name');
-      return;
-    }
+
 
     const newPost: Post = {
       id: Date.now().toString(),
@@ -280,32 +258,20 @@ export default function CommunitiesScreen() {
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
         verified: false,
       },
-      strain: {
-        name: newPostStrain.name.trim(),
-        type: newPostStrain.type,
-      },
       image: newPostImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
       caption: newPostText.trim(),
       likes: 0,
       comments: [],
       timestamp: 'now',
       liked: false,
+      dispensary: newPostDispensary.trim() || undefined,
+      location: newPostLocation.trim() || undefined,
     };
 
     setPosts(prevPosts => [newPost, ...prevPosts]);
     setNewPostText('');
-    setNewPostStrain({ 
-      name: '', 
-      type: 'Hybrid',
-      thc: '',
-      thca: '',
-      thcv: '',
-      cbd: '',
-      cbda: '',
-      cbdg: '',
-      dispensary: '',
-      location: ''
-    });
+    setNewPostLocation('');
+    setNewPostDispensary('');
     setNewPostImage('');
     setShowCreatePost(false);
   };
@@ -452,15 +418,27 @@ export default function CommunitiesScreen() {
                         </View>
                       )}
                     </View>
-                    <View style={styles.strainInfo}>
-                      <View style={[
-                        styles.strainTypeBadge,
-                        { backgroundColor: getStrainTypeColor(post.strain.type) }
-                      ]}>
-                        <Text style={styles.strainTypeText}>{post.strain.type}</Text>
+                    {post.strain && (
+                      <View style={styles.strainInfo}>
+                        <View style={[
+                          styles.strainTypeBadge,
+                          { backgroundColor: getStrainTypeColor(post.strain.type) }
+                        ]}>
+                          <Text style={styles.strainTypeText}>{post.strain.type}</Text>
+                        </View>
+                        <Text style={styles.strainName}>{post.strain.name}</Text>
                       </View>
-                      <Text style={styles.strainName}>{post.strain.name}</Text>
-                    </View>
+                    )}
+                    {(post.dispensary || post.location) && (
+                      <View style={styles.postMetaInfo}>
+                        {post.dispensary && (
+                          <Text style={styles.postMetaText}>📍 {post.dispensary}</Text>
+                        )}
+                        {post.location && (
+                          <Text style={styles.postMetaText}>🌍 {post.location}</Text>
+                        )}
+                      </View>
+                    )}
                   </View>
                 </View>
                 <View style={styles.postMeta}>
@@ -695,10 +673,10 @@ export default function CommunitiesScreen() {
             <TouchableOpacity 
               style={[
                 styles.postButton,
-                { opacity: newPostText.trim() && newPostStrain.name.trim() ? 1 : 0.5 }
+                { opacity: newPostText.trim() ? 1 : 0.5 }
               ]}
               onPress={handleCreatePost}
-              disabled={!newPostText.trim() || !newPostStrain.name.trim()}
+              disabled={!newPostText.trim()}
             >
               <Text style={styles.postButtonText}>Post</Text>
             </TouchableOpacity>
@@ -735,143 +713,24 @@ export default function CommunitiesScreen() {
               </View>
             </View>
 
+            {/* Location & Dispensary Card */}
             <View style={styles.createPostCard}>
               <View style={styles.cardHeader}>
                 <View style={styles.cardHeaderIcon}>
-                  <Type size={18} color={theme.colors.primary} strokeWidth={1.5} />
+                  <MapPin size={18} color={theme.colors.primary} strokeWidth={1.5} />
                 </View>
-                <Text style={styles.cardTitle}>Strain Details</Text>
+                <Text style={styles.cardTitle}>Location & Dispensary</Text>
               </View>
               
               <View style={styles.strainInputSection}>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Strain Name</Text>
-                  <TextInput
-                    style={styles.strainNameInput}
-                    placeholder="Enter strain name"
-                    placeholderTextColor={theme.colors.textSecondary}
-                    value={newPostStrain.name}
-                    onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, name: text }))}
-                    maxLength={50}
-                  />
-                </View>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Strain Type</Text>
-                  <View style={styles.strainTypeGrid}>
-                    {(['Indica', 'Sativa', 'Hybrid', 'CBD'] as const).map((type) => (
-                      <TouchableOpacity
-                        key={type}
-                        style={[
-                          styles.strainTypeChip,
-                          newPostStrain.type === type && [
-                            styles.strainTypeChipSelected,
-                            { backgroundColor: getStrainTypeColor(type) }
-                          ]
-                        ]}
-                        onPress={() => setNewPostStrain(prev => ({ ...prev, type }))}
-                      >
-                        <Text style={[
-                          styles.strainTypeChipText,
-                          { color: newPostStrain.type === type ? '#FFFFFF' : theme.colors.text }
-                        ]}>
-                          {type}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Cannabinoids (%)</Text>
-                  <View style={styles.cannabinoidGrid}>
-                    <View style={styles.cannabinoidRow}>
-                      <View style={styles.cannabinoidInput}>
-                        <Text style={styles.cannabinoidLabel}>THC</Text>
-                        <TextInput
-                          style={styles.cannabinoidField}
-                          placeholder="0.0"
-                          placeholderTextColor={theme.colors.textSecondary}
-                          value={newPostStrain.thc}
-                          onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, thc: text }))}
-                          keyboardType="decimal-pad"
-                          maxLength={5}
-                        />
-                      </View>
-                      <View style={styles.cannabinoidInput}>
-                        <Text style={styles.cannabinoidLabel}>THCA</Text>
-                        <TextInput
-                          style={styles.cannabinoidField}
-                          placeholder="0.0"
-                          placeholderTextColor={theme.colors.textSecondary}
-                          value={newPostStrain.thca}
-                          onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, thca: text }))}
-                          keyboardType="decimal-pad"
-                          maxLength={5}
-                        />
-                      </View>
-                      <View style={styles.cannabinoidInput}>
-                        <Text style={styles.cannabinoidLabel}>THCV</Text>
-                        <TextInput
-                          style={styles.cannabinoidField}
-                          placeholder="0.0"
-                          placeholderTextColor={theme.colors.textSecondary}
-                          value={newPostStrain.thcv}
-                          onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, thcv: text }))}
-                          keyboardType="decimal-pad"
-                          maxLength={5}
-                        />
-                      </View>
-                    </View>
-                    <View style={styles.cannabinoidRow}>
-                      <View style={styles.cannabinoidInput}>
-                        <Text style={styles.cannabinoidLabel}>CBD</Text>
-                        <TextInput
-                          style={styles.cannabinoidField}
-                          placeholder="0.0"
-                          placeholderTextColor={theme.colors.textSecondary}
-                          value={newPostStrain.cbd}
-                          onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, cbd: text }))}
-                          keyboardType="decimal-pad"
-                          maxLength={5}
-                        />
-                      </View>
-                      <View style={styles.cannabinoidInput}>
-                        <Text style={styles.cannabinoidLabel}>CBDA</Text>
-                        <TextInput
-                          style={styles.cannabinoidField}
-                          placeholder="0.0"
-                          placeholderTextColor={theme.colors.textSecondary}
-                          value={newPostStrain.cbda}
-                          onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, cbda: text }))}
-                          keyboardType="decimal-pad"
-                          maxLength={5}
-                        />
-                      </View>
-                      <View style={styles.cannabinoidInput}>
-                        <Text style={styles.cannabinoidLabel}>CBDG</Text>
-                        <TextInput
-                          style={styles.cannabinoidField}
-                          placeholder="0.0"
-                          placeholderTextColor={theme.colors.textSecondary}
-                          value={newPostStrain.cbdg}
-                          onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, cbdg: text }))}
-                          keyboardType="decimal-pad"
-                          maxLength={5}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Dispensary</Text>
                   <TextInput
                     style={styles.strainNameInput}
-                    placeholder="Enter dispensary name"
+                    placeholder="Enter dispensary name (optional)"
                     placeholderTextColor={theme.colors.textSecondary}
-                    value={newPostStrain.dispensary}
-                    onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, dispensary: text }))}
+                    value={newPostDispensary}
+                    onChangeText={setNewPostDispensary}
                     maxLength={100}
                   />
                 </View>
@@ -880,10 +739,10 @@ export default function CommunitiesScreen() {
                   <Text style={styles.inputLabel}>Location</Text>
                   <TextInput
                     style={styles.strainNameInput}
-                    placeholder="Enter location"
+                    placeholder="Enter location (optional)"
                     placeholderTextColor={theme.colors.textSecondary}
-                    value={newPostStrain.location}
-                    onChangeText={(text) => setNewPostStrain(prev => ({ ...prev, location: text }))}
+                    value={newPostLocation}
+                    onChangeText={setNewPostLocation}
                     maxLength={100}
                   />
                 </View>
@@ -2095,5 +1954,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
     lineHeight: theme.lineHeight.relaxed * theme.fontSize.sm,
     maxWidth: 280,
+  },
+  postMetaInfo: {
+    marginTop: theme.spacing.xs,
+    gap: theme.spacing.xs,
+  },
+  postMetaText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
   },
 });
