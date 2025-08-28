@@ -60,7 +60,7 @@ export default function NewEntryScreen() {
           cbda: undefined,
           cbdv: undefined,
           brand: '',
-          dispensary
+          dispensary: dispensary
         },
         amount: 0,
         method: 'Flower',
