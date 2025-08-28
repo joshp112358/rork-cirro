@@ -1,20 +1,106 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
-import { Plus, TrendingUp, Calendar, Settings, Bot } from 'lucide-react-native';
+import { Plus, TrendingUp, Calendar, Settings, Bot, Users } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries, useRecentEntries } from '@/hooks/use-entries';
 import { EntryCard } from '@/components/EntryCard';
+import { CommunityPostCard } from '@/components/CommunityPostCard';
 
 
 
 
 
+
+interface Comment {
+  id: string;
+  user: {
+    name: string;
+    avatar: string;
+  };
+  text: string;
+  timestamp: string;
+  likes: number;
+  liked: boolean;
+}
+
+interface Post {
+  id: string;
+  user: {
+    name: string;
+    avatar: string;
+    verified: boolean;
+  };
+  strain?: {
+    name: string;
+    type: 'Indica' | 'Sativa' | 'Hybrid' | 'CBD';
+  };
+  image: string;
+  caption: string;
+  likes: number;
+  comments: Comment[];
+  timestamp: string;
+  liked: boolean;
+  dispensary?: string;
+  location?: string;
+}
+
+const mockCommunityPosts: Post[] = [
+  {
+    id: '1',
+    user: {
+      name: 'Sarah M.',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+      verified: true,
+    },
+    strain: {
+      name: 'Purple Haze',
+      type: 'Sativa',
+    },
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
+    caption: 'Perfect for a creative afternoon session. The colors are incredible!',
+    likes: 127,
+    comments: [
+      {
+        id: '1',
+        user: {
+          name: 'Alex R.',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        },
+        text: 'Totally agree! Purple Haze is amazing for creativity.',
+        timestamp: '1h',
+        likes: 5,
+        liked: false,
+      },
+    ],
+    timestamp: '2h',
+    liked: false,
+  },
+  {
+    id: '2',
+    user: {
+      name: 'Mike Chen',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      verified: false,
+    },
+    strain: {
+      name: 'Northern Lights',
+      type: 'Indica',
+    },
+    image: 'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=400&h=400&fit=crop',
+    caption: 'Best sleep strain I\'ve tried. Knocked me out in the best way possible',
+    likes: 89,
+    comments: [],
+    timestamp: '4h',
+    liked: true,
+  },
+];
 
 export default function HomeScreen() {
   const { theme } = useTheme();
   const { analytics } = useEntries();
   const recentEntries = useRecentEntries(3);
+  const [communityPosts, setCommunityPosts] = useState<Post[]>(mockCommunityPosts);
 
 
   const today = new Date().toLocaleDateString('en-US', { 
@@ -22,6 +108,66 @@ export default function HomeScreen() {
     month: 'long', 
     day: 'numeric' 
   });
+
+  const handleLike = (postId: string) => {
+    setCommunityPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? {
+              ...post,
+              liked: !post.liked,
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
+            }
+          : post
+      )
+    );
+  };
+
+  const handleComment = (postId: string, commentText: string) => {
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      user: {
+        name: 'You',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+      },
+      text: commentText,
+      timestamp: 'now',
+      likes: 0,
+      liked: false,
+    };
+
+    setCommunityPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: [...post.comments, newComment],
+            }
+          : post
+      )
+    );
+  };
+
+  const handleCommentLike = (postId: string, commentId: string) => {
+    setCommunityPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? {
+              ...post,
+              comments: post.comments.map(comment =>
+                comment.id === commentId
+                  ? {
+                      ...comment,
+                      liked: !comment.liked,
+                      likes: comment.liked ? comment.likes - 1 : comment.likes + 1,
+                    }
+                  : comment
+              ),
+            }
+          : post
+      )
+    );
+  };
 
 
 
@@ -90,6 +236,27 @@ export default function HomeScreen() {
               <Text style={styles.statValue}>{analytics.avgRating.toFixed(1)}</Text>
               <Text style={styles.statLabel}>Avg Rating</Text>
             </View>
+          </View>
+        )}
+
+        {communityPosts.length > 0 && (
+          <View style={styles.communitySection}>
+            <View style={styles.sectionHeader}>
+              <Users size={20} color={theme.colors.text} strokeWidth={1.5} />
+              <Text style={styles.sectionTitle}>Community Posts</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/discover')}>
+                <Text style={styles.seeAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
+            {communityPosts.slice(0, 2).map(post => (
+              <CommunityPostCard 
+                key={post.id} 
+                post={post} 
+                onLike={handleLike}
+                onComment={handleComment}
+                onCommentLike={handleCommentLike}
+              />
+            ))}
           </View>
         )}
 
@@ -229,6 +396,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  communitySection: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingBottom: theme.spacing.xxl,
+  },
   recentSection: {
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing.xxl,
@@ -238,6 +409,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
+    gap: theme.spacing.sm,
   },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
