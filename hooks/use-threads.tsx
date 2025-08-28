@@ -28,7 +28,6 @@ interface ForumPost {
   isDownvoted?: boolean;
   isBookmarked?: boolean;
   image?: string;
-  images?: string[];
   awards?: number;
   tags: string[];
   location?: {
@@ -90,7 +89,6 @@ const initialMockPosts: ForumPost[] = [
     ],
     category: 'Dispensaries',
     image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
-    images: ['https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000'],
     tags: ['dispensary', 'downtown', 'review', 'local'],
   },
   {
@@ -134,7 +132,6 @@ const initialMockPosts: ForumPost[] = [
     comments: [],
     category: 'General',
     image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
-    images: ['https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000'],
     tags: ['vape', 'flower', 'comparison', 'vaporizer'],
   },
   {
