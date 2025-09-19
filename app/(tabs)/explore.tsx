@@ -32,6 +32,7 @@ import {
   X,
   MapPin,
   Hash,
+  Users2,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
@@ -64,8 +65,100 @@ interface ForumPost {
   isBookmarked?: boolean;
   image?: string;
   awards?: number;
-  tags: string[];
+  communities: string[];
 }
+
+interface Community {
+  id: string;
+  name: string;
+  description: string;
+  memberCount: number;
+  icon: string;
+  color: string;
+}
+
+const communities: Community[] = [
+  {
+    id: 'beginners',
+    name: 'Beginners',
+    description: 'New to cannabis? Start here!',
+    memberCount: 12500,
+    icon: '🌱',
+    color: '#10B981'
+  },
+  {
+    id: 'veterans',
+    name: 'Veterans',
+    description: 'Experienced users sharing knowledge',
+    memberCount: 8900,
+    icon: '🏆',
+    color: '#F59E0B'
+  },
+  {
+    id: 'seniors',
+    name: 'Seniors',
+    description: 'Cannabis community for seniors',
+    memberCount: 3200,
+    icon: '👴',
+    color: '#8B5CF6'
+  },
+  {
+    id: 'entrepreneurs',
+    name: 'Entrepreneurs',
+    description: 'Cannabis business and industry',
+    memberCount: 5600,
+    icon: '💼',
+    color: '#EF4444'
+  },
+  {
+    id: 'medical',
+    name: 'Medical',
+    description: 'Medical cannabis discussions',
+    memberCount: 15800,
+    icon: '🏥',
+    color: '#06B6D4'
+  },
+  {
+    id: 'growers',
+    name: 'Growers',
+    description: 'Growing tips and techniques',
+    memberCount: 7300,
+    icon: '🌿',
+    color: '#84CC16'
+  },
+  {
+    id: 'edibles',
+    name: 'Edibles',
+    description: 'Cooking and baking with cannabis',
+    memberCount: 9100,
+    icon: '🍪',
+    color: '#F97316'
+  },
+  {
+    id: 'local',
+    name: 'Local',
+    description: 'Local dispensaries and events',
+    memberCount: 4500,
+    icon: '📍',
+    color: '#EC4899'
+  },
+  {
+    id: 'reviews',
+    name: 'Reviews',
+    description: 'Product and strain reviews',
+    memberCount: 11200,
+    icon: '⭐',
+    color: '#6366F1'
+  },
+  {
+    id: 'general',
+    name: 'General',
+    description: 'General cannabis discussions',
+    memberCount: 18700,
+    icon: '💬',
+    color: '#64748B'
+  }
+];
 
 const initialMockPosts: ForumPost[] = [
   {
@@ -97,7 +190,7 @@ const initialMockPosts: ForumPost[] = [
     category: 'Medical',
     isPinned: true,
     awards: 2,
-    tags: ['anxiety', 'medical', 'strains', 'cbd'],
+    communities: ['medical', 'beginners'],
   },
   {
     id: '2',
@@ -119,7 +212,7 @@ const initialMockPosts: ForumPost[] = [
     ],
     category: 'Dispensaries',
     image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
-    tags: ['dispensary', 'downtown', 'review', 'local'],
+    communities: ['local', 'reviews'],
   },
   {
     id: '3',
@@ -149,7 +242,7 @@ const initialMockPosts: ForumPost[] = [
     ],
     category: 'Edibles',
     awards: 1,
-    tags: ['edibles', 'dosage', 'homemade', 'brownies', 'beginner'],
+    communities: ['beginners', 'edibles'],
   },
   {
     id: '4',
@@ -162,7 +255,7 @@ const initialMockPosts: ForumPost[] = [
     comments: [],
     category: 'General',
     image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
-    tags: ['vape', 'flower', 'comparison', 'vaporizer'],
+    communities: ['general', 'veterans'],
   },
   {
     id: '5',
@@ -175,7 +268,7 @@ const initialMockPosts: ForumPost[] = [
     comments: [],
     category: 'Growing',
     awards: 3,
-    tags: ['growing', 'beginner', 'setup', 'tips'],
+    communities: ['beginners', 'growers'],
   },
 ];
 
@@ -236,16 +329,18 @@ export default function ExploreScreen() {
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCommunities, setSelectedCommunities] = useState<string[]>([]);
 
-  // Get all unique tags from posts
-  const allTags = Array.from(new Set(posts.flatMap(post => post.tags))).sort();
+  // Get popular communities based on posts
+  const popularCommunities = communities
+    .filter(community => posts.some(post => post.communities.includes(community.id)))
+    .sort((a, b) => b.memberCount - a.memberCount);
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => post.tags.includes(tag));
-    return matchesSearch && matchesTags;
+    const matchesCommunities = selectedCommunities.length === 0 || selectedCommunities.some(communityId => post.communities.includes(communityId));
+    return matchesSearch && matchesCommunities;
   });
 
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -356,24 +451,28 @@ export default function ExploreScreen() {
             {post.content}
           </Text>
           
-          {/* Post Tags */}
-          {post.tags.length > 0 && (
-            <View style={styles.postTags}>
-              {post.tags.slice(0, 4).map(tag => (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.postTag, { backgroundColor: theme.colors.backgroundSecondary }]}
-                  onPress={() => toggleTag(tag)}
-                >
-                  <Hash size={10} color={theme.colors.textTertiary} />
-                  <Text style={[styles.postTagText, { color: theme.colors.textSecondary }]}>
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {post.tags.length > 4 && (
-                <Text style={[styles.moreTags, { color: theme.colors.textTertiary }]}>
-                  +{post.tags.length - 4}
+          {/* Post Communities */}
+          {post.communities.length > 0 && (
+            <View style={styles.postCommunities}>
+              {post.communities.slice(0, 3).map(communityId => {
+                const community = communities.find(c => c.id === communityId);
+                if (!community) return null;
+                return (
+                  <TouchableOpacity
+                    key={communityId}
+                    style={[styles.postCommunity, { backgroundColor: community.color + '15', borderColor: community.color + '30' }]}
+                    onPress={() => toggleCommunity(communityId)}
+                  >
+                    <Text style={styles.communityIcon}>{community.icon}</Text>
+                    <Text style={[styles.postCommunityText, { color: community.color }]}>
+                      {community.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+              {post.communities.length > 3 && (
+                <Text style={[styles.moreCommunities, { color: theme.colors.textTertiary }]}>
+                  +{post.communities.length - 3}
                 </Text>
               )}
             </View>
@@ -430,42 +529,51 @@ export default function ExploreScreen() {
     </TouchableOpacity>
   );
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
+  const toggleCommunity = (communityId: string) => {
+    setSelectedCommunities(prev => 
+      prev.includes(communityId) 
+        ? prev.filter(c => c !== communityId)
+        : [...prev, communityId]
     );
   };
 
-  const renderTag = (tag: string) => {
-    const isSelected = selectedTags.includes(tag);
+  const renderCommunity = (community: Community) => {
+    const isSelected = selectedCommunities.includes(community.id);
     return (
       <TouchableOpacity
-        key={tag}
+        key={community.id}
         style={[
-          styles.tagChip,
+          styles.communityChip,
           {
-            backgroundColor: isSelected ? theme.colors.primary : theme.colors.card,
-            borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+            backgroundColor: isSelected ? community.color : theme.colors.card,
+            borderColor: isSelected ? community.color : theme.colors.border,
           }
         ]}
-        onPress={() => toggleTag(tag)}
+        onPress={() => toggleCommunity(community.id)}
       >
-        <Hash 
-          size={12} 
-          color={isSelected ? theme.colors.background : theme.colors.textTertiary} 
-        />
-        <Text
-          style={[
-            styles.tagText,
-            {
-              color: isSelected ? theme.colors.background : theme.colors.textTertiary,
-            }
-          ]}
-        >
-          {tag}
-        </Text>
+        <Text style={styles.communityChipIcon}>{community.icon}</Text>
+        <View style={styles.communityChipContent}>
+          <Text
+            style={[
+              styles.communityChipName,
+              {
+                color: isSelected ? theme.colors.background : theme.colors.text,
+              }
+            ]}
+          >
+            {community.name}
+          </Text>
+          <Text
+            style={[
+              styles.communityChipMembers,
+              {
+                color: isSelected ? theme.colors.background + '80' : theme.colors.textTertiary,
+              }
+            ]}
+          >
+            {community.memberCount.toLocaleString()} members
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -498,18 +606,21 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-      {/* Tags Section */}
-      <View style={styles.tagsSection}>
-        <View style={styles.tagsSectionHeader}>
-          <Text style={[styles.tagsTitle, { color: theme.colors.text }]}>Popular Tags</Text>
-          {selectedTags.length > 0 && (
+      {/* Communities Section */}
+      <View style={styles.communitiesSection}>
+        <View style={styles.communitiesSectionHeader}>
+          <View>
+            <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
+            <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join the conversation</Text>
+          </View>
+          {selectedCommunities.length > 0 && (
             <TouchableOpacity 
-              style={[styles.clearTagsButton, { backgroundColor: theme.colors.error + '15' }]}
-              onPress={() => setSelectedTags([])}
+              style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
+              onPress={() => setSelectedCommunities([])}
             >
               <X size={12} color={theme.colors.error} />
-              <Text style={[styles.clearTagsText, { color: theme.colors.error }]}>
-                Clear ({selectedTags.length})
+              <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
+                Clear ({selectedCommunities.length})
               </Text>
             </TouchableOpacity>
           )}
@@ -517,9 +628,9 @@ export default function ExploreScreen() {
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tagsContainer}
+          contentContainerStyle={styles.communitiesContainer}
         >
-          {allTags.map(renderTag)}
+          {popularCommunities.map(renderCommunity)}
         </ScrollView>
       </View>
 
@@ -1062,65 +1173,95 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Tags styles
-  tagsSection: {
+  // Communities styles
+  communitiesSection: {
     paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  communitiesSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
-  tagsContainer: {
-    paddingRight: 20,
-    gap: 8,
+  communitiesTitle: {
+    fontSize: 18,
+    fontWeight: '700',
   },
-  tagChip: {
+  communitiesSubtitle: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginTop: 2,
+  },
+  communitiesContainer: {
+    paddingRight: 20,
+    gap: 12,
+  },
+  communityChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    gap: 12,
+    minWidth: 140,
   },
-  tagText: {
-    fontSize: 12,
+  communityChipIcon: {
+    fontSize: 20,
+  },
+  communityChipContent: {
+    flex: 1,
+  },
+  communityChipName: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  communityChipMembers: {
+    fontSize: 11,
     fontWeight: '500',
   },
-  clearTagsButton: {
+  clearCommunitiesButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    marginTop: 8,
     gap: 4,
   },
-  clearTagsText: {
+  clearCommunitiesText: {
     fontSize: 12,
     fontWeight: '500',
   },
-  // Post tags styles
-  postTags: {
+  // Post communities styles
+  postCommunities: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 12,
   },
-  postTag: {
+  postCommunity: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 6,
   },
-  postTagText: {
-    fontSize: 10,
-    fontWeight: '500',
+  communityIcon: {
+    fontSize: 12,
   },
-  moreTags: {
-    fontSize: 10,
+  postCommunityText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  moreCommunities: {
+    fontSize: 11,
     fontStyle: 'italic',
+    fontWeight: '500',
   },
   // New styles for improved UI
   headerSubtitle: {
@@ -1150,16 +1291,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  tagsSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  tagsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+
   sortScrollContainer: {
     paddingHorizontal: 20,
     gap: 12,
