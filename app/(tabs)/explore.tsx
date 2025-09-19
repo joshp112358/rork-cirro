@@ -593,48 +593,47 @@ export default function ExploreScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: theme.colors.backgroundSecondary, borderColor: theme.colors.border }, theme.shadow.small]}>
-          <Search size={18} color={theme.colors.textTertiary} />
-          <TextInput
-            style={[styles.searchInput, { color: theme.colors.text }]}
-            placeholder="Search discussions, tags, users..."
-            placeholderTextColor={theme.colors.textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
-      {/* Communities Section */}
-      <View style={styles.communitiesSection}>
-        <View style={styles.communitiesSectionHeader}>
-          <View>
-            <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
-            <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join the conversation</Text>
-          </View>
-          {selectedCommunities.length > 0 && (
-            <TouchableOpacity 
-              style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
-              onPress={() => setSelectedCommunities([])}
-            >
-              <X size={12} color={theme.colors.error} />
-              <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
-                Clear ({selectedCommunities.length})
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.communitiesContainer}
-        >
-          {popularCommunities.map(renderCommunity)}
-        </ScrollView>
-      </View>
-
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchBar, { backgroundColor: theme.colors.backgroundSecondary, borderColor: theme.colors.border }, theme.shadow.small]}>
+            <Search size={18} color={theme.colors.textTertiary} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.colors.text }]}
+              placeholder="Search discussions, tags, users..."
+              placeholderTextColor={theme.colors.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+
+        {/* Communities Section */}
+        <View style={styles.communitiesSection}>
+          <View style={styles.communitiesSectionHeader}>
+            <View>
+              <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
+              <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join the conversation</Text>
+            </View>
+            {selectedCommunities.length > 0 && (
+              <TouchableOpacity 
+                style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
+                onPress={() => setSelectedCommunities([])}
+              >
+                <X size={12} color={theme.colors.error} />
+                <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
+                  Clear ({selectedCommunities.length})
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.communitiesContainer}
+          >
+            {popularCommunities.map(renderCommunity)}
+          </ScrollView>
+        </View>
 
 
         <View style={styles.sortContainer}>
