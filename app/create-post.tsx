@@ -10,11 +10,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import {
   X,
   Send,
+  Camera,
+  Trash2,
 } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks/use-theme';
 import { router } from 'expo-router';
 
@@ -26,6 +30,7 @@ interface Community {
 }
 
 const communities: Community[] = [
+  { id: 'general', name: 'General', color: '#6B7280', description: 'General discussions' },
   { id: 'beginners', name: 'Beginners', color: '#10B981', description: 'New to cannabis? Start here!' },
   { id: 'veterans', name: 'Veterans', color: '#DC2626', description: 'For military veterans' },
   { id: 'seniors', name: 'Seniors', color: '#8B5CF6', description: 'Cannabis for older adults' },
@@ -33,7 +38,6 @@ const communities: Community[] = [
   { id: 'gamers', name: 'Gamers', color: '#2563EB', description: 'Gaming and cannabis community' },
   { id: 'students', name: 'Students', color: '#059669', description: 'College and university students' },
   { id: 'medical', name: 'Medical', color: '#7C3AED', description: 'Medical cannabis patients' },
-  { id: 'general', name: 'General', color: '#6B7280', description: 'General discussions' },
 ];
 
 export default function CreatePostScreen() {
@@ -41,6 +45,7 @@ export default function CreatePostScreen() {
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [selectedCommunity, setSelectedCommunity] = useState<string>('general');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handleSubmit = async () => {
@@ -60,6 +65,7 @@ export default function CreatePostScreen() {
         title: title.trim(),
         content: content.trim(),
         community: selectedCommunity,
+        photos: photos,
         timestamp: new Date().toISOString(),
       };
       
@@ -77,7 +83,58 @@ export default function CreatePostScreen() {
     }
   };
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to add photos.');
+      return;
+    }
 
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPhotos(prev => [...prev, result.assets[0].uri]);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Sorry, we need camera permissions to take photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPhotos(prev => [...prev, result.assets[0].uri]);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const showPhotoOptions = () => {
+    Alert.alert(
+      'Add Photo',
+      'Choose how you want to add a photo',
+      [
+        { text: 'Camera', onPress: takePhoto },
+        { text: 'Photo Library', onPress: pickImage },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -181,6 +238,50 @@ export default function CreatePostScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </ScrollView>
+          </View>
+
+          {/* Photos Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Photos</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
+              Add up to 4 photos to your post
+            </Text>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.photosContainer}
+            >
+              {photos.map((photo, index) => (
+                <View key={index} style={styles.photoContainer}>
+                  <Image source={{ uri: photo }} style={styles.photo} />
+                  <TouchableOpacity
+                    style={[styles.removePhotoButton, { backgroundColor: theme.colors.background }]}
+                    onPress={() => removePhoto(index)}
+                  >
+                    <Trash2 size={16} color={theme.colors.text} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              
+              {photos.length < 4 && (
+                <TouchableOpacity
+                  style={[
+                    styles.addPhotoButton,
+                    {
+                      backgroundColor: theme.colors.card,
+                      borderColor: theme.colors.border,
+                    }
+                  ]}
+                  onPress={showPhotoOptions}
+                >
+                  <Camera size={24} color={theme.colors.textTertiary} />
+                  <Text style={[styles.addPhotoText, { color: theme.colors.textTertiary }]}>
+                    Add Photo
+                  </Text>
+                </TouchableOpacity>
+              )}
             </ScrollView>
           </View>
 
@@ -329,5 +430,47 @@ const styles = StyleSheet.create({
   guidelinesText: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  photosContainer: {
+    paddingRight: 20,
+    gap: 12,
+  },
+  photoContainer: {
+    position: 'relative',
+  },
+  photo: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addPhotoButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  addPhotoText: {
+    fontSize: 10,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
