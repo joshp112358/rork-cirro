@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { EntriesProvider } from "@/hooks/use-entries";
 import { ThemeProvider, useTheme } from "@/hooks/use-theme";
 import { UserProvider } from "@/hooks/use-user";
-import { ThreadsProvider } from "@/hooks/use-threads";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -57,14 +56,6 @@ function RootLayoutNav() {
             headerTintColor: theme.colors.text,
           }} 
         />
-        <Stack.Screen 
-          name="create-thread" 
-          options={{ 
-            title: "Create Thread",
-            presentation: "modal",
-            headerShown: false,
-          }} 
-        />
       </Stack>
     </>
   );
@@ -81,9 +72,7 @@ export default function RootLayout() {
         <UserProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <EntriesProvider>
-              <ThreadsProvider>
-                <RootLayoutNav />
-              </ThreadsProvider>
+              <RootLayoutNav />
             </EntriesProvider>
           </GestureHandlerRootView>
         </UserProvider>
