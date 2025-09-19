@@ -13,6 +13,7 @@ interface UserProfile {
     notifications: {
       sessionReminders: boolean;
       weeklyInsights: boolean;
+      communityUpdates: boolean;
       newFeatures: boolean;
     };
     theme: 'light' | 'dark' | 'system';
@@ -30,6 +31,7 @@ const defaultProfile: UserProfile = {
     notifications: {
       sessionReminders: true,
       weeklyInsights: false,
+      communityUpdates: true,
       newFeatures: true,
     },
     theme: 'system',
