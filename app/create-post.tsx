@@ -14,9 +14,9 @@ import {
 } from 'react-native';
 import {
   X,
-  Send,
   Camera,
   Trash2,
+  ChevronDown,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/hooks/use-theme';
@@ -76,7 +76,7 @@ export default function CreatePostScreen() {
         'Your post has been published successfully.',
         [{ text: 'OK', onPress: () => router.back() }]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to create post. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -136,6 +136,8 @@ export default function CreatePostScreen() {
     );
   };
 
+  const selectedCommunityData = communities.find(c => c.id === selectedCommunity);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <KeyboardAvoidingView 
@@ -144,182 +146,139 @@ export default function CreatePostScreen() {
       >
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
             <X size={24} color={theme.colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Create Post</Text>
           <TouchableOpacity 
             style={[
-              styles.submitButton,
+              styles.postButton,
               { 
-                backgroundColor: (title.trim() && content.trim()) ? theme.colors.primary : theme.colors.textTertiary + '30'
+                backgroundColor: (title.trim() && content.trim()) ? theme.colors.primary : theme.colors.textTertiary + '40',
+                opacity: isSubmitting ? 0.6 : 1
               }
             ]}
             onPress={handleSubmit}
             disabled={!title.trim() || !content.trim() || isSubmitting}
           >
-            <Send 
-              size={18} 
-              color={(title.trim() && content.trim()) ? theme.colors.background : theme.colors.textTertiary} 
-            />
+            <Text style={[
+              styles.postButtonText,
+              { color: (title.trim() && content.trim()) ? theme.colors.background : theme.colors.textTertiary }
+            ]}>
+              {isSubmitting ? 'Posting...' : 'Post'}
+            </Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Title Input */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Title</Text>
-            <TextInput
-              style={[
-                styles.titleInput,
-                {
-                  color: theme.colors.text,
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                }
-              ]}
-              placeholder="What's on your mind?"
-              placeholderTextColor={theme.colors.textTertiary}
-              value={title}
-              onChangeText={setTitle}
-              maxLength={200}
-              multiline
-            />
-            <Text style={[styles.characterCount, { color: theme.colors.textTertiary }]}>
-              {title.length}/200
-            </Text>
-          </View>
+          <TextInput
+            style={[
+              styles.titleInput,
+              {
+                color: theme.colors.text,
+                backgroundColor: theme.colors.background,
+              }
+            ]}
+            placeholder="What's on your mind?"
+            placeholderTextColor={theme.colors.textTertiary}
+            value={title}
+            onChangeText={setTitle}
+            maxLength={200}
+            multiline
+          />
 
           {/* Community Selection */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Community</Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
-              Choose the community that best fits your post
+          <TouchableOpacity 
+            style={[
+              styles.communitySelector,
+              {
+                backgroundColor: selectedCommunityData?.color || theme.colors.primary,
+              }
+            ]}
+            onPress={() => {
+              Alert.alert(
+                'Select Community',
+                'Choose the community for your post',
+                communities.map(community => ({
+                  text: community.name,
+                  onPress: () => setSelectedCommunity(community.id)
+                }))
+              );
+            }}
+          >
+            <Text style={[styles.communityName, { color: theme.colors.background }]}>
+              {selectedCommunityData?.name || 'General'}
             </Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.communitiesContainer}
-            >
-              {communities.map((community) => {
-                const isSelected = selectedCommunity === community.id;
-                return (
-                  <TouchableOpacity
-                    key={community.id}
-                    style={[
-                      styles.communityChip,
-                      {
-                        backgroundColor: isSelected ? community.color : theme.colors.card,
-                        borderColor: isSelected ? community.color : theme.colors.border,
-                      }
-                    ]}
-                    onPress={() => setSelectedCommunity(community.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.communityText,
-                        {
-                          color: isSelected ? theme.colors.background : theme.colors.text,
-                        }
-                      ]}
-                    >
-                      {community.name}
-                    </Text>
-                    {isSelected && (
-                      <Text
-                        style={[
-                          styles.communityDescription,
-                          { color: theme.colors.background + 'CC' }
-                        ]}
-                      >
-                        {community.description}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+            <ChevronDown size={16} color={theme.colors.background} />
+          </TouchableOpacity>
 
           {/* Photos Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Photos</Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
-              Add up to 4 photos to your post
-            </Text>
-            
+          {photos.length > 0 && (
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.photosContainer}
+              style={styles.photosScroll}
             >
               {photos.map((photo, index) => (
-                <View key={index} style={styles.photoContainer}>
+                <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.photoContainer}>
                   <Image source={{ uri: photo }} style={styles.photo} />
                   <TouchableOpacity
                     style={[styles.removePhotoButton, { backgroundColor: theme.colors.background }]}
                     onPress={() => removePhoto(index)}
                   >
-                    <Trash2 size={16} color={theme.colors.text} />
+                    <Trash2 size={14} color={theme.colors.text} />
                   </TouchableOpacity>
                 </View>
               ))}
-              
-              {photos.length < 4 && (
-                <TouchableOpacity
-                  style={[
-                    styles.addPhotoButton,
-                    {
-                      backgroundColor: theme.colors.card,
-                      borderColor: theme.colors.border,
-                    }
-                  ]}
-                  onPress={showPhotoOptions}
-                >
-                  <Camera size={24} color={theme.colors.textTertiary} />
-                  <Text style={[styles.addPhotoText, { color: theme.colors.textTertiary }]}>
-                    Add Photo
-                  </Text>
-                </TouchableOpacity>
-              )}
             </ScrollView>
-          </View>
+          )}
 
           {/* Content Input */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Content</Text>
-            <TextInput
+          <TextInput
+            style={[
+              styles.contentInput,
+              {
+                color: theme.colors.text,
+                backgroundColor: theme.colors.background,
+              }
+            ]}
+            placeholder="Share your thoughts, ask questions, or start a discussion..."
+            placeholderTextColor={theme.colors.textTertiary}
+            value={content}
+            onChangeText={setContent}
+            maxLength={2000}
+            multiline
+            textAlignVertical="top"
+          />
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
               style={[
-                styles.contentInput,
+                styles.actionButton,
                 {
-                  color: theme.colors.text,
                   backgroundColor: theme.colors.card,
                   borderColor: theme.colors.border,
                 }
               ]}
-              placeholder="Share your thoughts, ask questions, or start a discussion..."
-              placeholderTextColor={theme.colors.textTertiary}
-              value={content}
-              onChangeText={setContent}
-              maxLength={2000}
-              multiline
-              textAlignVertical="top"
-            />
-            <Text style={[styles.characterCount, { color: theme.colors.textTertiary }]}>
-              {content.length}/2000
-            </Text>
+              onPress={showPhotoOptions}
+              disabled={photos.length >= 4}
+            >
+              <Camera size={20} color={photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary} />
+              <Text style={[
+                styles.actionButtonText, 
+                { color: photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary }
+              ]}>
+                {photos.length > 0 ? `Photos (${photos.length}/4)` : 'Add Photos'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-
-
-          {/* Guidelines */}
-          <View style={[styles.guidelines, { backgroundColor: theme.colors.card }]}>
-            <Text style={[styles.guidelinesTitle, { color: theme.colors.text }]}>Community Guidelines</Text>
-            <Text style={[styles.guidelinesText, { color: theme.colors.textSecondary }]}>
-              • Be respectful and constructive{"\n"}
-              • Stay on topic and relevant{"\n"}
-              • No spam or self-promotion{"\n"}
-              • Follow local laws and regulations
+          {/* Character Count */}
+          <View style={styles.footer}>
+            <Text style={[styles.characterCount, { color: theme.colors.textTertiary }]}>
+              {content.length}/2000 characters
             </Text>
           </View>
         </ScrollView>
@@ -343,93 +302,49 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  headerButton: {
+    padding: 4,
   },
-  submitButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
+  postButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minWidth: 80,
     alignItems: 'center',
+  },
+  postButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    marginBottom: 12,
-  },
   titleInput: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontWeight: '500',
-    minHeight: 50,
+    fontSize: 20,
+    fontWeight: '600',
+    paddingVertical: 20,
+    paddingHorizontal: 0,
+    minHeight: 60,
     textAlignVertical: 'top',
   },
-  contentInput: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    minHeight: 120,
-    textAlignVertical: 'top',
-  },
-  characterCount: {
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  communitiesContainer: {
-    paddingRight: 20,
-    gap: 12,
-  },
-  communityChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  communitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 16,
-    borderWidth: 1,
-    minWidth: 120,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
   },
-  communityText: {
+  communityName: {
     fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center',
+    marginRight: 4,
   },
-  communityDescription: {
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 2,
-    fontWeight: '400',
-  },
-  guidelines: {
-    marginTop: 24,
-    marginBottom: 40,
-    padding: 16,
-    borderRadius: 12,
-  },
-  guidelinesTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  guidelinesText: {
-    fontSize: 13,
-    lineHeight: 18,
+  photosScroll: {
+    marginBottom: 16,
   },
   photosContainer: {
     paddingRight: 20,
@@ -439,17 +354,17 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   photo: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: 100,
+    height: 100,
+    borderRadius: 12,
   },
   removePhotoButton: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -458,19 +373,36 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  addPhotoButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
+  contentInput: {
+    fontSize: 16,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    minHeight: 200,
+    textAlignVertical: 'top',
+    lineHeight: 24,
   },
-  addPhotoText: {
-    fontSize: 10,
+  actionButtons: {
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 14,
     fontWeight: '500',
-    textAlign: 'center',
+  },
+  footer: {
+    paddingBottom: 40,
+  },
+  characterCount: {
+    fontSize: 12,
+    textAlign: 'right',
   },
 });
