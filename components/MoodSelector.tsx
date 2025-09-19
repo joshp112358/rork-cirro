@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
+import { View, Text, StyleSheet, PanResponder, Animated, Dimensions } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { MOOD_LABELS } from '@/types/entry';
 
@@ -11,7 +11,8 @@ interface MoodSelectorProps {
 export function MoodSelector({ value, onChange }: MoodSelectorProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const sliderWidth = 280;
+  const screenWidth = Dimensions.get('window').width;
+  const sliderWidth = Math.min(300, screenWidth - 80); // Responsive width with padding
   const stepWidth = sliderWidth / 4; // 4 steps between 5 marks
   
   const pan = useRef(new Animated.Value((value - 1) * stepWidth)).current;
@@ -23,8 +24,8 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
     Animated.spring(pan, {
       toValue: newPosition,
       useNativeDriver: false,
-      tension: 100,
-      friction: 8,
+      tension: 120,
+      friction: 7,
     }).start();
   }, [value, stepWidth, pan]);
 
@@ -50,8 +51,8 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
       Animated.spring(pan, {
         toValue: snapPosition,
         useNativeDriver: false,
-        tension: 100,
-        friction: 8,
+        tension: 120,
+        friction: 7,
       }).start();
       
       const newMood = Math.max(1, Math.min(5, nearestStep + 1));
@@ -63,12 +64,25 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.label}>Overall Mood</Text>
-        <Text style={styles.value}>{value}/5</Text>
+        <View style={styles.valueContainer}>
+          <Text style={styles.value}>{value}</Text>
+          <Text style={styles.valueMax}>/5</Text>
+        </View>
       </View>
       
-      <View style={styles.sliderContainer}>
+      <View style={[styles.sliderContainer, { width: sliderWidth + 40 }]}>
         {/* Track */}
-        <View style={styles.track} />
+        <View style={[styles.track, { width: sliderWidth }]} />
+        
+        {/* Active track */}
+        <View 
+          style={[
+            styles.activeTrack, 
+            { 
+              width: ((value - 1) / 4) * sliderWidth,
+            }
+          ]} 
+        />
         
         {/* Marks */}
         {[1, 2, 3, 4, 5].map((mark, index) => (
@@ -76,10 +90,17 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
             key={mark}
             style={[
               styles.mark,
-              { left: index * stepWidth + 10 }, // 10px offset for container padding
+              { left: index * stepWidth + 20 }, // 20px offset for container padding
               value >= mark && styles.markActive
             ]}
-          />
+          >
+            <Text style={[
+              styles.markLabel,
+              value >= mark && styles.markLabelActive
+            ]}>
+              {mark}
+            </Text>
+          </View>
         ))}
         
         {/* Slider thumb */}
@@ -87,6 +108,7 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
           style={[
             styles.thumb,
             {
+              left: 20, // Match container padding
               transform: [{ translateX: pan }],
             },
           ]}
@@ -95,9 +117,11 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
       </View>
       
       {value > 0 && (
-        <Text style={styles.moodLabel}>
-          {MOOD_LABELS[value as keyof typeof MOOD_LABELS]}
-        </Text>
+        <View style={styles.moodLabelContainer}>
+          <Text style={styles.moodLabel}>
+            {MOOD_LABELS[value as keyof typeof MOOD_LABELS]}
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -105,72 +129,104 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
 
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
   },
   label: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
-  },
-  value: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.text,
   },
+  valueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  value: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.accent,
+  },
+  valueMax: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.regular,
+    color: theme.colors.textSecondary,
+    marginLeft: 2,
+  },
   sliderContainer: {
-    height: 60,
-    paddingHorizontal: 10,
+    height: 80,
+    paddingHorizontal: 20,
     justifyContent: 'center',
-    marginBottom: theme.spacing.sm,
+    alignSelf: 'center',
+    marginBottom: theme.spacing.lg,
   },
   track: {
-    height: 4,
-    backgroundColor: theme.colors.border,
-    borderRadius: 2,
-    width: 280,
+    height: 6,
+    backgroundColor: theme.colors.borderSecondary,
+    borderRadius: 3,
+    position: 'absolute',
+    top: 37, // Center vertically
+  },
+  activeTrack: {
+    height: 6,
+    backgroundColor: theme.colors.accent,
+    borderRadius: 3,
+    position: 'absolute',
+    top: 37, // Center vertically
   },
   mark: {
     position: 'absolute',
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: theme.colors.card,
     borderWidth: 2,
     borderColor: theme.colors.border,
     top: 24, // Center on track
-    marginLeft: -6, // Center the mark
+    marginLeft: -16, // Center the mark
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadow.small,
   },
   markActive: {
-    backgroundColor: theme.colors.text,
-    borderColor: theme.colors.text,
+    backgroundColor: theme.colors.accent,
+    borderColor: theme.colors.accent,
+    ...theme.shadow.medium,
+  },
+  markLabel: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.textSecondary,
+  },
+  markLabelActive: {
+    color: theme.colors.background,
+    fontWeight: theme.fontWeight.bold,
   },
   thumb: {
     position: 'absolute',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: theme.colors.text,
-    top: 18, // Center on track
-    marginLeft: -2, // Adjust for centering
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.colors.accent,
+    top: 26, // Center on track
+    marginLeft: -14, // Center the thumb
+    borderWidth: 3,
+    borderColor: theme.colors.background,
+    ...theme.shadow.large,
+  },
+  moodLabelContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.sm,
   },
   moodLabel: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.light,
-    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.accent,
     textAlign: 'center',
   },
 });
