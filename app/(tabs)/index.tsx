@@ -1,13 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
-import { Plus, Settings, Bot } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
+import { Plus, TrendingUp, Calendar, Settings, Bot } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries, useRecentEntries } from '@/hooks/use-entries';
 import { EntryCard } from '@/components/EntryCard';
-
-
-
 
 
 
@@ -20,14 +17,11 @@ export default function HomeScreen() {
   const recentEntries = useRecentEntries(3);
 
 
-
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
     month: 'long', 
     day: 'numeric' 
   });
-
-
 
 
 
@@ -98,8 +92,6 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
-
-
 
         {recentEntries.length > 0 && (
           <View style={styles.recentSection}>
@@ -237,7 +229,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-
   recentSection: {
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing.xxl,
@@ -247,7 +238,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
-    gap: theme.spacing.sm,
   },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
@@ -262,5 +252,179 @@ const createStyles = (theme: any) => StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-
+  dealsSection: {
+    paddingVertical: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+  },
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    flex: 1,
+  },
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    backgroundColor: theme.colors.cardSecondary,
+    borderRadius: theme.borderRadius.round,
+    borderWidth: 0.5,
+    borderColor: theme.colors.primary,
+  },
+  locationButtonText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  locationInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  locationText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  dealsScroll: {
+    paddingLeft: theme.spacing.xl,
+  },
+  dealsContent: {
+    paddingRight: theme.spacing.xl,
+  },
+  dealCard: {
+    width: 280,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    marginRight: theme.spacing.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
+  },
+  dealImageContainer: {
+    position: 'relative',
+  },
+  dealImage: {
+    width: '100%',
+    height: 140,
+    backgroundColor: theme.colors.cardSecondary,
+  },
+  discountBadge: {
+    position: 'absolute',
+    top: theme.spacing.sm,
+    right: theme.spacing.sm,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  discountText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.heavy,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dealContent: {
+    padding: theme.spacing.md,
+  },
+  dealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  categoryBadge: {
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 2,
+    borderRadius: theme.borderRadius.sm,
+  },
+  categoryText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  strainTypeBadge: {
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 2,
+    borderRadius: theme.borderRadius.sm,
+  },
+  strainTypeText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dealStrainName: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  dealDispensary: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.sm,
+  },
+  dealPricing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  originalPrice: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    textDecorationLine: 'line-through',
+  },
+  salePrice: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.heavy,
+    color: theme.colors.primary,
+  },
+  dealMeta: {
+    marginBottom: theme.spacing.sm,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  ratingText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  reviewCount: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+  },
+  dealFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    flex: 1,
+  },
+  validUntil: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: '#EF4444',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
 });

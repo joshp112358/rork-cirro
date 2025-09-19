@@ -22,15 +22,14 @@ interface ForumPost {
   upvotes: number;
   downvotes: number;
   comments: Comment[];
-  category?: string;
-  dispensary?: string;
+  category: string;
   isPinned?: boolean;
   isUpvoted?: boolean;
   isDownvoted?: boolean;
   isBookmarked?: boolean;
   image?: string;
   awards?: number;
-  tags?: string[];
+  tags: string[];
   location?: {
     latitude: number;
     longitude: number;
@@ -66,7 +65,6 @@ const initialMockPosts: ForumPost[] = [
       },
     ],
     category: 'Medical',
-    dispensary: 'Green Valley Dispensary',
     isPinned: true,
     awards: 2,
     tags: ['anxiety', 'medical', 'strains', 'cbd'],
@@ -90,7 +88,6 @@ const initialMockPosts: ForumPost[] = [
       },
     ],
     category: 'Dispensaries',
-    dispensary: 'Green Valley',
     image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
     tags: ['dispensary', 'downtown', 'review', 'local'],
   },
