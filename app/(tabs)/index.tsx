@@ -93,20 +93,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {recentEntries.length > 0 && (
-          <View style={styles.recentSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Past Sessions</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/journal')}>
-                <Text style={styles.seeAll}>View All</Text>
-              </TouchableOpacity>
-            </View>
-            {recentEntries.map(entry => (
-              <EntryCard key={entry.id} entry={entry} />
-            ))}
-          </View>
-        )}
-
         {/* Community Posts Snapshot */}
         <View style={styles.communitySection}>
           <View style={styles.sectionHeader}>
@@ -158,6 +144,20 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
+
+        {recentEntries.length > 0 && (
+          <View style={styles.recentSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Past Sessions</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/journal')}>
+                <Text style={styles.seeAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
+            {recentEntries.map(entry => (
+              <EntryCard key={entry.id} entry={entry} />
+            ))}
+          </View>
+        )}
 
       </ScrollView>
     </SafeAreaView>
