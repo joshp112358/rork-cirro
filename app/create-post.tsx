@@ -149,11 +149,13 @@ export default function CreatePostScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
             <X size={24} color={theme.colors.text} />
           </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Create Post</Text>
           <TouchableOpacity 
             style={[
               styles.postButton,
               { 
-                backgroundColor: (title.trim() && content.trim()) ? theme.colors.primary : theme.colors.textTertiary + '40',
+                backgroundColor: (title.trim() && content.trim()) ? theme.colors.primary : theme.colors.card,
+                borderColor: (title.trim() && content.trim()) ? theme.colors.primary : theme.colors.border,
                 opacity: isSubmitting ? 0.6 : 1
               }
             ]}
@@ -162,7 +164,7 @@ export default function CreatePostScreen() {
           >
             <Text style={[
               styles.postButtonText,
-              { color: (title.trim() && content.trim()) ? theme.colors.background : theme.colors.textTertiary }
+              { color: (title.trim() && content.trim()) ? theme.colors.background : theme.colors.textSecondary }
             ]}>
               {isSubmitting ? 'Posting...' : 'Post'}
             </Text>
@@ -170,68 +172,77 @@ export default function CreatePostScreen() {
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Title Input */}
-          <TextInput
-            style={[
-              styles.titleInput,
-              {
-                color: theme.colors.text,
-                backgroundColor: theme.colors.background,
-              }
-            ]}
-            placeholder="What's on your mind?"
-            placeholderTextColor={theme.colors.textTertiary}
-            value={title}
-            onChangeText={setTitle}
-            maxLength={200}
-            multiline
-          />
+          {/* Title Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>Title</Text>
+            <View style={[styles.inputContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+              <TextInput
+                style={[
+                  styles.titleInput,
+                  {
+                    color: theme.colors.text,
+                  }
+                ]}
+                placeholder="What's on your mind?"
+                placeholderTextColor={theme.colors.textTertiary}
+                value={title}
+                onChangeText={setTitle}
+                maxLength={200}
+                multiline
+              />
+            </View>
+          </View>
 
-          {/* Content Input */}
-          <TextInput
-            style={[
-              styles.contentInput,
-              {
-                color: theme.colors.text,
-                backgroundColor: theme.colors.background,
-              }
-            ]}
-            placeholder="Share your thoughts, ask questions, or start a discussion..."
-            placeholderTextColor={theme.colors.textTertiary}
-            value={content}
-            onChangeText={setContent}
-            maxLength={2000}
-            multiline
-            textAlignVertical="top"
-          />
+          {/* Content Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>Content</Text>
+            <View style={[styles.inputContainer, styles.contentContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+              <TextInput
+                style={[
+                  styles.contentInput,
+                  {
+                    color: theme.colors.text,
+                  }
+                ]}
+                placeholder="Share your thoughts, ask questions, or start a discussion..."
+                placeholderTextColor={theme.colors.textTertiary}
+                value={content}
+                onChangeText={setContent}
+                maxLength={2000}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+          </View>
 
           {/* Photos Section */}
-          {photos.length > 0 && (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.photosContainer}
-              style={styles.photosScroll}
-            >
-              {photos.map((photo, index) => (
-                <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.photoContainer}>
-                  <Image source={{ uri: photo }} style={styles.photo} />
-                  <TouchableOpacity
-                    style={[styles.removePhotoButton, { backgroundColor: theme.colors.background }]}
-                    onPress={() => removePhoto(index)}
-                  >
-                    <Trash2 size={14} color={theme.colors.text} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          )}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>Photos</Text>
+            
+            {photos.length > 0 && (
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.photosContainer}
+                style={styles.photosScroll}
+              >
+                {photos.map((photo, index) => (
+                  <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.photoContainer}>
+                    <Image source={{ uri: photo }} style={styles.photo} />
+                    <TouchableOpacity
+                      style={[styles.removePhotoButton, { backgroundColor: theme.colors.background }]}
+                      onPress={() => removePhoto(index)}
+                    >
+                      <Trash2 size={14} color={theme.colors.text} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
 
-          {/* Action Buttons */}
-          <View style={styles.actionButtons}>
             <TouchableOpacity
               style={[
-                styles.actionButton,
+                styles.addPhotoButton,
                 {
                   backgroundColor: theme.colors.card,
                   borderColor: theme.colors.border,
@@ -240,40 +251,50 @@ export default function CreatePostScreen() {
               onPress={showPhotoOptions}
               disabled={photos.length >= 4}
             >
-              <Camera size={20} color={photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary} />
+              <Camera size={20} color={photos.length >= 4 ? theme.colors.textTertiary : theme.colors.textSecondary} />
               <Text style={[
-                styles.actionButtonText, 
-                { color: photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary }
+                styles.addPhotoText, 
+                { color: photos.length >= 4 ? theme.colors.textTertiary : theme.colors.textSecondary }
               ]}>
-                {photos.length > 0 ? `Photos (${photos.length}/4)` : 'Add Photos'}
+                {photos.length > 0 ? `Add More (${photos.length}/4)` : 'Add Photos'}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Community Selection */}
-          <TouchableOpacity 
-            style={[
-              styles.communitySelector,
-              {
-                backgroundColor: selectedCommunityData?.color || theme.colors.primary,
-              }
-            ]}
-            onPress={() => {
-              Alert.alert(
-                'Select Community',
-                'Choose the community for your post',
-                communities.map(community => ({
-                  text: community.name,
-                  onPress: () => setSelectedCommunity(community.id)
-                }))
-              );
-            }}
-          >
-            <Text style={[styles.communityName, { color: theme.colors.background }]}>
-              {selectedCommunityData?.name || 'General'}
-            </Text>
-            <ChevronDown size={16} color={theme.colors.background} />
-          </TouchableOpacity>
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>Community</Text>
+            <TouchableOpacity 
+              style={[
+                styles.communitySelector,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                }
+              ]}
+              onPress={() => {
+                Alert.alert(
+                  'Select Community',
+                  'Choose the community for your post',
+                  communities.map(community => ({
+                    text: community.name,
+                    onPress: () => setSelectedCommunity(community.id)
+                  }))
+                );
+              }}
+            >
+              <View style={styles.communityInfo}>
+                <View style={[
+                  styles.communityDot,
+                  { backgroundColor: selectedCommunityData?.color || theme.colors.primary }
+                ]} />
+                <Text style={[styles.communityName, { color: theme.colors.text }]}>
+                  {selectedCommunityData?.name || 'General'}
+                </Text>
+              </View>
+              <ChevronDown size={16} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
 
           {/* Character Count */}
           <View style={styles.footer}>
@@ -304,47 +325,63 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 4,
+    width: 32,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 16,
   },
   postButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    minWidth: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 60,
     alignItems: 'center',
+    borderWidth: 1,
   },
   postButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  contentContainer: {
+    minHeight: 120,
   },
   titleInput: {
-    fontSize: 20,
-    fontWeight: '600',
-    paddingVertical: 20,
-    paddingHorizontal: 0,
-    minHeight: 60,
+    fontSize: 16,
+    fontWeight: '500',
+    minHeight: 24,
     textAlignVertical: 'top',
   },
-  communitySelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginBottom: 16,
-    alignSelf: 'flex-start',
-  },
-  communityName: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 4,
+  contentInput: {
+    fontSize: 16,
+    minHeight: 96,
+    textAlignVertical: 'top',
+    lineHeight: 22,
   },
   photosScroll: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   photosContainer: {
     paddingRight: 20,
@@ -354,9 +391,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   photo: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
+    width: 80,
+    height: 80,
+    borderRadius: 8,
   },
   removePhotoButton: {
     position: 'absolute',
@@ -373,28 +410,40 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  contentInput: {
-    fontSize: 16,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    minHeight: 200,
-    textAlignVertical: 'top',
-    lineHeight: 24,
-  },
-  actionButtons: {
-    marginTop: 20,
-    marginBottom: 16,
-  },
-  actionButton: {
+  addPhotoButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
     gap: 8,
+    justifyContent: 'center',
   },
-  actionButtonText: {
+  addPhotoText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  communitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  communityInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  communityDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  communityName: {
     fontSize: 14,
     fontWeight: '500',
   },
@@ -404,5 +453,6 @@ const styles = StyleSheet.create({
   characterCount: {
     fontSize: 12,
     textAlign: 'right',
+    marginTop: 8,
   },
 });
