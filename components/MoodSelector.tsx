@@ -24,16 +24,14 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
             key={mood}
             style={[
               styles.moodButton,
-              value >= mood && { 
-                backgroundColor: theme.colors.text,
-              }
+              value >= mood && styles.moodButtonActive
             ]}
             onPress={() => onChange(mood)}
             testID={`mood-${mood}`}
           >
             <View style={[
-              styles.moodDot,
-              value >= mood && styles.moodDotActive
+              styles.moodLine,
+              value >= mood && styles.moodLineActive
             ]} />
           </TouchableOpacity>
         ))}
@@ -69,27 +67,30 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   moodContainer: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 2,
     marginBottom: theme.spacing.sm,
+    paddingHorizontal: 4,
   },
   moodButton: {
     flex: 1,
-    height: 40,
-    borderRadius: theme.borderRadius.sm,
-    backgroundColor: theme.colors.card,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 0.5,
-    borderColor: theme.colors.border,
+    borderColor: '#E5E5E5',
+    backgroundColor: 'transparent',
   },
-  moodDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.border,
+  moodButtonActive: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
-  moodDotActive: {
-    backgroundColor: theme.colors.background,
+  moodLine: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#E5E5E5',
+  },
+  moodLineActive: {
+    backgroundColor: '#FFFFFF',
   },
   moodLabel: {
     fontSize: theme.fontSize.xs,
