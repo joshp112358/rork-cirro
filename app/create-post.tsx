@@ -187,6 +187,69 @@ export default function CreatePostScreen() {
             multiline
           />
 
+          {/* Content Input */}
+          <TextInput
+            style={[
+              styles.contentInput,
+              {
+                color: theme.colors.text,
+                backgroundColor: theme.colors.background,
+              }
+            ]}
+            placeholder="Share your thoughts, ask questions, or start a discussion..."
+            placeholderTextColor={theme.colors.textTertiary}
+            value={content}
+            onChangeText={setContent}
+            maxLength={2000}
+            multiline
+            textAlignVertical="top"
+          />
+
+          {/* Photos Section */}
+          {photos.length > 0 && (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.photosContainer}
+              style={styles.photosScroll}
+            >
+              {photos.map((photo, index) => (
+                <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.photoContainer}>
+                  <Image source={{ uri: photo }} style={styles.photo} />
+                  <TouchableOpacity
+                    style={[styles.removePhotoButton, { backgroundColor: theme.colors.background }]}
+                    onPress={() => removePhoto(index)}
+                  >
+                    <Trash2 size={14} color={theme.colors.text} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                }
+              ]}
+              onPress={showPhotoOptions}
+              disabled={photos.length >= 4}
+            >
+              <Camera size={20} color={photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary} />
+              <Text style={[
+                styles.actionButtonText, 
+                { color: photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary }
+              ]}>
+                {photos.length > 0 ? `Photos (${photos.length}/4)` : 'Add Photos'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Community Selection */}
           <TouchableOpacity 
             style={[
@@ -211,69 +274,6 @@ export default function CreatePostScreen() {
             </Text>
             <ChevronDown size={16} color={theme.colors.background} />
           </TouchableOpacity>
-
-          {/* Photos Section */}
-          {photos.length > 0 && (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.photosContainer}
-              style={styles.photosScroll}
-            >
-              {photos.map((photo, index) => (
-                <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.photoContainer}>
-                  <Image source={{ uri: photo }} style={styles.photo} />
-                  <TouchableOpacity
-                    style={[styles.removePhotoButton, { backgroundColor: theme.colors.background }]}
-                    onPress={() => removePhoto(index)}
-                  >
-                    <Trash2 size={14} color={theme.colors.text} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          )}
-
-          {/* Content Input */}
-          <TextInput
-            style={[
-              styles.contentInput,
-              {
-                color: theme.colors.text,
-                backgroundColor: theme.colors.background,
-              }
-            ]}
-            placeholder="Share your thoughts, ask questions, or start a discussion..."
-            placeholderTextColor={theme.colors.textTertiary}
-            value={content}
-            onChangeText={setContent}
-            maxLength={2000}
-            multiline
-            textAlignVertical="top"
-          />
-
-          {/* Action Buttons */}
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                }
-              ]}
-              onPress={showPhotoOptions}
-              disabled={photos.length >= 4}
-            >
-              <Camera size={20} color={photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary} />
-              <Text style={[
-                styles.actionButtonText, 
-                { color: photos.length >= 4 ? theme.colors.textTertiary : theme.colors.primary }
-              ]}>
-                {photos.length > 0 ? `Photos (${photos.length}/4)` : 'Add Photos'}
-              </Text>
-            </TouchableOpacity>
-          </View>
 
           {/* Character Count */}
           <View style={styles.footer}>
