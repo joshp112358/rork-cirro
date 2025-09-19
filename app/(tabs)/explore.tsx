@@ -89,9 +89,9 @@ const communities: Community[] = [
   {
     id: 'veterans',
     name: 'Veterans',
-    description: 'Experienced users sharing knowledge',
+    description: 'Military veterans community',
     memberCount: 8900,
-    icon: '🏆',
+    icon: '🎖️',
     color: '#F59E0B'
   },
   {
@@ -111,12 +111,28 @@ const communities: Community[] = [
     color: '#EF4444'
   },
   {
+    id: 'gamers',
+    name: 'Gamers',
+    description: 'Gaming and cannabis community',
+    memberCount: 7800,
+    icon: '🎮',
+    color: '#9333EA'
+  },
+  {
+    id: 'students',
+    name: 'Students',
+    description: 'College and university students',
+    memberCount: 9400,
+    icon: '🎓',
+    color: '#06B6D4'
+  },
+  {
     id: 'medical',
     name: 'Medical',
     description: 'Medical cannabis discussions',
     memberCount: 15800,
     icon: '🏥',
-    color: '#06B6D4'
+    color: '#059669'
   },
   {
     id: 'growers',
@@ -133,22 +149,6 @@ const communities: Community[] = [
     memberCount: 9100,
     icon: '🍪',
     color: '#F97316'
-  },
-  {
-    id: 'local',
-    name: 'Local',
-    description: 'Local dispensaries and events',
-    memberCount: 4500,
-    icon: '📍',
-    color: '#EC4899'
-  },
-  {
-    id: 'reviews',
-    name: 'Reviews',
-    description: 'Product and strain reviews',
-    memberCount: 11200,
-    icon: '⭐',
-    color: '#6366F1'
   },
   {
     id: 'general',
@@ -212,7 +212,7 @@ const initialMockPosts: ForumPost[] = [
     ],
     category: 'Dispensaries',
     image: 'https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000',
-    communities: ['local', 'reviews'],
+    communities: ['general', 'entrepreneurs'],
   },
   {
     id: '3',
@@ -255,7 +255,7 @@ const initialMockPosts: ForumPost[] = [
     comments: [],
     category: 'General',
     image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
-    communities: ['general', 'veterans'],
+    communities: ['gamers', 'students'],
   },
   {
     id: '5',
