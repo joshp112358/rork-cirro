@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
-import { Plus, TrendingUp, Calendar, Settings, Bot } from 'lucide-react-native';
+import { Plus, TrendingUp, Calendar, Settings, Bot, MessageCircle, ArrowUp, Users } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries, useRecentEntries } from '@/hooks/use-entries';
@@ -107,8 +107,66 @@ export default function HomeScreen() {
           </View>
         )}
 
-
-
+        {/* Community Posts Snapshot */}
+        <View style={styles.communitySection}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Community</Text>
+              <Text style={styles.sectionSubtitle}>Join the conversation</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/explore')}>
+              <Text style={styles.seeAll}>Explore</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.communityPreview}
+            onPress={() => router.push('/(tabs)/explore')}
+          >
+            <View style={styles.communityStats}>
+              <View style={styles.statItem}>
+                <Users size={16} color={theme.colors.primary} />
+                <Text style={styles.statText}>18.7k members</Text>
+              </View>
+              <View style={styles.statItem}>
+                <MessageCircle size={16} color={theme.colors.primary} />
+                <Text style={styles.statText}>342 discussions</Text>
+              </View>
+            </View>
+            
+            <View style={styles.trendingPosts}>
+              <View style={styles.trendingPost}>
+                <View style={styles.postVotes}>
+                  <ArrowUp size={12} color={theme.colors.primary} />
+                  <Text style={styles.voteText}>124</Text>
+                </View>
+                <View style={styles.postContent}>
+                  <Text style={styles.postTitle} numberOfLines={2}>
+                    Best strains for anxiety relief?
+                  </Text>
+                  <Text style={styles.postMeta}>Medical • 2h ago</Text>
+                </View>
+              </View>
+              
+              <View style={styles.trendingPost}>
+                <View style={styles.postVotes}>
+                  <ArrowUp size={12} color={theme.colors.primary} />
+                  <Text style={styles.voteText}>231</Text>
+                </View>
+                <View style={styles.postContent}>
+                  <Text style={styles.postTitle} numberOfLines={2}>
+                    Homemade edibles - dosage tips?
+                  </Text>
+                  <Text style={styles.postMeta}>Beginners • 6h ago</Text>
+                </View>
+              </View>
+            </View>
+            
+            <View style={styles.explorePrompt}>
+              <Text style={styles.exploreText}>Discover more discussions →</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
     </SafeAreaView>
@@ -426,5 +484,90 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: '#EF4444',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  
+  // Community section styles
+  communitySection: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingBottom: theme.spacing.xxl,
+  },
+  sectionSubtitle: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  communityPreview: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.lg,
+  },
+  communityStats: {
+    flexDirection: 'row',
+    gap: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.border,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  statText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.textSecondary,
+  },
+  trendingPosts: {
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+  },
+  trendingPost: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.spacing.sm,
+  },
+  postVotes: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.backgroundSecondary,
+    borderRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    minWidth: 32,
+  },
+  voteText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.primary,
+    marginTop: 2,
+  },
+  postContent: {
+    flex: 1,
+  },
+  postTitle: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+    marginBottom: 2,
+  },
+  postMeta: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textTertiary,
+  },
+  explorePrompt: {
+    alignItems: 'center',
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.colors.border,
+  },
+  exploreText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.primary,
   },
 });
