@@ -563,16 +563,7 @@ export default function ExploreScreen() {
           >
             {community.name}
           </Text>
-          <Text
-            style={[
-              styles.communityChipMembers,
-              {
-                color: isSelected ? theme.colors.background + '80' : theme.colors.textTertiary,
-              }
-            ]}
-          >
-            {community.memberCount.toLocaleString()} members
-          </Text>
+
         </View>
       </TouchableOpacity>
     );
