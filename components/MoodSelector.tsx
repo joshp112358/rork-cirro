@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { MOOD_LABELS } from '@/types/entry';
 
@@ -11,6 +11,53 @@ interface MoodSelectorProps {
 export function MoodSelector({ value, onChange }: MoodSelectorProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const sliderWidth = 280;
+  const stepWidth = sliderWidth / 4; // 4 steps between 5 marks
+  
+  const pan = useRef(new Animated.Value((value - 1) * stepWidth)).current;
+  const [currentPosition, setCurrentPosition] = useState<number>((value - 1) * stepWidth);
+
+  useEffect(() => {
+    const newPosition = (value - 1) * stepWidth;
+    setCurrentPosition(newPosition);
+    Animated.spring(pan, {
+      toValue: newPosition,
+      useNativeDriver: false,
+      tension: 100,
+      friction: 8,
+    }).start();
+  }, [value, stepWidth, pan]);
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => {
+      pan.setOffset(currentPosition);
+      pan.setValue(0);
+    },
+    onPanResponderMove: (_, gestureState) => {
+      const newValue = Math.max(-currentPosition, Math.min(sliderWidth - currentPosition, gestureState.dx));
+      pan.setValue(newValue);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      const finalPosition = Math.max(0, Math.min(sliderWidth, currentPosition + gestureState.dx));
+      const nearestStep = Math.round(finalPosition / stepWidth);
+      const snapPosition = nearestStep * stepWidth;
+      
+      pan.flattenOffset();
+      setCurrentPosition(snapPosition);
+      
+      Animated.spring(pan, {
+        toValue: snapPosition,
+        useNativeDriver: false,
+        tension: 100,
+        friction: 8,
+      }).start();
+      
+      const newMood = Math.max(1, Math.min(5, nearestStep + 1));
+      onChange(newMood);
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -18,26 +65,35 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
         <Text style={styles.label}>Overall Mood</Text>
         <Text style={styles.value}>{value}/5</Text>
       </View>
-      <View style={styles.moodContainer}>
-        {[1, 2, 3, 4, 5].map((mood) => (
-          <TouchableOpacity
-            key={mood}
+      
+      <View style={styles.sliderContainer}>
+        {/* Track */}
+        <View style={styles.track} />
+        
+        {/* Marks */}
+        {[1, 2, 3, 4, 5].map((mark, index) => (
+          <View
+            key={mark}
             style={[
-              styles.moodButton,
-              value >= mood && { 
-                backgroundColor: theme.colors.text,
-              }
+              styles.mark,
+              { left: index * stepWidth + 10 }, // 10px offset for container padding
+              value >= mark && styles.markActive
             ]}
-            onPress={() => onChange(mood)}
-            testID={`mood-${mood}`}
-          >
-            <View style={[
-              styles.moodDot,
-              value >= mood && styles.moodDotActive
-            ]} />
-          </TouchableOpacity>
+          />
         ))}
+        
+        {/* Slider thumb */}
+        <Animated.View
+          style={[
+            styles.thumb,
+            {
+              transform: [{ translateX: pan }],
+            },
+          ]}
+          {...panResponder.panHandlers}
+        />
       </View>
+      
       {value > 0 && (
         <Text style={styles.moodLabel}>
           {MOOD_LABELS[value as keyof typeof MOOD_LABELS]}
@@ -67,29 +123,49 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.light,
     color: theme.colors.text,
   },
-  moodContainer: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
+  sliderContainer: {
+    height: 60,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
     marginBottom: theme.spacing.sm,
   },
-  moodButton: {
-    flex: 1,
-    height: 40,
-    borderRadius: theme.borderRadius.sm,
-    backgroundColor: theme.colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-  },
-  moodDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  track: {
+    height: 4,
     backgroundColor: theme.colors.border,
+    borderRadius: 2,
+    width: 280,
   },
-  moodDotActive: {
-    backgroundColor: theme.colors.background,
+  mark: {
+    position: 'absolute',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: theme.colors.card,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    top: 24, // Center on track
+    marginLeft: -6, // Center the mark
+  },
+  markActive: {
+    backgroundColor: theme.colors.text,
+    borderColor: theme.colors.text,
+  },
+  thumb: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.text,
+    top: 18, // Center on track
+    marginLeft: -2, // Adjust for centering
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   moodLabel: {
     fontSize: theme.fontSize.xs,
