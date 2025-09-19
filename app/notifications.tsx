@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Switch } from 'react-native';
-import { ArrowLeft, Bell, Clock, MessageSquare, TrendingUp } from 'lucide-react-native';
+import { ArrowLeft, Bell, Clock, TrendingUp } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useUser } from '@/hooks/use-user';
 import { router, Stack } from 'expo-router';
@@ -28,13 +28,7 @@ export default function NotificationsScreen() {
       description: 'Receive weekly analytics and trends',
       value: profile.preferences.notifications.weeklyInsights
     },
-    {
-      key: 'communityUpdates' as const,
-      icon: MessageSquare,
-      title: 'Community Updates',
-      description: 'New posts and comments from the community',
-      value: profile.preferences.notifications.communityUpdates
-    },
+
     {
       key: 'newFeatures' as const,
       icon: Bell,
