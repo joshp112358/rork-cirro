@@ -36,7 +36,6 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
-import { useCommunities } from '@/hooks/use-communities';
 import { router } from 'expo-router';
 
 interface Comment {
@@ -165,7 +164,7 @@ const initialMockPosts: ForumPost[] = [
   {
     id: '1',
     title: 'Best strains for anxiety relief?',
-    content: 'Looking for recommendations on strains that help with anxiety without making me too sleepy. I\'ve tried a few but they either don\'t work or knock me out completely.',
+    content: 'Looking for recommendations on strains that help with anxiety without making me too sleepy...',
     author: 'GreenThumb420',
     timestamp: '2h ago',
     upvotes: 124,
@@ -196,7 +195,7 @@ const initialMockPosts: ForumPost[] = [
   {
     id: '2',
     title: 'New dispensary opened downtown!',
-    content: 'Just visited the new Green Valley dispensary. Great selection and friendly staff. They have some rare strains I haven\'t seen elsewhere.',
+    content: 'Just visited the new Green Valley dispensary. Great selection and friendly staff...',
     author: 'LocalExplorer',
     timestamp: '4h ago',
     upvotes: 98,
@@ -218,7 +217,7 @@ const initialMockPosts: ForumPost[] = [
   {
     id: '3',
     title: 'Homemade edibles - dosage tips?',
-    content: 'First time making brownies at home. Any advice on getting the dosage right? I don\'t want to end up on Mars 🚀',
+    content: 'First time making brownies at home. Any advice on getting the dosage right?',
     author: 'BakeAndBake',
     timestamp: '6h ago',
     upvotes: 231,
@@ -248,21 +247,12 @@ const initialMockPosts: ForumPost[] = [
   {
     id: '4',
     title: 'Vape vs flower - what do you prefer?',
-    content: 'Trying to decide between getting a new vaporizer or sticking with flower. What are the pros and cons of each?',
+    content: 'Trying to decide between getting a new vaporizer or sticking with flower...',
     author: 'VapeDebate',
     timestamp: '8h ago',
     upvotes: 342,
     downvotes: 18,
-    comments: [
-      {
-        id: 'c6',
-        content: 'Vaping is more efficient and healthier, but nothing beats the ritual of smoking flower.',
-        author: 'VapeVet',
-        timestamp: '7h ago',
-        upvotes: 23,
-        downvotes: 2,
-      },
-    ],
+    comments: [],
     category: 'General',
     image: 'https://images.unsplash.com/photo-1560999448-1be675dd1310?q=80&w=1000',
     communities: ['general', 'veterans'],
@@ -270,366 +260,16 @@ const initialMockPosts: ForumPost[] = [
   {
     id: '5',
     title: 'Growing tips for beginners',
-    content: 'Starting my first grow setup. What are the most important things to know? Budget is around $500.',
+    content: 'Starting my first grow setup. What are the most important things to know?',
     author: 'NewGrower',
     timestamp: '12h ago',
     upvotes: 467,
     downvotes: 21,
-    comments: [
-      {
-        id: 'c7',
-        content: 'Light is everything! Invest in a good LED setup first.',
-        author: 'GrowMaster',
-        timestamp: '11h ago',
-        upvotes: 34,
-        downvotes: 1,
-      },
-    ],
+    comments: [],
     category: 'Growing',
     awards: 3,
     communities: ['beginners', 'growers'],
   },
-  {
-    id: '6',
-    title: 'Purple Punch review - holy moly! 🍇',
-    content: 'Just tried Purple Punch for the first time and WOW. The flavor is incredible and the effects are perfect for evening relaxation. Highly recommend!',
-    author: 'StrainHunter',
-    timestamp: '1d ago',
-    upvotes: 189,
-    downvotes: 7,
-    comments: [
-      {
-        id: 'c8',
-        content: 'Purple Punch is my go-to for sleep! Love that grape flavor.',
-        author: 'SleepyHead',
-        timestamp: '23h ago',
-        upvotes: 18,
-        downvotes: 0,
-      },
-      {
-        id: 'c9',
-        content: 'Where did you get it? Been looking everywhere for this strain.',
-        author: 'PurpleSeeker',
-        timestamp: '22h ago',
-        upvotes: 9,
-        downvotes: 0,
-      },
-    ],
-    category: 'Strains',
-    image: 'https://images.unsplash.com/photo-1536689318884-9b1dc7dd27a5?q=80&w=1000',
-    awards: 1,
-    communities: ['reviews', 'veterans'],
-  },
-  {
-    id: '7',
-    title: 'Cannabis and creativity - your experiences?',
-    content: 'I\'m an artist and I\'ve noticed certain strains really boost my creativity. What strains work best for you creative folks?',
-    author: 'ArtisticSoul',
-    timestamp: '1d ago',
-    upvotes: 276,
-    downvotes: 12,
-    comments: [
-      {
-        id: 'c10',
-        content: 'Sour Diesel is my creative fuel! Gets the ideas flowing.',
-        author: 'CreativeWriter',
-        timestamp: '1d ago',
-        upvotes: 21,
-        downvotes: 1,
-      },
-    ],
-    category: 'General',
-    communities: ['general', 'veterans'],
-  },
-  {
-    id: '8',
-    title: 'First time at a dispensary - what to expect?',
-    content: 'Finally got my medical card! Going to my first dispensary tomorrow. Any tips for a newbie?',
-    author: 'FirstTimer',
-    timestamp: '2d ago',
-    upvotes: 156,
-    downvotes: 3,
-    comments: [
-      {
-        id: 'c11',
-        content: 'Don\'t be shy to ask questions! Budtenders are there to help.',
-        author: 'FriendlyBudtender',
-        timestamp: '2d ago',
-        upvotes: 28,
-        downvotes: 0,
-      },
-      {
-        id: 'c12',
-        content: 'Bring cash and your ID! Most places don\'t take cards yet.',
-        author: 'ExperiencedUser',
-        timestamp: '2d ago',
-        upvotes: 19,
-        downvotes: 0,
-      },
-    ],
-    category: 'Dispensaries',
-    communities: ['beginners', 'local'],
-  },
-  {
-    id: '9',
-    title: 'Made cannabis-infused honey! 🍯',
-    content: 'Just finished my first batch of cannabis honey. The process was easier than I thought! Perfect for tea or toast.',
-    author: 'HoneyMaker',
-    timestamp: '2d ago',
-    upvotes: 203,
-    downvotes: 8,
-    comments: [
-      {
-        id: 'c13',
-        content: 'Recipe please! This sounds amazing.',
-        author: 'SweetTooth',
-        timestamp: '2d ago',
-        upvotes: 15,
-        downvotes: 0,
-      },
-    ],
-    category: 'Edibles',
-    image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?q=80&w=1000',
-    communities: ['edibles', 'veterans'],
-  },
-  {
-    id: '10',
-    title: 'Terpenes explained - why they matter',
-    content: 'Deep dive into terpenes and how they affect your high. Myrcene, limonene, pinene - what do they all do?',
-    author: 'TerpeneTeacher',
-    timestamp: '3d ago',
-    upvotes: 445,
-    downvotes: 15,
-    comments: [
-      {
-        id: 'c14',
-        content: 'This is so helpful! I never understood why the same THC% felt different.',
-        author: 'LearningUser',
-        timestamp: '3d ago',
-        upvotes: 32,
-        downvotes: 0,
-      },
-    ],
-    category: 'Education',
-    isPinned: true,
-    awards: 2,
-    communities: ['beginners', 'veterans'],
-  },
-  {
-    id: '11',
-    title: 'Micro-dosing with edibles - game changer!',
-    content: 'Started micro-dosing with 2.5mg gummies and it\'s been amazing for productivity and mood. Anyone else tried this?',
-    author: 'MicroDoser',
-    timestamp: '3d ago',
-    upvotes: 312,
-    downvotes: 22,
-    comments: [
-      {
-        id: 'c15',
-        content: 'Yes! 2-3mg is perfect for daytime use without impairment.',
-        author: 'ProductiveStoner',
-        timestamp: '3d ago',
-        upvotes: 24,
-        downvotes: 1,
-      },
-    ],
-    category: 'Medical',
-    communities: ['medical', 'edibles'],
-  },
-  {
-    id: '12',
-    title: 'Indoor vs outdoor grown - can you taste the difference?',
-    content: 'Been debating with friends about whether you can actually taste the difference between indoor and outdoor grown cannabis. Thoughts?',
-    author: 'FlavorChaser',
-    timestamp: '4d ago',
-    upvotes: 198,
-    downvotes: 31,
-    comments: [
-      {
-        id: 'c16',
-        content: 'Outdoor has more complex terpene profiles in my experience.',
-        author: 'OutdoorGrower',
-        timestamp: '4d ago',
-        upvotes: 17,
-        downvotes: 3,
-      },
-    ],
-    category: 'Growing',
-    communities: ['growers', 'veterans'],
-  },
-  {
-    id: '13',
-    title: 'Cannabis for seniors - my grandmother\'s journey',
-    content: 'My 78-year-old grandmother started using CBD for arthritis pain. The results have been incredible. Sharing her story.',
-    author: 'GrandchildAdvocate',
-    timestamp: '4d ago',
-    upvotes: 567,
-    downvotes: 8,
-    comments: [
-      {
-        id: 'c17',
-        content: 'This is beautiful! Cannabis can really improve quality of life.',
-        author: 'CompassionateUser',
-        timestamp: '4d ago',
-        upvotes: 43,
-        downvotes: 0,
-      },
-    ],
-    category: 'Medical',
-    awards: 4,
-    communities: ['seniors', 'medical'],
-  },
-  {
-    id: '14',
-    title: 'Best rolling papers? Let\'s settle this debate',
-    content: 'Raw, Zig-Zag, OCB, or something else? What\'s your go-to rolling paper and why?',
-    author: 'RollingMaster',
-    timestamp: '5d ago',
-    upvotes: 234,
-    downvotes: 18,
-    comments: [
-      {
-        id: 'c18',
-        content: 'Raw Black all the way! Burns so clean.',
-        author: 'CleanBurner',
-        timestamp: '5d ago',
-        upvotes: 29,
-        downvotes: 2,
-      },
-    ],
-    category: 'General',
-    communities: ['general', 'veterans'],
-  },
-  {
-    id: '15',
-    title: 'Cannabis business opportunities in 2025',
-    content: 'With more states legalizing, what business opportunities do you see emerging? Thinking about getting into the industry.',
-    author: 'BusinessMinded',
-    timestamp: '5d ago',
-    upvotes: 189,
-    downvotes: 25,
-    comments: [
-      {
-        id: 'c19',
-        content: 'Delivery services and cannabis tourism are huge growth areas.',
-        author: 'IndustryInsider',
-        timestamp: '5d ago',
-        upvotes: 22,
-        downvotes: 1,
-      },
-    ],
-    category: 'Business',
-    communities: ['entrepreneurs', 'general'],
-  },
-  {
-    id: '16',
-    title: 'Harvest day! First grow complete 🌿',
-    content: 'After 4 months, finally harvested my first plants! Northern Lights auto. So proud of these ladies.',
-    author: 'ProudGrower',
-    timestamp: '6d ago',
-    upvotes: 423,
-    downvotes: 12,
-    comments: [
-      {
-        id: 'c20',
-        content: 'Congratulations! Nothing beats your own homegrown.',
-        author: 'VeteranGrower',
-        timestamp: '6d ago',
-        upvotes: 31,
-        downvotes: 0,
-      },
-    ],
-    category: 'Growing',
-    image: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?q=80&w=1000',
-    awards: 2,
-    communities: ['growers', 'beginners'],
-  },
-  {
-    id: '17',
-    title: 'Cannabis and exercise - performance enhancer?',
-    content: 'Been using cannabis before workouts and I swear it helps with focus and recovery. Anyone else experience this?',
-    author: 'FitStoner',
-    timestamp: '6d ago',
-    upvotes: 267,
-    downvotes: 34,
-    comments: [
-      {
-        id: 'c21',
-        content: 'CBD is great for recovery, THC helps me get in the zone.',
-        author: 'AthleteUser',
-        timestamp: '6d ago',
-        upvotes: 19,
-        downvotes: 2,
-      },
-    ],
-    category: 'Lifestyle',
-    communities: ['general', 'medical'],
-  },
-  {
-    id: '18',
-    title: 'Dispensary etiquette - do\'s and don\'ts',
-    content: 'Working at a dispensary for 2 years now. Here are some tips to make everyone\'s experience better.',
-    author: 'BudtenderPro',
-    timestamp: '1w ago',
-    upvotes: 356,
-    downvotes: 9,
-    comments: [
-      {
-        id: 'c22',
-        content: 'Thank you for this! Didn\'t know about the smell jar etiquette.',
-        author: 'PoliteCustomer',
-        timestamp: '1w ago',
-        upvotes: 25,
-        downvotes: 0,
-      },
-    ],
-    category: 'Dispensaries',
-    isPinned: true,
-    communities: ['local', 'beginners'],
-  },
-  {
-    id: '19',
-    title: 'Cannabis cooking fails - learn from my mistakes!',
-    content: 'Made every mistake in the book when I started cooking with cannabis. Here\'s what NOT to do...',
-    author: 'CookingFails',
-    timestamp: '1w ago',
-    upvotes: 445,
-    downvotes: 16,
-    comments: [
-      {
-        id: 'c23',
-        content: 'The butter burning story had me dying! 😂',
-        author: 'LaughingChef',
-        timestamp: '1w ago',
-        upvotes: 33,
-        downvotes: 0,
-      },
-    ],
-    category: 'Edibles',
-    awards: 1,
-    communities: ['edibles', 'beginners'],
-  },
-  {
-    id: '20',
-    title: 'Local cannabis events this weekend',
-    content: 'Hemp fest downtown Saturday, and there\'s a grow workshop Sunday. Who\'s going?',
-    author: 'EventPlanner',
-    timestamp: '1w ago',
-    upvotes: 123,
-    downvotes: 5,
-    comments: [
-      {
-        id: 'c24',
-        content: 'See you at the hemp fest! Can\'t wait.',
-        author: 'FestivalGoer',
-        timestamp: '1w ago',
-        upvotes: 12,
-        downvotes: 0,
-      },
-    ],
-    category: 'Events',
-    communities: ['local', 'general'],
-  }
 ];
 
 
@@ -683,7 +323,6 @@ const highlights: Highlight[] = [
 export default function ExploreScreen() {
   const { theme } = useTheme();
   const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
-  const { joinedCommunities, joinCommunity, leaveCommunity, isJoined } = useCommunities();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'recent' | 'nearme'>('recent');
   const [posts, setPosts] = useState<ForumPost[]>(initialMockPosts);
@@ -701,11 +340,7 @@ export default function ExploreScreen() {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCommunities = selectedCommunities.length === 0 || selectedCommunities.some(communityId => post.communities.includes(communityId));
-    
-    // Only show posts from communities the user has joined
-    const hasJoinedCommunity = post.communities.some(communityId => isJoined(communityId));
-    
-    return matchesSearch && matchesCommunities && hasJoinedCommunity;
+    return matchesSearch && matchesCommunities;
   });
 
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -904,51 +539,30 @@ export default function ExploreScreen() {
 
   const renderCommunity = (community: Community) => {
     const isSelected = selectedCommunities.includes(community.id);
-    const isMember = isJoined(community.id);
-    
     return (
       <TouchableOpacity
         key={community.id}
         style={[
           styles.communityChip,
           {
-            backgroundColor: isSelected ? community.color : (isMember ? community.color + '20' : theme.colors.card),
-            borderColor: isSelected ? community.color : (isMember ? community.color : theme.colors.border),
-            borderWidth: isMember ? 2 : 1.5,
+            backgroundColor: isSelected ? community.color : theme.colors.card,
+            borderColor: isSelected ? community.color : theme.colors.border,
           }
         ]}
-        onPress={() => {
-          if (isMember) {
-            toggleCommunity(community.id);
-          }
-        }}
-        onLongPress={() => {
-          if (isMember) {
-            leaveCommunity(community.id);
-          } else {
-            joinCommunity(community.id);
-          }
-        }}
+        onPress={() => toggleCommunity(community.id)}
       >
         <Text style={styles.communityChipIcon}>{community.icon}</Text>
         <View style={styles.communityChipContent}>
-          <View style={styles.communityChipHeader}>
-            <Text
-              style={[
-                styles.communityChipName,
-                {
-                  color: isSelected ? theme.colors.background : (isMember ? community.color : theme.colors.text),
-                }
-              ]}
-            >
-              {community.name}
-            </Text>
-            {isMember && (
-              <View style={[styles.memberBadge, { backgroundColor: community.color }]}>
-                <Text style={[styles.memberBadgeText, { color: theme.colors.background }]}>✓</Text>
-              </View>
-            )}
-          </View>
+          <Text
+            style={[
+              styles.communityChipName,
+              {
+                color: isSelected ? theme.colors.background : theme.colors.text,
+              }
+            ]}
+          >
+            {community.name}
+          </Text>
           <Text
             style={[
               styles.communityChipMembers,
@@ -992,36 +606,36 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-
+      {/* Communities Section */}
+      <View style={styles.communitiesSection}>
+        <View style={styles.communitiesSectionHeader}>
+          <View>
+            <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
+            <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join the conversation</Text>
+          </View>
+          {selectedCommunities.length > 0 && (
+            <TouchableOpacity 
+              style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
+              onPress={() => setSelectedCommunities([])}
+            >
+              <X size={12} color={theme.colors.error} />
+              <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
+                Clear ({selectedCommunities.length})
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.communitiesContainer}
+        >
+          {popularCommunities.map(renderCommunity)}
+        </ScrollView>
+      </View>
 
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
-        {/* Communities Section - Now scrolls with content */}
-        <View style={styles.scrollingCommunitiesSection}>
-          <View style={styles.communitiesSectionHeader}>
-            <View>
-              <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
-              <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join to post • Long press to join/leave</Text>
-            </View>
-            {selectedCommunities.length > 0 && (
-              <TouchableOpacity 
-                style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
-                onPress={() => setSelectedCommunities([])}
-              >
-                <X size={12} color={theme.colors.error} />
-                <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
-                  Clear ({selectedCommunities.length})
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.communitiesContainer}
-          >
-            {popularCommunities.map(renderCommunity)}
-          </ScrollView>
-        </View>
+
 
         <View style={styles.sortContainer}>
           <TouchableOpacity
@@ -1564,11 +1178,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
-  scrollingCommunitiesSection: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    marginTop: 16,
-  },
   communitiesSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1603,22 +1212,6 @@ const styles = StyleSheet.create({
   },
   communityChipContent: {
     flex: 1,
-  },
-  communityChipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  memberBadge: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  memberBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
   },
   communityChipName: {
     fontSize: 14,
