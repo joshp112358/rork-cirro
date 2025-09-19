@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
-import { Plus, TrendingUp, Calendar, Settings, Bot, Users } from 'lucide-react-native';
+import { Plus, TrendingUp, Calendar, Settings, Bot } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks/use-theme';
 import { useEntries, useRecentEntries } from '@/hooks/use-entries';
@@ -72,22 +72,6 @@ export default function HomeScreen() {
             <View style={styles.newEntryText}>
               <Text style={styles.newEntryTitle}>AI Budtender</Text>
               <Text style={styles.newEntrySubtitle}>Get personalized recommendations</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.exploreButton}
-          onPress={() => router.push('/(tabs)/explore')}
-          testID="explore-button"
-        >
-          <View style={styles.newEntryContent}>
-            <View style={styles.exploreIcon}>
-              <Users size={20} color={theme.colors.primary} strokeWidth={1.5} />
-            </View>
-            <View style={styles.newEntryText}>
-              <Text style={styles.newEntryTitle}>Explore Communities</Text>
-              <Text style={styles.newEntrySubtitle}>Connect with fellow enthusiasts</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -171,29 +155,12 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   budtenderButton: {
     marginHorizontal: theme.spacing.xl,
-    marginBottom: theme.spacing.lg,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.xl,
-  },
-  exploreButton: {
-    marginHorizontal: theme.spacing.xl,
     marginBottom: theme.spacing.xxl,
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
     borderWidth: 0.5,
     borderColor: theme.colors.border,
     padding: theme.spacing.xl,
-  },
-  exploreIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.cardSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   botIcon: {
     width: 40,
