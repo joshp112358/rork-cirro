@@ -56,6 +56,12 @@ function RootLayoutNav() {
             headerTintColor: theme.colors.text,
           }} 
         />
+        <Stack.Screen 
+          name="thread/[id]" 
+          options={{ 
+            headerShown: false,
+          }} 
+        />
       </Stack>
     </>
   );
