@@ -96,7 +96,7 @@ export default function HomeScreen() {
         {recentEntries.length > 0 && (
           <View style={styles.recentSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Sessions</Text>
+              <Text style={styles.sectionTitle}>Past Sessions</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/journal')}>
                 <Text style={styles.seeAll}>View All</Text>
               </TouchableOpacity>
@@ -123,16 +123,7 @@ export default function HomeScreen() {
             style={styles.communityPreview}
             onPress={() => router.push('/(tabs)/explore')}
           >
-            <View style={styles.communityStats}>
-              <View style={styles.statItem}>
-                <Users size={16} color={theme.colors.primary} />
-                <Text style={styles.statText}>18.7k members</Text>
-              </View>
-              <View style={styles.statItem}>
-                <MessageCircle size={16} color={theme.colors.primary} />
-                <Text style={styles.statText}>342 discussions</Text>
-              </View>
-            </View>
+
             
             <View style={styles.trendingPosts}>
               <View style={styles.trendingPost}>
@@ -144,7 +135,7 @@ export default function HomeScreen() {
                   <Text style={styles.postTitle} numberOfLines={2}>
                     Best strains for anxiety relief?
                   </Text>
-                  <Text style={styles.postMeta}>Medical • 2h ago</Text>
+                  <Text style={styles.postMeta}>Veterans • 2h ago</Text>
                 </View>
               </View>
               
@@ -157,7 +148,7 @@ export default function HomeScreen() {
                   <Text style={styles.postTitle} numberOfLines={2}>
                     Homemade edibles - dosage tips?
                   </Text>
-                  <Text style={styles.postMeta}>Beginners • 6h ago</Text>
+                  <Text style={styles.postMeta}>Students • 6h ago</Text>
                 </View>
               </View>
             </View>
@@ -504,14 +495,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: theme.colors.border,
     padding: theme.spacing.lg,
   },
-  communityStats: {
-    flexDirection: 'row',
-    gap: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.border,
-  },
+
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',

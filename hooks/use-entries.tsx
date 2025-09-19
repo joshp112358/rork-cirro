@@ -6,6 +6,115 @@ import { JournalEntry } from '@/types/entry';
 
 const STORAGE_KEY = 'cannabis_journal_entries';
 
+// Default filler entries
+const DEFAULT_ENTRIES: JournalEntry[] = [
+  {
+    id: 'default-1',
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    strain: {
+      name: 'Girl Scout Cookies',
+      type: 'Hybrid',
+      thc: 28,
+      cbd: 0.1
+    },
+    amount: 0.5,
+    method: 'Flower',
+    mood: { overall: 5 },
+    effects: [
+      { name: 'Relaxed', intensity: 4 },
+      { name: 'Happy', intensity: 5 },
+      { name: 'Euphoric', intensity: 4 },
+      { name: 'Hungry', intensity: 3 }
+    ],
+    notes: 'Perfect evening strain. Sweet earthy flavor with hints of mint and cherry. Great for unwinding after a long day.',
+    rating: 5
+  },
+  {
+    id: 'default-2',
+    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    strain: {
+      name: 'Purple Haze',
+      type: 'Sativa',
+      thc: 22,
+      cbd: 0.2
+    },
+    amount: 0.3,
+    method: 'Vape',
+    mood: { overall: 4 },
+    effects: [
+      { name: 'Creative', intensity: 5 },
+      { name: 'Energetic', intensity: 4 },
+      { name: 'Uplifted', intensity: 4 },
+      { name: 'Focused', intensity: 3 }
+    ],
+    notes: 'Classic Hendrix strain! Amazing for creative projects. Berry and grape flavors with a smooth vape experience.',
+    rating: 4
+  },
+  {
+    id: 'default-3',
+    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+    strain: {
+      name: 'Blue Dream',
+      type: 'Hybrid',
+      thc: 24,
+      cbd: 0.3
+    },
+    amount: 1.0,
+    method: 'Flower',
+    mood: { overall: 4 },
+    effects: [
+      { name: 'Relaxed', intensity: 3 },
+      { name: 'Happy', intensity: 4 },
+      { name: 'Creative', intensity: 3 },
+      { name: 'Pain Relief', intensity: 4 }
+    ],
+    notes: 'Balanced hybrid that\'s great for daytime use. Sweet berry aroma with smooth smoke. Perfect for social situations.',
+    rating: 4
+  },
+  {
+    id: 'default-4',
+    timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    strain: {
+      name: 'OG Kush',
+      type: 'Hybrid',
+      thc: 26,
+      cbd: 0.1
+    },
+    amount: 0.4,
+    method: 'Dab',
+    mood: { overall: 5 },
+    effects: [
+      { name: 'Relaxed', intensity: 5 },
+      { name: 'Euphoric', intensity: 4 },
+      { name: 'Couch Lock', intensity: 3 },
+      { name: 'Sleepy', intensity: 2 }
+    ],
+    notes: 'The classic! Earthy pine flavor with citrus undertones. Perfect for evening relaxation and stress relief.',
+    rating: 5
+  },
+  {
+    id: 'default-5',
+    timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 2 weeks ago
+    strain: {
+      name: 'Sour Diesel',
+      type: 'Sativa',
+      thc: 25,
+      cbd: 0.2
+    },
+    amount: 0.6,
+    method: 'Flower',
+    mood: { overall: 4 },
+    effects: [
+      { name: 'Energetic', intensity: 5 },
+      { name: 'Focused', intensity: 4 },
+      { name: 'Uplifted', intensity: 4 },
+      { name: 'Talkative', intensity: 3 }
+    ],
+    notes: 'Great wake and bake strain. Diesel aroma with citrus notes. Keeps me motivated and productive throughout the day.',
+    rating: 4
+  }
+];
+
 export const [EntriesProvider, useEntries] = createContextHook(() => {
   const queryClient = useQueryClient();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -14,7 +123,23 @@ export const [EntriesProvider, useEntries] = createContextHook(() => {
     queryKey: ['entries'],
     queryFn: async () => {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      const storedEntries = stored ? JSON.parse(stored) : [];
+      
+      // If no stored entries, return default entries
+      if (storedEntries.length === 0) {
+        // Convert timestamp strings back to Date objects for default entries
+        const defaultWithDates = DEFAULT_ENTRIES.map(entry => ({
+          ...entry,
+          timestamp: new Date(entry.timestamp)
+        }));
+        return defaultWithDates;
+      }
+      
+      // Convert timestamp strings back to Date objects for stored entries
+      return storedEntries.map((entry: any) => ({
+        ...entry,
+        timestamp: new Date(entry.timestamp)
+      }));
     }
   });
 
