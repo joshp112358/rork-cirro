@@ -35,6 +35,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
+import { router } from 'expo-router';
 
 interface Comment {
   id: string;
@@ -292,11 +293,19 @@ export default function ExploreScreen() {
   );
 
   const renderPost = (post: ForumPost) => (
-    <TouchableOpacity key={post.id} style={[styles.postCard, { backgroundColor: theme.colors.card }, theme.shadow.small]}>
+    <TouchableOpacity 
+      key={post.id} 
+      style={[styles.postCard, { backgroundColor: theme.colors.card }, theme.shadow.small]}
+      onPress={() => router.push(`/thread/${post.id}`)}
+      activeOpacity={0.7}
+    >
       <View style={styles.postContainer}>
         {/* Vote column */}
         <View style={styles.voteColumn}>
-          <TouchableOpacity style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}>
+          <TouchableOpacity 
+            style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+            onPress={(e) => e.stopPropagation()}
+          >
             <ArrowUp 
               size={18} 
               color={post.isUpvoted ? theme.colors.primary : theme.colors.textTertiary}
@@ -306,7 +315,10 @@ export default function ExploreScreen() {
           <Text style={[styles.voteCount, { color: theme.colors.text }]}>
             {(post.upvotes - post.downvotes).toLocaleString()}
           </Text>
-          <TouchableOpacity style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}>
+          <TouchableOpacity 
+            style={[styles.voteButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+            onPress={(e) => e.stopPropagation()}
+          >
             <ArrowDown 
               size={18} 
               color={post.isDownvoted ? theme.colors.error : theme.colors.textTertiary}
@@ -378,7 +390,8 @@ export default function ExploreScreen() {
           <View style={styles.postActions}>
             <TouchableOpacity 
               style={styles.actionButton}
-              onPress={() => {
+              onPress={(e) => {
+                e.stopPropagation();
                 setSelectedPost(post);
                 setShowComments(true);
               }}
@@ -390,7 +403,10 @@ export default function ExploreScreen() {
             </TouchableOpacity>
             
             {post.awards && post.awards > 0 && (
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={(e) => e.stopPropagation()}
+              >
                 <Award size={16} color={theme.colors.warning} />
                 <Text style={[styles.actionText, { color: theme.colors.textTertiary }]}>
                   {post.awards}
@@ -398,7 +414,10 @@ export default function ExploreScreen() {
               </TouchableOpacity>
             )}
             
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={(e) => e.stopPropagation()}
+            >
               <Bookmark 
                 size={16} 
                 color={post.isBookmarked ? theme.colors.primary : theme.colors.textTertiary}
@@ -458,7 +477,10 @@ export default function ExploreScreen() {
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Explore</Text>
           <Text style={[styles.headerSubtitle, { color: theme.colors.textTertiary }]}>Discover Community discussions</Text>
         </View>
-        <TouchableOpacity style={[styles.createButton, { backgroundColor: theme.colors.primary }, theme.shadow.small]}>
+        <TouchableOpacity 
+          style={[styles.createButton, { backgroundColor: theme.colors.primary }, theme.shadow.small]}
+          onPress={() => router.push('/create-post')}
+        >
           <Plus size={20} color={theme.colors.background} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
