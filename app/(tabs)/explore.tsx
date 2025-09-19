@@ -36,6 +36,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from '@/hooks/use-location';
+import { useCommunities } from '@/hooks/use-communities';
 import { router } from 'expo-router';
 
 interface Comment {
@@ -323,6 +324,7 @@ const highlights: Highlight[] = [
 export default function ExploreScreen() {
   const { theme } = useTheme();
   const { location, isLoading: locationLoading, requestPermission, hasPermission } = useLocation();
+  const { joinedCommunities, joinCommunity, leaveCommunity, isJoined } = useCommunities();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'recent' | 'nearme'>('recent');
   const [posts, setPosts] = useState<ForumPost[]>(initialMockPosts);
@@ -340,7 +342,11 @@ export default function ExploreScreen() {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCommunities = selectedCommunities.length === 0 || selectedCommunities.some(communityId => post.communities.includes(communityId));
-    return matchesSearch && matchesCommunities;
+    
+    // Only show posts from communities the user has joined
+    const hasJoinedCommunity = post.communities.some(communityId => isJoined(communityId));
+    
+    return matchesSearch && matchesCommunities && hasJoinedCommunity;
   });
 
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -539,30 +545,51 @@ export default function ExploreScreen() {
 
   const renderCommunity = (community: Community) => {
     const isSelected = selectedCommunities.includes(community.id);
+    const isMember = isJoined(community.id);
+    
     return (
       <TouchableOpacity
         key={community.id}
         style={[
           styles.communityChip,
           {
-            backgroundColor: isSelected ? community.color : theme.colors.card,
-            borderColor: isSelected ? community.color : theme.colors.border,
+            backgroundColor: isSelected ? community.color : (isMember ? community.color + '20' : theme.colors.card),
+            borderColor: isSelected ? community.color : (isMember ? community.color : theme.colors.border),
+            borderWidth: isMember ? 2 : 1.5,
           }
         ]}
-        onPress={() => toggleCommunity(community.id)}
+        onPress={() => {
+          if (isMember) {
+            toggleCommunity(community.id);
+          }
+        }}
+        onLongPress={() => {
+          if (isMember) {
+            leaveCommunity(community.id);
+          } else {
+            joinCommunity(community.id);
+          }
+        }}
       >
         <Text style={styles.communityChipIcon}>{community.icon}</Text>
         <View style={styles.communityChipContent}>
-          <Text
-            style={[
-              styles.communityChipName,
-              {
-                color: isSelected ? theme.colors.background : theme.colors.text,
-              }
-            ]}
-          >
-            {community.name}
-          </Text>
+          <View style={styles.communityChipHeader}>
+            <Text
+              style={[
+                styles.communityChipName,
+                {
+                  color: isSelected ? theme.colors.background : (isMember ? community.color : theme.colors.text),
+                }
+              ]}
+            >
+              {community.name}
+            </Text>
+            {isMember && (
+              <View style={[styles.memberBadge, { backgroundColor: community.color }]}>
+                <Text style={[styles.memberBadgeText, { color: theme.colors.background }]}>✓</Text>
+              </View>
+            )}
+          </View>
           <Text
             style={[
               styles.communityChipMembers,
@@ -606,36 +633,36 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-      {/* Communities Section */}
-      <View style={styles.communitiesSection}>
-        <View style={styles.communitiesSectionHeader}>
-          <View>
-            <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
-            <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join the conversation</Text>
-          </View>
-          {selectedCommunities.length > 0 && (
-            <TouchableOpacity 
-              style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
-              onPress={() => setSelectedCommunities([])}
-            >
-              <X size={12} color={theme.colors.error} />
-              <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
-                Clear ({selectedCommunities.length})
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.communitiesContainer}
-        >
-          {popularCommunities.map(renderCommunity)}
-        </ScrollView>
-      </View>
+
 
       <ScrollView style={styles.postsContainer} showsVerticalScrollIndicator={false}>
-
+        {/* Communities Section - Now scrolls with content */}
+        <View style={styles.scrollingCommunitiesSection}>
+          <View style={styles.communitiesSectionHeader}>
+            <View>
+              <Text style={[styles.communitiesTitle, { color: theme.colors.text }]}>Communities</Text>
+              <Text style={[styles.communitiesSubtitle, { color: theme.colors.textTertiary }]}>Join to post • Long press to join/leave</Text>
+            </View>
+            {selectedCommunities.length > 0 && (
+              <TouchableOpacity 
+                style={[styles.clearCommunitiesButton, { backgroundColor: theme.colors.error + '15' }]}
+                onPress={() => setSelectedCommunities([])}
+              >
+                <X size={12} color={theme.colors.error} />
+                <Text style={[styles.clearCommunitiesText, { color: theme.colors.error }]}>
+                  Clear ({selectedCommunities.length})
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.communitiesContainer}
+          >
+            {popularCommunities.map(renderCommunity)}
+          </ScrollView>
+        </View>
 
         <View style={styles.sortContainer}>
           <TouchableOpacity
@@ -1178,6 +1205,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  scrollingCommunitiesSection: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 16,
+  },
   communitiesSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1212,6 +1244,22 @@ const styles = StyleSheet.create({
   },
   communityChipContent: {
     flex: 1,
+  },
+  communityChipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  memberBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  memberBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   communityChipName: {
     fontSize: 14,

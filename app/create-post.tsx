@@ -20,23 +20,99 @@ import {
   Minus,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
+import { useCommunities } from '@/hooks/use-communities';
 import { router } from 'expo-router';
 
-interface PostCategory {
+interface Community {
   id: string;
   name: string;
+  description: string;
+  memberCount: number;
+  icon: string;
   color: string;
 }
 
-const categories: PostCategory[] = [
-  { id: 'general', name: 'General', color: '#6B7280' },
-  { id: 'medical', name: 'Medical', color: '#10B981' },
-  { id: 'strains', name: 'Strains', color: '#8B5CF6' },
-  { id: 'edibles', name: 'Edibles', color: '#F59E0B' },
-  { id: 'growing', name: 'Growing', color: '#059669' },
-  { id: 'dispensaries', name: 'Dispensaries', color: '#DC2626' },
-  { id: 'reviews', name: 'Reviews', color: '#7C3AED' },
-  { id: 'news', name: 'News', color: '#2563EB' },
+const communities: Community[] = [
+  {
+    id: 'beginners',
+    name: 'Beginners',
+    description: 'New to cannabis? Start here!',
+    memberCount: 12500,
+    icon: '🌱',
+    color: '#10B981'
+  },
+  {
+    id: 'veterans',
+    name: 'Veterans',
+    description: 'Experienced users sharing knowledge',
+    memberCount: 8900,
+    icon: '🏆',
+    color: '#F59E0B'
+  },
+  {
+    id: 'seniors',
+    name: 'Seniors',
+    description: 'Cannabis community for seniors',
+    memberCount: 3200,
+    icon: '👴',
+    color: '#8B5CF6'
+  },
+  {
+    id: 'entrepreneurs',
+    name: 'Entrepreneurs',
+    description: 'Cannabis business and industry',
+    memberCount: 5600,
+    icon: '💼',
+    color: '#EF4444'
+  },
+  {
+    id: 'medical',
+    name: 'Medical',
+    description: 'Medical cannabis discussions',
+    memberCount: 15800,
+    icon: '🏥',
+    color: '#06B6D4'
+  },
+  {
+    id: 'growers',
+    name: 'Growers',
+    description: 'Growing tips and techniques',
+    memberCount: 7300,
+    icon: '🌿',
+    color: '#84CC16'
+  },
+  {
+    id: 'edibles',
+    name: 'Edibles',
+    description: 'Cooking and baking with cannabis',
+    memberCount: 9100,
+    icon: '🍪',
+    color: '#F97316'
+  },
+  {
+    id: 'local',
+    name: 'Local',
+    description: 'Local dispensaries and events',
+    memberCount: 4500,
+    icon: '📍',
+    color: '#EC4899'
+  },
+  {
+    id: 'reviews',
+    name: 'Reviews',
+    description: 'Product and strain reviews',
+    memberCount: 11200,
+    icon: '⭐',
+    color: '#6366F1'
+  },
+  {
+    id: 'general',
+    name: 'General',
+    description: 'General cannabis discussions',
+    memberCount: 18700,
+    icon: '💬',
+    color: '#64748B'
+  }
 ];
 
 const popularTags = [
@@ -47,12 +123,16 @@ const popularTags = [
 
 export default function CreatePostScreen() {
   const { theme } = useTheme();
+  const { joinedCommunities, isJoined } = useCommunities();
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('general');
+  const [selectedCommunity, setSelectedCommunity] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  
+  // Filter communities to only show joined ones
+  const joinedCommunitiesData = communities.filter(community => isJoined(community.id));
 
   const addTag = (tag: string) => {
     const cleanTag = tag.toLowerCase().trim();
@@ -77,6 +157,11 @@ export default function CreatePostScreen() {
       Alert.alert('Missing Information', 'Please fill in both title and content.');
       return;
     }
+    
+    if (!selectedCommunity) {
+      Alert.alert('Select Community', 'Please select a community to post in.');
+      return;
+    }
 
     setIsSubmitting(true);
     
@@ -88,7 +173,7 @@ export default function CreatePostScreen() {
       const newPost = {
         title: title.trim(),
         content: content.trim(),
-        category: selectedCategory,
+        community: selectedCommunity,
         tags: tags,
         timestamp: new Date().toISOString(),
       };
@@ -107,7 +192,38 @@ export default function CreatePostScreen() {
     }
   };
 
-  const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+  const selectedCommunityData = communities.find(comm => comm.id === selectedCommunity);
+  
+  // Show message if user hasn't joined any communities
+  if (joinedCommunitiesData.length === 0) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <X size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Create Post</Text>
+          <View style={{ width: 36 }} />
+        </View>
+        
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>Join a Community First</Text>
+          <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+            You need to join at least one community before you can create posts. Go to the Explore tab and long press on communities to join them.
+          </Text>
+          <TouchableOpacity 
+            style={[styles.exploreButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => {
+              router.back();
+              router.push('/(tabs)/explore');
+            }}
+          >
+            <Text style={[styles.exploreButtonText, { color: theme.colors.background }]}>Explore Communities</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -125,15 +241,15 @@ export default function CreatePostScreen() {
             style={[
               styles.submitButton,
               { 
-                backgroundColor: (title.trim() && content.trim()) ? theme.colors.primary : theme.colors.textTertiary + '30'
+                backgroundColor: (title.trim() && content.trim() && selectedCommunity) ? theme.colors.primary : theme.colors.textTertiary + '30'
               }
             ]}
             onPress={handleSubmit}
-            disabled={!title.trim() || !content.trim() || isSubmitting}
+            disabled={!title.trim() || !content.trim() || !selectedCommunity || isSubmitting}
           >
             <Send 
               size={18} 
-              color={(title.trim() && content.trim()) ? theme.colors.background : theme.colors.textTertiary} 
+              color={(title.trim() && content.trim() && selectedCommunity) ? theme.colors.background : theme.colors.textTertiary} 
             />
           </TouchableOpacity>
         </View>
@@ -163,37 +279,39 @@ export default function CreatePostScreen() {
             </Text>
           </View>
 
-          {/* Category Selection */}
+          {/* Community Selection */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Category</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Community</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>Choose which community to post in</Text>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriesContainer}
             >
-              {categories.map((category) => {
-                const isSelected = selectedCategory === category.id;
+              {joinedCommunitiesData.map((community) => {
+                const isSelected = selectedCommunity === community.id;
                 return (
                   <TouchableOpacity
-                    key={category.id}
+                    key={community.id}
                     style={[
-                      styles.categoryChip,
+                      styles.communityChip,
                       {
-                        backgroundColor: isSelected ? category.color : theme.colors.card,
-                        borderColor: isSelected ? category.color : theme.colors.border,
+                        backgroundColor: isSelected ? community.color : theme.colors.card,
+                        borderColor: isSelected ? community.color : theme.colors.border,
                       }
                     ]}
-                    onPress={() => setSelectedCategory(category.id)}
+                    onPress={() => setSelectedCommunity(community.id)}
                   >
+                    <Text style={styles.communityIcon}>{community.icon}</Text>
                     <Text
                       style={[
-                        styles.categoryText,
+                        styles.communityText,
                         {
                           color: isSelected ? theme.colors.background : theme.colors.text,
                         }
                       ]}
                     >
-                      {category.name}
+                      {community.name}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -410,6 +528,50 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  communityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    gap: 8,
+    minWidth: 100,
+  },
+  communityIcon: {
+    fontSize: 16,
+  },
+  communityText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    gap: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  exploreButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginTop: 8,
+  },
+  exploreButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   selectedTags: {
     flexDirection: 'row',

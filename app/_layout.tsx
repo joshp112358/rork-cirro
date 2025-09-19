@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { EntriesProvider } from "@/hooks/use-entries";
 import { ThemeProvider, useTheme } from "@/hooks/use-theme";
 import { UserProvider } from "@/hooks/use-user";
+import { CommunityProvider } from "@/hooks/use-communities";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -82,11 +83,13 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <UserProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <EntriesProvider>
-              <RootLayoutNav />
-            </EntriesProvider>
-          </GestureHandlerRootView>
+          <CommunityProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <EntriesProvider>
+                <RootLayoutNav />
+              </EntriesProvider>
+            </GestureHandlerRootView>
+          </CommunityProvider>
         </UserProvider>
       </ThemeProvider>
     </QueryClientProvider>
