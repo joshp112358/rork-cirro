@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, BookOpen, Users, User } from "lucide-react-native";
+import { Home, BookOpen, User } from "lucide-react-native";
 import React from "react";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -38,14 +38,6 @@ export default function TabLayout() {
         options={{
           title: "Journal",
           tabBarIcon: ({ color, size }) => <BookOpen size={20} color={color} strokeWidth={1.5} />,
-        }}
-      />
-
-      <Tabs.Screen
-        name="discover"
-        options={{
-          title: "Community",
-          tabBarIcon: ({ color, size }) => <Users size={20} color={color} strokeWidth={1.5} />,
         }}
       />
 
