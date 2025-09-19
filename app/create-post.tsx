@@ -13,64 +13,35 @@ import {
 } from 'react-native';
 import {
   X,
-  Hash,
-  Image as ImageIcon,
   Send,
-  Plus,
-  Minus,
 } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { router } from 'expo-router';
 
-interface PostCategory {
+interface Community {
   id: string;
   name: string;
   color: string;
+  description: string;
 }
 
-const categories: PostCategory[] = [
-  { id: 'general', name: 'General', color: '#6B7280' },
-  { id: 'medical', name: 'Medical', color: '#10B981' },
-  { id: 'strains', name: 'Strains', color: '#8B5CF6' },
-  { id: 'edibles', name: 'Edibles', color: '#F59E0B' },
-  { id: 'growing', name: 'Growing', color: '#059669' },
-  { id: 'dispensaries', name: 'Dispensaries', color: '#DC2626' },
-  { id: 'reviews', name: 'Reviews', color: '#7C3AED' },
-  { id: 'news', name: 'News', color: '#2563EB' },
-];
-
-const popularTags = [
-  'beginner', 'advice', 'review', 'question', 'help',
-  'recommendation', 'experience', 'tips', 'discussion',
-  'cbd', 'thc', 'indica', 'sativa', 'hybrid'
+const communities: Community[] = [
+  { id: 'beginners', name: 'Beginners', color: '#10B981', description: 'New to cannabis? Start here!' },
+  { id: 'veterans', name: 'Veterans', color: '#DC2626', description: 'For military veterans' },
+  { id: 'seniors', name: 'Seniors', color: '#8B5CF6', description: 'Cannabis for older adults' },
+  { id: 'entrepreneurs', name: 'Entrepreneurs', color: '#F59E0B', description: 'Cannabis business discussions' },
+  { id: 'gamers', name: 'Gamers', color: '#2563EB', description: 'Gaming and cannabis community' },
+  { id: 'students', name: 'Students', color: '#059669', description: 'College and university students' },
+  { id: 'medical', name: 'Medical', color: '#7C3AED', description: 'Medical cannabis patients' },
+  { id: 'general', name: 'General', color: '#6B7280', description: 'General discussions' },
 ];
 
 export default function CreatePostScreen() {
   const { theme } = useTheme();
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('general');
-  const [tags, setTags] = useState<string[]>([]);
-  const [customTag, setCustomTag] = useState<string>('');
+  const [selectedCommunity, setSelectedCommunity] = useState<string>('general');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-  const addTag = (tag: string) => {
-    const cleanTag = tag.toLowerCase().trim();
-    if (cleanTag && !tags.includes(cleanTag) && tags.length < 10) {
-      setTags([...tags, cleanTag]);
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const addCustomTag = () => {
-    if (customTag.trim()) {
-      addTag(customTag);
-      setCustomTag('');
-    }
-  };
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
@@ -88,8 +59,7 @@ export default function CreatePostScreen() {
       const newPost = {
         title: title.trim(),
         content: content.trim(),
-        category: selectedCategory,
-        tags: tags,
+        community: selectedCommunity,
         timestamp: new Date().toISOString(),
       };
       
@@ -107,7 +77,7 @@ export default function CreatePostScreen() {
     }
   };
 
-  const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -163,38 +133,51 @@ export default function CreatePostScreen() {
             </Text>
           </View>
 
-          {/* Category Selection */}
+          {/* Community Selection */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Category</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Community</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
+              Choose the community that best fits your post
+            </Text>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesContainer}
+              contentContainerStyle={styles.communitiesContainer}
             >
-              {categories.map((category) => {
-                const isSelected = selectedCategory === category.id;
+              {communities.map((community) => {
+                const isSelected = selectedCommunity === community.id;
                 return (
                   <TouchableOpacity
-                    key={category.id}
+                    key={community.id}
                     style={[
-                      styles.categoryChip,
+                      styles.communityChip,
                       {
-                        backgroundColor: isSelected ? category.color : theme.colors.card,
-                        borderColor: isSelected ? category.color : theme.colors.border,
+                        backgroundColor: isSelected ? community.color : theme.colors.card,
+                        borderColor: isSelected ? community.color : theme.colors.border,
                       }
                     ]}
-                    onPress={() => setSelectedCategory(category.id)}
+                    onPress={() => setSelectedCommunity(community.id)}
                   >
                     <Text
                       style={[
-                        styles.categoryText,
+                        styles.communityText,
                         {
                           color: isSelected ? theme.colors.background : theme.colors.text,
                         }
                       ]}
                     >
-                      {category.name}
+                      {community.name}
                     </Text>
+                    {isSelected && (
+                      <Text
+                        style={[
+                          styles.communityDescription,
+                          { color: theme.colors.background + 'CC' }
+                        ]}
+                      >
+                        {community.description}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -226,94 +209,7 @@ export default function CreatePostScreen() {
             </Text>
           </View>
 
-          {/* Tags Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Tags</Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.colors.textTertiary }]}>
-              Add up to 10 tags to help others find your post
-            </Text>
-            
-            {/* Selected Tags */}
-            {tags.length > 0 && (
-              <View style={styles.selectedTags}>
-                {tags.map((tag) => (
-                  <View key={tag} style={[styles.selectedTag, { backgroundColor: theme.colors.primary + '15' }]}>
-                    <Hash size={12} color={theme.colors.primary} />
-                    <Text style={[styles.selectedTagText, { color: theme.colors.primary }]}>
-                      {tag}
-                    </Text>
-                    <TouchableOpacity onPress={() => removeTag(tag)}>
-                      <Minus size={14} color={theme.colors.primary} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
 
-            {/* Custom Tag Input */}
-            <View style={styles.customTagContainer}>
-              <TextInput
-                style={[
-                  styles.customTagInput,
-                  {
-                    color: theme.colors.text,
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                  }
-                ]}
-                placeholder="Add custom tag..."
-                placeholderTextColor={theme.colors.textTertiary}
-                value={customTag}
-                onChangeText={setCustomTag}
-                maxLength={20}
-                onSubmitEditing={addCustomTag}
-              />
-              <TouchableOpacity 
-                style={[
-                  styles.addTagButton,
-                  { backgroundColor: customTag.trim() ? theme.colors.primary : theme.colors.textTertiary + '30' }
-                ]}
-                onPress={addCustomTag}
-                disabled={!customTag.trim() || tags.length >= 10}
-              >
-                <Plus 
-                  size={16} 
-                  color={customTag.trim() ? theme.colors.background : theme.colors.textTertiary} 
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Popular Tags */}
-            <Text style={[styles.popularTagsTitle, { color: theme.colors.textSecondary }]}>Popular Tags:</Text>
-            <View style={styles.popularTags}>
-              {popularTags.map((tag) => (
-                <TouchableOpacity
-                  key={tag}
-                  style={[
-                    styles.popularTag,
-                    {
-                      backgroundColor: tags.includes(tag) ? theme.colors.primary + '15' : theme.colors.backgroundSecondary,
-                      borderColor: tags.includes(tag) ? theme.colors.primary : theme.colors.border,
-                    }
-                  ]}
-                  onPress={() => addTag(tag)}
-                  disabled={tags.includes(tag) || tags.length >= 10}
-                >
-                  <Hash size={10} color={tags.includes(tag) ? theme.colors.primary : theme.colors.textTertiary} />
-                  <Text
-                    style={[
-                      styles.popularTagText,
-                      {
-                        color: tags.includes(tag) ? theme.colors.primary : theme.colors.textTertiary,
-                      }
-                    ]}
-                  >
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
 
           {/* Guidelines */}
           <View style={[styles.guidelines, { backgroundColor: theme.colors.card }]}>
@@ -397,80 +293,27 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 4,
   },
-  categoriesContainer: {
+  communitiesContainer: {
     paddingRight: 20,
-    gap: 8,
+    gap: 12,
   },
-  categoryChip: {
+  communityChip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  selectedTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  selectedTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 12,
     borderRadius: 16,
-    gap: 4,
-  },
-  selectedTagText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  customTagContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  customTagInput: {
-    flex: 1,
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    minWidth: 120,
+  },
+  communityText: {
     fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  addTagButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  popularTagsTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  popularTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  popularTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 3,
-  },
-  popularTagText: {
+  communityDescription: {
     fontSize: 11,
-    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 2,
+    fontWeight: '400',
   },
   guidelines: {
     marginTop: 24,
