@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, PanResponder, Animated, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { MOOD_LABELS } from '@/types/entry';
 
@@ -11,117 +11,37 @@ interface MoodSelectorProps {
 export function MoodSelector({ value, onChange }: MoodSelectorProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const screenWidth = Dimensions.get('window').width;
-  const sliderWidth = Math.min(300, screenWidth - 80); // Responsive width with padding
-  const stepWidth = sliderWidth / 4; // 4 steps between 5 marks
-  
-  const pan = useRef(new Animated.Value((value - 1) * stepWidth)).current;
-  const [currentPosition, setCurrentPosition] = useState<number>((value - 1) * stepWidth);
-
-  useEffect(() => {
-    const newPosition = (value - 1) * stepWidth;
-    setCurrentPosition(newPosition);
-    Animated.spring(pan, {
-      toValue: newPosition,
-      useNativeDriver: false,
-      tension: 120,
-      friction: 7,
-    }).start();
-  }, [value, stepWidth, pan]);
-
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => {
-      pan.setOffset(currentPosition);
-      pan.setValue(0);
-    },
-    onPanResponderMove: (_, gestureState) => {
-      const newValue = Math.max(-currentPosition, Math.min(sliderWidth - currentPosition, gestureState.dx));
-      pan.setValue(newValue);
-    },
-    onPanResponderRelease: (_, gestureState) => {
-      const finalPosition = Math.max(0, Math.min(sliderWidth, currentPosition + gestureState.dx));
-      const nearestStep = Math.round(finalPosition / stepWidth);
-      const snapPosition = nearestStep * stepWidth;
-      
-      pan.flattenOffset();
-      setCurrentPosition(snapPosition);
-      
-      Animated.spring(pan, {
-        toValue: snapPosition,
-        useNativeDriver: false,
-        tension: 120,
-        friction: 7,
-      }).start();
-      
-      const newMood = Math.max(1, Math.min(5, nearestStep + 1));
-      onChange(newMood);
-    },
-  });
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.label}>Overall Mood</Text>
-        <View style={styles.valueContainer}>
-          <Text style={styles.value}>{value}</Text>
-          <Text style={styles.valueMax}>/5</Text>
-        </View>
+        <Text style={styles.value}>{value}/5</Text>
       </View>
-      
-      <View style={[styles.sliderContainer, { width: sliderWidth + 40 }]}>
-        {/* Track */}
-        <View style={[styles.track, { width: sliderWidth }]} />
-        
-        {/* Active track */}
-        <View 
-          style={[
-            styles.activeTrack, 
-            { 
-              width: ((value - 1) / 4) * sliderWidth,
-            }
-          ]} 
-        />
-        
-        {/* Marks */}
-        {[1, 2, 3, 4, 5].map((mark, index) => (
-          <View
-            key={mark}
+      <View style={styles.moodContainer}>
+        {[1, 2, 3, 4, 5].map((mood) => (
+          <TouchableOpacity
+            key={mood}
             style={[
-              styles.mark,
-              { left: index * stepWidth + 20 }, // 20px offset for container padding
-              value >= mark && styles.markActive
+              styles.moodButton,
+              value >= mood && { 
+                backgroundColor: theme.colors.text,
+              }
             ]}
+            onPress={() => onChange(mood)}
+            testID={`mood-${mood}`}
           >
-            <Text style={[
-              styles.markLabel,
-              value >= mark && styles.markLabelActive
-            ]}>
-              {mark}
-            </Text>
-          </View>
+            <View style={[
+              styles.moodDot,
+              value >= mood && styles.moodDotActive
+            ]} />
+          </TouchableOpacity>
         ))}
-        
-        {/* Slider thumb */}
-        <Animated.View
-          style={[
-            styles.thumb,
-            {
-              left: 20, // Match container padding
-              transform: [{ translateX: pan }],
-            },
-          ]}
-          {...panResponder.panHandlers}
-        />
       </View>
-      
       {value > 0 && (
-        <View style={styles.moodLabelContainer}>
-          <Text style={styles.moodLabel}>
-            {MOOD_LABELS[value as keyof typeof MOOD_LABELS]}
-          </Text>
-        </View>
+        <Text style={styles.moodLabel}>
+          {MOOD_LABELS[value as keyof typeof MOOD_LABELS]}
+        </Text>
       )}
     </View>
   );
@@ -129,104 +49,52 @@ export function MoodSelector({ value, onChange }: MoodSelectorProps) {
 
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
-    marginBottom: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
   },
   label: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
-  },
-  valueContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
   },
   value: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.accent,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.text,
   },
-  valueMax: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.regular,
-    color: theme.colors.textSecondary,
-    marginLeft: 2,
+  moodContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
-  sliderContainer: {
-    height: 80,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  track: {
-    height: 6,
-    backgroundColor: theme.colors.borderSecondary,
-    borderRadius: 3,
-    position: 'absolute',
-    top: 37, // Center vertically
-  },
-  activeTrack: {
-    height: 6,
-    backgroundColor: theme.colors.accent,
-    borderRadius: 3,
-    position: 'absolute',
-    top: 37, // Center vertically
-  },
-  mark: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  moodButton: {
+    flex: 1,
+    height: 40,
+    borderRadius: theme.borderRadius.sm,
     backgroundColor: theme.colors.card,
-    borderWidth: 2,
-    borderColor: theme.colors.border,
-    top: 24, // Center on track
-    marginLeft: -16, // Center the mark
     justifyContent: 'center',
     alignItems: 'center',
-    ...theme.shadow.small,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border,
   },
-  markActive: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
-    ...theme.shadow.medium,
+  moodDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.border,
   },
-  markLabel: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.textSecondary,
-  },
-  markLabelActive: {
-    color: theme.colors.background,
-    fontWeight: theme.fontWeight.bold,
-  },
-  thumb: {
-    position: 'absolute',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: theme.colors.accent,
-    top: 26, // Center on track
-    marginLeft: -14, // Center the thumb
-    borderWidth: 3,
-    borderColor: theme.colors.background,
-    ...theme.shadow.large,
-  },
-  moodLabelContainer: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.sm,
+  moodDotActive: {
+    backgroundColor: theme.colors.background,
   },
   moodLabel: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.accent,
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.light,
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
 });
