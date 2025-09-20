@@ -14,7 +14,7 @@ import {
   Animated
 } from 'react-native';
 import { Camera, Save, X, ImageIcon, Sparkles } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/use-theme';
@@ -306,6 +306,24 @@ export default function NewEntryScreen() {
         }
       ]}
     >
+      <Stack.Screen 
+        options={{
+          title: 'New Entry',
+          headerRight: () => (
+            <TouchableOpacity 
+              onPress={handleSave}
+              disabled={isSavingEntry || isSaving}
+              style={styles.headerButton}
+            >
+              {(isSavingEntry || isSaving) ? (
+                <ActivityIndicator size="small" color={theme.colors.text} />
+              ) : (
+                <Save size={20} color={theme.colors.text} strokeWidth={1.5} />
+              )}
+            </TouchableOpacity>
+          )
+        }} 
+      />
       <KeyboardAvoidingView 
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -461,6 +479,45 @@ export default function NewEntryScreen() {
             </View>
           </View>
 
+          {/* Mood Tracking */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Mood</Text>
+            <MoodSelector 
+              value={mood.overall}
+              onChange={(value) => setMood({overall: value})}
+            />
+          </View>
+
+          {/* Effects */}
+          <View style={styles.section}>
+            <EffectSelector 
+              effects={effects}
+              onChange={setEffects}
+            />
+          </View>
+
+          {/* Notes */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Notes</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="How was your experience?"
+              placeholderTextColor={theme.colors.textTertiary}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
+          {/* Rating */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Overall Rating</Text>
+            <View style={styles.ratingContainer}>
+              <StarRating rating={rating} onChange={setRating} />
+            </View>
+          </View>
+
           {/* Cannabinoids */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Cannabinoids</Text>
@@ -559,67 +616,6 @@ export default function NewEntryScreen() {
               </View>
             </View>
           </View>
-
-          {/* Mood Tracking */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Mood</Text>
-            <MoodSelector 
-              value={mood.overall}
-              onChange={(value) => setMood({overall: value})}
-            />
-          </View>
-
-          {/* Effects */}
-          <View style={styles.section}>
-            <EffectSelector 
-              effects={effects}
-              onChange={setEffects}
-            />
-          </View>
-
-          {/* Notes */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Notes</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="How was your experience?"
-              placeholderTextColor={theme.colors.textTertiary}
-              multiline
-              numberOfLines={4}
-            />
-          </View>
-
-          {/* Rating */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Overall Rating</Text>
-            <View style={styles.ratingContainer}>
-              <StarRating rating={rating} onChange={setRating} />
-            </View>
-          </View>
-
-          {/* Save Button */}
-          <TouchableOpacity 
-            style={[
-              styles.saveButton,
-              (isSavingEntry || isSaving) && styles.saveButtonDisabled
-            ]}
-            onPress={handleSave}
-            disabled={isSavingEntry || isSaving}
-          >
-            {(isSavingEntry || isSaving) ? (
-              <>
-                <ActivityIndicator size="small" color={theme.colors.background} />
-                <Text style={styles.saveButtonText}>Saving...</Text>
-              </>
-            ) : (
-              <>
-                <Save size={18} color={theme.colors.background} strokeWidth={1.5} />
-                <Text style={styles.saveButtonText}>Save Entry</Text>
-              </>
-            )}
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </Animated.View>
@@ -857,5 +853,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontWeight: theme.fontWeight.light,
     color: theme.colors.background,
     textAlign: 'center',
+  },
+  headerButton: {
+    padding: theme.spacing.sm,
   },
 });
