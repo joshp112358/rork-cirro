@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
-import { Bot, Send, ArrowLeft, Leaf, Brain, Moon, Users } from 'lucide-react-native';
+import { Bot, Send, Leaf, Brain, Moon, Users } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 
 interface Message {
   id: string;
@@ -132,20 +132,15 @@ export default function BudtenderScreen() {
     <>
       <Stack.Screen 
         options={{
-          title: "AI Budtender",
+          title: "🌿 AI Budtender",
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
           },
           headerTintColor: theme.colors.text,
           headerTitleStyle: {
-            fontWeight: theme.fontWeight.medium,
+            fontWeight: theme.fontWeight.semibold,
           },
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <ArrowLeft size={24} color={theme.colors.text} strokeWidth={1.5} />
-            </TouchableOpacity>
-          ),
         }}
       />
       <SafeAreaView style={styles.container}>
@@ -154,22 +149,16 @@ export default function BudtenderScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <Animated.View style={[styles.botIcon, { transform: [{ scale: pulseAnim }] }]}>
-                <View style={styles.botIconInner}>
-                  <Bot size={28} color={theme.colors.background} strokeWidth={2} />
-                </View>
-                <View style={styles.statusIndicator} />
-              </Animated.View>
-              <View style={styles.headerText}>
-                <Text style={styles.headerTitle}>AI Budtender</Text>
-                <Text style={styles.headerSubtitle}>🌿 Your personal cannabis expert</Text>
-                <View style={styles.statusContainer}>
-                  <View style={styles.onlineIndicator} />
-                  <Text style={styles.statusText}>Online & Ready</Text>
-                </View>
+          <View style={styles.statusHeader}>
+            <Animated.View style={[styles.botIcon, { transform: [{ scale: pulseAnim }] }]}>
+              <View style={styles.botIconInner}>
+                <Bot size={24} color={theme.colors.background} strokeWidth={2} />
               </View>
+              <View style={styles.statusIndicator} />
+            </Animated.View>
+            <View style={styles.statusContainer}>
+              <View style={styles.onlineIndicator} />
+              <Text style={styles.statusText}>Online & Ready to Help</Text>
             </View>
           </View>
 
@@ -270,62 +259,44 @@ const createStyles = (theme: any) => StyleSheet.create({
   keyboardContainer: {
     flex: 1,
   },
-  header: {
+  statusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
     backgroundColor: theme.colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.lg,
   },
   botIcon: {
     position: 'relative',
   },
   botIconInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.shadow.medium,
+    ...theme.shadow.small,
   },
   statusIndicator: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: '#10B981',
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: theme.colors.backgroundSecondary,
-  },
-  headerText: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text,
-    letterSpacing: -0.3,
-    marginBottom: 2,
-  },
-  headerSubtitle: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
   },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   onlineIndicator: {
     width: 8,
@@ -334,11 +305,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: '#10B981',
   },
   statusText: {
-    fontSize: theme.fontSize.xs,
+    fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.success,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   messagesContainer: {
     flex: 1,
