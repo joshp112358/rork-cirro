@@ -132,7 +132,7 @@ export default function BudtenderScreen() {
     <>
       <Stack.Screen 
         options={{
-          title: "🌿 AI Budtender",
+          title: "AI Budtender",
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
@@ -200,7 +200,7 @@ export default function BudtenderScreen() {
 
             {messages.length === 1 && (
               <View style={styles.quickQuestionsContainer}>
-                <Text style={styles.quickQuestionsTitle}>✨ Popular Questions</Text>
+                <Text style={styles.quickQuestionsTitle}>Popular Questions</Text>
                 <View style={styles.quickQuestionsGrid}>
                   {quickQuestions.map((question) => {
                     const IconComponent = question.icon;
