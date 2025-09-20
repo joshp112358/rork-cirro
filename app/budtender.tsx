@@ -149,18 +149,7 @@ export default function BudtenderScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <View style={styles.statusHeader}>
-            <Animated.View style={[styles.botIcon, { transform: [{ scale: pulseAnim }] }]}>
-              <View style={styles.botIconInner}>
-                <Bot size={24} color={theme.colors.background} strokeWidth={2} />
-              </View>
-              <View style={styles.statusIndicator} />
-            </Animated.View>
-            <View style={styles.statusContainer}>
-              <View style={styles.onlineIndicator} />
-              <Text style={styles.statusText}>Online & Ready to Help</Text>
-            </View>
-          </View>
+
 
           <ScrollView 
             ref={scrollViewRef}
@@ -259,56 +248,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   keyboardContainer: {
     flex: 1,
   },
-  statusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
-    backgroundColor: theme.colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  botIcon: {
-    position: 'relative',
-  },
-  botIconInner: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.success,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...theme.shadow.small,
-  },
-  statusIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#10B981',
-    borderWidth: 2,
-    borderColor: theme.colors.backgroundSecondary,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  onlineIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#10B981',
-  },
-  statusText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.success,
-  },
+
   messagesContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.xl,
