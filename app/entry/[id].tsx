@@ -44,7 +44,9 @@ export default function EntryDetailScreen() {
           onPress: async () => {
             setIsDeleting(true);
             try {
+              console.log('Delete button pressed for entry ID:', id);
               deleteEntry(id as string);
+              console.log('Delete function called, navigating back');
               if (Platform.OS !== 'web') {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               }

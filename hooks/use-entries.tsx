@@ -151,8 +151,8 @@ export const [EntriesProvider, useEntries] = createContextHook(() => {
       return entries;
     },
     onSuccess: (data) => {
-      console.log('Save mutation success, invalidating queries');
-      queryClient.invalidateQueries({ queryKey: ['entries'] });
+      console.log('Save mutation success, updating query cache with:', data.length, 'entries');
+      queryClient.setQueryData(['entries'], data);
     },
     onError: (error) => {
       console.error('Save mutation error:', error);
@@ -190,7 +190,10 @@ export const [EntriesProvider, useEntries] = createContextHook(() => {
   };
 
   const deleteEntry = (id: string) => {
+    console.log('Deleting entry with ID:', id);
+    console.log('Current entries count:', entries.length);
     const updated = entries.filter(e => e.id !== id);
+    console.log('Updated entries count after filter:', updated.length);
     setEntries(updated);
     saveMutation.mutate(updated);
   };
