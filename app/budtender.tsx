@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Bot, Send, MessageCircle, Sparkles, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { Bot, Send, ArrowLeft, Leaf, Brain, Moon, Users } from 'lucide-react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { router } from 'expo-router';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 
 interface Message {
   id: string;
@@ -26,11 +25,39 @@ export default function BudtenderScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const quickQuestions = [
-    "Recommend a strain for relaxation",
-    "Best strains for creativity",
-    "Help with sleep issues",
-    "Strains for social situations"
+    { text: "Recommend a strain for relaxation", icon: Leaf, color: '#10B981' },
+    { text: "Best strains for creativity", icon: Brain, color: '#8B5CF6' },
+    { text: "Help with sleep issues", icon: Moon, color: '#3B82F6' },
+    { text: "Strains for social situations", icon: Users, color: '#F59E0B' }
   ];
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
+
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
@@ -95,7 +122,8 @@ export default function BudtenderScreen() {
   };
 
   const handleQuickQuestion = (question: string) => {
-    setInputText(question);
+    if (!question.trim() || question.length > 100) return;
+    setInputText(question.trim());
   };
 
   const styles = createStyles(theme);
@@ -128,17 +156,25 @@ export default function BudtenderScreen() {
         >
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <View style={styles.botIcon}>
-                <Bot size={24} color={theme.colors.primary} strokeWidth={1.5} />
-              </View>
-              <View>
+              <Animated.View style={[styles.botIcon, { transform: [{ scale: pulseAnim }] }]}>
+                <View style={styles.botIconInner}>
+                  <Bot size={28} color={theme.colors.background} strokeWidth={2} />
+                </View>
+                <View style={styles.statusIndicator} />
+              </Animated.View>
+              <View style={styles.headerText}>
                 <Text style={styles.headerTitle}>AI Budtender</Text>
-                <Text style={styles.headerSubtitle}>Your cannabis expert</Text>
+                <Text style={styles.headerSubtitle}>🌿 Your personal cannabis expert</Text>
+                <View style={styles.statusContainer}>
+                  <View style={styles.onlineIndicator} />
+                  <Text style={styles.statusText}>Online & Ready</Text>
+                </View>
               </View>
             </View>
           </View>
 
           <ScrollView 
+            ref={scrollViewRef}
             style={styles.messagesContainer}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.messagesContent}
@@ -175,17 +211,24 @@ export default function BudtenderScreen() {
 
             {messages.length === 1 && (
               <View style={styles.quickQuestionsContainer}>
-                <Text style={styles.quickQuestionsTitle}>Quick Questions</Text>
-                {quickQuestions.map((question, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.quickQuestionButton}
-                    onPress={() => handleQuickQuestion(question)}
-                  >
-                    <Sparkles size={16} color={theme.colors.primary} strokeWidth={1.5} />
-                    <Text style={styles.quickQuestionText}>{question}</Text>
-                  </TouchableOpacity>
-                ))}
+                <Text style={styles.quickQuestionsTitle}>✨ Popular Questions</Text>
+                <View style={styles.quickQuestionsGrid}>
+                  {quickQuestions.map((question) => {
+                    const IconComponent = question.icon;
+                    return (
+                      <TouchableOpacity
+                        key={question.text}
+                        style={[styles.quickQuestionButton, { borderLeftColor: question.color }]}
+                        onPress={() => handleQuickQuestion(question.text)}
+                      >
+                        <View style={[styles.quickQuestionIcon, { backgroundColor: question.color + '15' }]}>
+                          <IconComponent size={20} color={question.color} strokeWidth={1.5} />
+                        </View>
+                        <Text style={styles.quickQuestionText}>{question.text}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
             )}
           </ScrollView>
@@ -229,9 +272,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   header: {
     paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-    borderBottomWidth: 0.5,
+    paddingTop: theme.spacing.xl,
+    paddingBottom: theme.spacing.xl,
+    backgroundColor: theme.colors.backgroundSecondary,
+    borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
   headerContent: {
@@ -240,23 +284,59 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: theme.spacing.lg,
   },
   botIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.cardSecondary,
+    position: 'relative',
+  },
+  botIconInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
+    ...theme.shadow.medium,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#10B981',
+    borderWidth: 3,
+    borderColor: theme.colors.backgroundSecondary,
+  },
+  headerText: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: theme.fontWeight.heavy,
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
     color: theme.colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
+    marginBottom: 2,
   },
   headerSubtitle: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.light,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  onlineIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+  },
+  statusText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.success,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -280,20 +360,22 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   messageText: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.light,
+    fontWeight: theme.fontWeight.regular,
     lineHeight: theme.lineHeight.relaxed * theme.fontSize.md,
     padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.xl,
   },
   userMessageText: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.success,
     color: theme.colors.background,
+    ...theme.shadow.small,
   },
   aiMessageText: {
     backgroundColor: theme.colors.card,
     color: theme.colors.text,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadow.small,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -321,65 +403,83 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.textSecondary,
   },
   quickQuestionsContainer: {
-    marginTop: theme.spacing.xl,
+    marginTop: theme.spacing.xxl,
     marginBottom: theme.spacing.lg,
   },
   quickQuestionsTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
     marginBottom: theme.spacing.lg,
+    textAlign: 'center',
+  },
+  quickQuestionsGrid: {
+    gap: theme.spacing.md,
   },
   quickQuestionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
     backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 0.5,
+    borderRadius: theme.borderRadius.xl,
+    borderWidth: 1,
     borderColor: theme.colors.border,
+    borderLeftWidth: 4,
     padding: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
+    ...theme.shadow.small,
+  },
+  quickQuestionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   quickQuestionText: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.light,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.text,
     flex: 1,
+    lineHeight: theme.lineHeight.normal * theme.fontSize.md,
   },
   inputContainer: {
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.lg,
-    borderTopWidth: 0.5,
+    backgroundColor: theme.colors.backgroundSecondary,
+    borderTopWidth: 1,
     borderTopColor: theme.colors.border,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: theme.spacing.sm,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 0.5,
+    gap: theme.spacing.md,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.xl,
+    borderWidth: 2,
     borderColor: theme.colors.border,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
+    ...theme.shadow.medium,
   },
   textInput: {
     flex: 1,
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.light,
+    fontWeight: theme.fontWeight.regular,
     color: theme.colors.text,
     maxHeight: 100,
+    lineHeight: theme.lineHeight.normal * theme.fontSize.md,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
+    ...theme.shadow.small,
   },
   sendButtonDisabled: {
     backgroundColor: theme.colors.textTertiary,
+    ...theme.shadow.small,
   },
 });
